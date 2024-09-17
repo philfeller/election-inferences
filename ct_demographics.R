@@ -149,6 +149,24 @@ ct_1860 <- read_ipums_micro(ddi1860) %>%
   ) %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
+# Load 1860 religious-acoomodation data, which is used to estimate degree of denominational affiliation
+religion_1860 <- read_csv(religion_file) %>%
+  select (Town,where(is.numeric)) %>%
+  mutate(combined = get_combined(Town)) %>%
+  rowwise() %>%
+  mutate (total = sum(c_across(Congregational:Friends))) %>%
+  group_by(combined) %>%
+  summarise(cong=sum(Congregational),
+            bap=sum(Baptist),
+            meth=sum(Methodist),
+            epis=sum(Episcopal),
+            total=sum(total)) %>%
+  mutate (pct_cong = cong / total,
+          pct_bap = bap / total,
+          pct_meth = meth / total,
+          pct_epis = epis /total) %>%
+  select(combined, starts_with("pct_"))
+
 # Construct tibbles with data about household wealth and demographics
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
@@ -278,6 +296,7 @@ factors <- ungroup(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(irish_1860 = n()), by = "combined") %>%
   left_join(ct_pop) %>%
+  left_join(religion_1860) %>%
   mutate(
     wealth = wealth / pop,
     comb_wealth = comb_wealth / comb_pop,

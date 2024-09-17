@@ -57,7 +57,7 @@ hartford_county <- c(
   "Avon", "Berlin", "Bloomfield", "Bristol", "Burlington", "Canton",
   "East Hartford", "East Windsor", "Enfield", "Farmington", "Glastonbury",
   "Granby", "Hartford", "Hartland", "Manchester", "Marlborough",
-  "New Britain", "New Canaan", "Rocky Hill", "Simsbury", "South Windsor",
+  "New Britain", "Rocky Hill", "Simsbury", "South Windsor",
   "Southington", "Suffield", "West Hartford", "Wethersfield", "Windsor",
   "Windsor Locks"
 )
@@ -91,7 +91,7 @@ new_haven_county <- c(
 )
 fairfield_county <- c(
   "Bethel", "Bridgeport", "Brookfield", "Danbury", "Darien", "Easton",
-  "Fairfield", "Greenwich", "Huntington", "Monroe", "New Fairfield",
+  "Fairfield", "Greenwich", "Huntington", "Monroe", "New Canaan", "New Fairfield",
   "Newtown", "Norwalk", "Redding", "Ridgefield", "Sherman", "Stamford",
   "Stratford", "Trumbull", "Weston", "Westport", "Wilton"
 )
@@ -150,6 +150,9 @@ ipums_1860 <- paste("./usa_", formatC(last_1860, width=5, flag="0"), ".xml", sep
 
 # Election data taken from https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3
 results_file <- "./electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_office_id_4_show_granularity_dt_id_1.csv"
+
+# Religious accomodation data was taken from images of the 1860 Census Social Statistics schedule for each town.
+religion_file <- "./1860_CT_religious_accomodation.csv"
 
 # Parties contesting in each election year
 p51 <- c("Democrat_in_1851", "Whig_in_1851", "Free_Soil_in_1851", "Abstaining_in_1851")
