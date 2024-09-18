@@ -51,15 +51,15 @@ R
 - test.R - Contains one simple inference and a few graphs; it is used by the CI/CD pipeline to test that all needed files are included and working as expected.
 
 IPUMS data
-These files can be used if you do not want to set up an IPUMS API keys and download your own data. If you use them, you will need to modify variables.R.
+Census population data come from [IPUMS](https://usa.ipums.org/usa/). These files can be used if you do not want to set up an IPUMS API keys and download your own data. If you use them, you will need to modify variables.R.
 - usa_00023.xml
 - usa_00023.dat.gz
 - usa_00024.xml
 - usa_00024.dat.gz
 
--Non-IPUMS census data
--The Social Statistics schedule includes the number of religious accommodations (seats) by demonination; and schedule images are available on [FamilySearch](https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census). These data were hand-entered into a CSV file.
--- 1860_CT_religious_accomodation.csv
+Other census data
+The Social Statistics schedule includes the number of religious accommodations (seats) by demonination; and schedule images are available on [FamilySearch](https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census). These data were hand-entered into a CSV file.
+- 1860_CT_religious_accomodation.csv
 
 Elections data
 These data were downloaded from [the Connecticut Secetary of State](https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3).
