@@ -36,7 +36,7 @@ Rscript analyze_results.R
 ```
 ## Files included in project
 
-R
+### R
 - lookup_1850.Rda - Defines the range of IPUMS serial numbers for a particular town in 1850
 - lookup_1860.Rda - Defines the range of IPUMS serial numbers for a particular town in 1860
 - download_ipums.R - Download census data from IPUMS; requires an API key and that the key is defined in environment variable API_KEY.
@@ -50,22 +50,22 @@ R
 - analyze_results.R - Loads the inferences.Rda data file that was created by prepare_results.R and performs the statistical analysis that is used in the paper.
 - test.R - Contains one simple inference and a few graphs; it is used by the CI/CD pipeline to test that all needed files are included and working as expected.
 
-IPUMS data
+### IPUMS data
 Census population data come from [IPUMS](https://usa.ipums.org/usa/). These files can be used if you do not want to set up an IPUMS API keys and download your own data. If you use them, you will need to modify variables.R.
 - usa_00023.xml
 - usa_00023.dat.gz
 - usa_00024.xml
 - usa_00024.dat.gz
 
-Other census data
+### Other census data
 The Social Statistics schedule includes the number of religious accommodations (seats) by demonination; and schedule images are available on [FamilySearch](https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census). These data were hand-entered into a CSV file.
 - 1860_CT_religious_accomodation.csv
 
-Elections data
+### Elections data
 These data were downloaded from [the Connecticut Secetary of State](https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3).
 - electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_office_id_4_show_granularity_dt_id_1.csv
 
-ESRI shapefiles
+### ESRI shapefiles
 These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-data-website-ctdeep.hub.arcgis.com/maps/82672ae5f3764021b9a4804f524f928b/about). Where towns were created from parts of other towns, I've drawn boundaries that conform as closely as possible to historic maps or town histories.
 - 1851_CT_towns.shp
 - 1851_CT_towns.shx
@@ -86,13 +86,13 @@ These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-
 - 1857_CT_towns.shx
 - 1857_CT_towns.dbf
 
-Docker files
+### Docker files
 - docker/Dockerfile - Docker file used to build the ghcr.io/philfeller/election-inferences image
 - docker/renv.lock - File that defines the R packages to be installed in the image
 - runner/Dockerfile - Docker file used to build a self-hosted runner image
 - runner/entrypoint.sh - BASH script used within the image to register and start a self-hosted runner
 
-GitHub files
+### GitHub files
 - .github/workflows/deploy-image.yml - Builds and deploys the main Docker image
 - .github/workflows/deploy-runner-image.yml - Builds and deploys the Docker image used for runners
 - .github/workflows/test-code.yml - Tests the integrity of the code on a self-hosted runner using the ghcr.io/philfeller/election-inferences image.
