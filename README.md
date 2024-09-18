@@ -58,7 +58,7 @@ These files can be used if you do not want to set up an IPUMS API keys and downl
 - usa_00024.dat.gz
 
 -Non-IPUMS census data
--The Social Statistics schedule includes the number of religious accomodations (seats) by demonination; and schedule images are available on [FamilySearch](https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census). These data were hand-entered into a CSV file.
+-The Social Statistics schedule includes the number of religious accommodations (seats) by demonination; and schedule images are available on [FamilySearch](https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census). These data were hand-entered into a CSV file.
 -- 1860_CT_religious_accomodation.csv
 
 Elections data

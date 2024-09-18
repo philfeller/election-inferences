@@ -149,7 +149,9 @@ ct_1860 <- read_ipums_micro(ddi1860) %>%
   ) %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
-# Load 1860 religious-acoomodation data, which is used to estimate degree of denominational affiliation
+# Load 1860 religious-accommodation data, which is used to estimate degree of denominational affiliation.
+# Data were hand-entered into a spreadsheet from FamilySearch Social Statistics census schedule images:
+https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census
 religion_1860 <- read_csv(religion_file) %>%
   select (Town,where(is.numeric)) %>%
   mutate(combined = get_combined(Town)) %>%
