@@ -24,7 +24,7 @@ A typical execution is done in three steps:
 1. Create and download an extract from IPUMS US census data.
 ```
 export API_KEY=your API key
-Rscript create_rda.R
+Rscript download_ipums.R
 ```
 2. Calculate inferences:
 ```
@@ -57,8 +57,12 @@ These files can be used if you do not want to set up an IPUMS API keys and downl
 - usa_00024.xml
 - usa_00024.dat.gz
 
+-Non-IPUMS census data
+-The Social Statistics schedule includes the number of religious accomodations (seats) by demonination; and schedule images are available on [FamilySearch](https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census). These data were hand-entered into a CSV file.
+-- 1860_CT_religious_accomodation.csv
+
 Elections data
-This data was downloaded from [the Connecticut Secetary of State](https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3).
+These data were downloaded from [the Connecticut Secetary of State](https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3).
 - electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_office_id_4_show_granularity_dt_id_1.csv
 
 ESRI shapefiles
