@@ -32,13 +32,15 @@ results.51_57 <- create_results(1851, 1857)
 # the ei.MD.bayes function are wrapped in a loop that tests for convergence to ensure that
 # results are useable.
 
-tune_size <- 10000
 # Define model factors
-sample <- 1000
+tune_size <- 10000
+sample <- 2000
 thin <- 10
 burnin <- 1000
-lambda1 <- 7
-lambda2 <- 1
+
+# Set parameters for gamma-distribution based on observed alpha results
+lambda2 <- 5 / 32.5
+lambda1 <- 5 * lambda2
 
 tune.52 <- tuneMD(
   cbind(Democrat_in_1852, Whig_in_1852, Free_Soil_in_1852, Abstaining_in_1852)
@@ -58,22 +60,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.52, p52))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1852 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.52 <- construct_contingency(results.52, betasMD(beta_simsMD(ei.52, p52)), 1851, 1852)
-  n52 <- nrow(results.52)
-  meriden <- results.52 %>% with(which(town == "Meriden"))
-  meriden.52 <- construct_contingency(results.52, betasMD(beta_simsMD(ei.52, p52, meriden)), 1851, 1852, meriden)
-  print(table.52)
-}
+table.52 <- construct_contingency(results.52, betasMD(beta_simsMD(ei.52, p52)), 1851, 1852)
+print(table.52)
 
-sample <- 1000
-thin <- 10000
-burnin <- 1000
-lambda1 <- 9
-lambda2 <- 2
+lambda2 <- 4.55 / 56
+lambda1 <- 5 * lambda2
 
 tune.53 <- tuneMD(
   cbind(Democrat_in_1853, Whig_in_1853, Free_Soil_in_1853, Abstaining_in_1853)
@@ -93,22 +84,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.53, p53))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1853 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.53 <- construct_contingency(results.53, betasMD(beta_simsMD(ei.53, p53)), 1852, 1853)
-  n53 <- nrow(results.53)
-  meriden <- results.53 %>% with(which(town == "Meriden"))
-  meriden.53 <- construct_contingency(results.53, betasMD(beta_simsMD(ei.53, p53, meriden)), 1852, 1853, meriden)
-  print(table.53)
-}
+table.53 <- construct_contingency(results.53, betasMD(beta_simsMD(ei.53, p53)), 1852, 1853)
+print(table.53)
 
-sample <- 1000
-thin <- 10000
-burnin <- 10000
-lambda1 <- 7
-lambda2 <- 1
+lambda2 <- 1.75 / 13.5
+lambda1 <- 1.75 * lambda2
 
 tune.54 <- tuneMD(
   cbind(Democrat_in_1854, Whig_in_1854, Free_Soil_in_1854, Temperance_in_1854, Abstaining_in_1854)
@@ -128,22 +108,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.54, p54))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1854 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.54 <- construct_contingency(results.54, betasMD(beta_simsMD(ei.54, p54)), 1853, 1854)
-  n54 <- nrow(results.54)
-  meriden <- results.54 %>% with(which(town == "Meriden"))
-  meriden.54 <- construct_contingency(results.54, betasMD(beta_simsMD(ei.54, p54, meriden)), 1853, 1854, meriden)
-  print(table.54)
-}
+table.54 <- construct_contingency(results.54, betasMD(beta_simsMD(ei.54, p54)), 1853, 1854)
+print(table.54)
 
-sample <- 1000
-thin <- 10000
-burnin <- 20000
-lambda1 <- 7
-lambda2 <- 1
+lambda2 <- 2.5 / 16
+lambda1 <- 2.5 * lambda2
 
 tune.55 <- tuneMD(
   cbind(Democrat_in_1855, Whig_in_1855, Know_Nothing_in_1855, Abstaining_in_1855)
@@ -163,16 +132,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.55, p55))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1855 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.55 <- construct_contingency(results.55, betasMD(beta_simsMD(ei.55, p55)), 1854, 1855)
-  n55 <- nrow(results.55)
-  meriden <- results.55 %>% with(which(town == "Meriden"))
-  meriden.55 <- construct_contingency(results.55, betasMD(beta_simsMD(ei.55, p55, meriden)), 1854, 1855, meriden)
-  print(table.55)
-}
+table.55 <- construct_contingency(results.55, betasMD(beta_simsMD(ei.55, p55)), 1854, 1855)
+print(table.55)
+
+lambda2 <- 2 / 16
+lambda1 <- 2 * lambda2
 
 tune.56 <- tuneMD(
   cbind(Democrat_in_1856, Whig_in_1856, Know_Nothing_in_1856, Republican_in_1856, Abstaining_in_1856)
@@ -192,22 +156,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.56, p56))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1856 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.56 <- construct_contingency(results.56, betasMD(beta_simsMD(ei.56, p56)), 1855, 1856)
-  n56 <- nrow(results.56)
-  meriden <- results.56 %>% with(which(town == "Meriden"))
-  meriden.56 <- construct_contingency(results.56, betasMD(beta_simsMD(ei.56, p56, meriden)), 1855, 1856, meriden)
-  print(table.56)
-}
+table.56 <- construct_contingency(results.56, betasMD(beta_simsMD(ei.56, p56)), 1855, 1856)
+print(table.56)
 
-sample <- 1000
-thin <- 100
-burnin <- 20000
-lambda1 <- 9
-lambda2 <- 2
+lambda2 <- 2 / 4
+lambda1 <- 2 * lambda2
 
 tune.57 <- tuneMD(
   cbind(Democrat_in_1857, Republican_in_1857, Abstaining_in_1857)
@@ -227,22 +180,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.57, p57))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1857 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.57 <- construct_contingency(results.57, betasMD(beta_simsMD(ei.57, p57)), 1856, 1857)
-  n57 <- nrow(results.57)
-  meriden <- results.57 %>% with(which(town == "Meriden"))
-  meriden.57 <- construct_contingency(results.57, betasMD(beta_simsMD(ei.57, p57, meriden)), 1856, 1857, meriden)
-  print(table.57)
-}
+table.57 <- construct_contingency(results.57, betasMD(beta_simsMD(ei.57, p57)), 1856, 1857)
+print(table.57)
 
-sample <- 1000
-thin <- 5000
-burnin <- 10000
-lambda1 <- 7
-lambda2 <- 1
+lambda2 <- 2 / 5.5
+lambda1 <- 2 * lambda2
 
 tune.51_57 <- tuneMD(
   cbind(Democrat_in_1857, Republican_in_1857, Abstaining_in_1857)
@@ -262,19 +204,11 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(ei.51_57, p57))[, 1]
 }
-if (sum(h) != length(h)) {
-  print(paste("1851-57 doesn't converge"))
-  print(h[h == 0])
-} else {
-  table.51_57 <- construct_contingency(results.51_57, betasMD(beta_simsMD(ei.51_57, p57)), 1851, 1857)
-  n51_57 <- nrow(results.51_57)
-  meriden <- results.51_57 %>% with(which(town == "Meriden"))
-  meriden.51_57 <- construct_contingency(results.51_57, betasMD(beta_simsMD(ei.51_57, p57, meriden)), 1851, 1857, meriden)
-  print(table.51_57)
-}
+table.51_57 <- construct_contingency(results.51_57, betasMD(beta_simsMD(ei.51_57, p57)), 1851, 1857)
+print(table.51_57)
 
 save(
   results.52, results.53, results.54, results.55, results.56, results.51_57,
-  ei.52, ei.53, ei.54, ei.55, ei.56, ei.51_57,
+  ei.52, ei.53, ei.54, ei.55, ei.56, ei.57, ei.51_57,
   file = "inferences.Rda"
 )
