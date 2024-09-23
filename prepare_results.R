@@ -387,18 +387,18 @@ create_results <- function(beg_yr, end_yr) {
     )
 
   # Choose the appropriate shapefile from which to get longitude
-  shapefile <- "1851_CT_towns.shp"
+  shapefile <- "./maps/1851_CT_towns.shp"
   if (beg_yr >= 1852) {
-    shapefile <- "1852_CT_towns.shp"
+    shapefile <- "./maps/1852_CT_towns.shp"
   }
   if (beg_yr >= 1854) {
-    shapefile <- "1854_CT_towns.shp"
+    shapefile <- "./maps/1854_CT_towns.shp"
   }
   if (beg_yr >= 1855) {
-    shapefile <- "1855_CT_towns.shp"
+    shapefile <- "./maps/1855_CT_towns.shp"
   }
   if (end_yr >= 1856) {
-    shapefile <- "1856_CT_towns.shp"
+    shapefile <- "./maps/1856_CT_towns.shp"
   }
   longitude <- as.data.frame(read_sf(shapefile)) %>%
     select(TOWN_NAME, LON) %>%
