@@ -14,7 +14,7 @@ variables_1850 <- list(
 )
 
 # The 1860 census added personal property value
-variables_1860 <- append(variables_1850,"PERSPROP")
+variables_1860 <- append(variables_1850, "PERSPROP")
 
 # Define that data will be extracted from the 1850 full-count US census
 extract_1850 <- submit_extract(

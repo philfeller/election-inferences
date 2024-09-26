@@ -8,7 +8,7 @@ source("betas.R")
 source("present.R")
 source("prepare_results.R")
 
-results.52 <- create_results(1851,1852)
+results.52 <- create_results(1851, 1852)
 
 # Define model factors
 tune_size <- 10000
@@ -39,10 +39,10 @@ while (sum(h) != length(h)) {
   h <- heidel.diag(lambda.MD(ei.52, p52))[, 1]
 }
 
-print(construct_contingency(results.52,betasMD(beta_simsMD(ei.52,p52)), 1851, 1852))
+print(construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52)), 1851, 1852))
 meriden <- results.52 %>% with(which(town=="Meriden"))
-print(construct_contingency(results.52,betasMD(beta_simsMD(ei.52,p52,meriden)), 1851, 1852, meriden))
+print(construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52,meriden)), 1851, 1852, meriden))
 
-boxplot <- boxplotMD(beta_simsMD(ei.52,p52), 1851, 1852)
-ridge <- ridgelineMD(beta_simsMD(ei.52,p52), 1851, 1852)
-map <- create_map(1851,results.52$Free_Soil_vote_in_1852/results.52$total_1852)
+boxplot <- boxplotMD(beta.sims.MD(ei.52, p52), 1851, 1852)
+ridge <- ridgelineMD(beta.sims.MD(ei.52, p52), 1851, 1852)
+map <- create_map(1851, results.52$Free_Soil_vote_in_1852 / results.52$total_1852)

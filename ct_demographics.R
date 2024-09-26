@@ -53,8 +53,8 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change) {
   native_voters <- native_1850 + round((yr - 1850) * native_change)
 
   cum_1820_1845 <- 8385 + 9127 + 6911 + 6354 + 7912 + 10199 + 10837 + 18875 +
-  27382 + 22520 + 23322 + 22633 + 60482 + 58640 + 65365 + 45374 + 76242 +
-  79340 + 38914 + 68069 + 84066 + 80289 + 104565 + 52496 + 78615 + 114371
+    27382 + 22520 + 23322 + 22633 + 60482 + 58640 + 65365 + 45374 + 76242 +
+    79340 + 38914 + 68069 + 84066 + 80289 + 104565 + 52496 + 78615 + 114371
   imm_1846 <- 154416
   imm_1847 <- 234968
   imm_1848 <- 226527
@@ -67,10 +67,10 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change) {
   # the Connecticut residency requirement, making those who immigrated before
   # June 30, 1845, eligible for the 1851 election.
   pct_1851 <- cum_1820_1845 / cum_1820_1850
-  pct_1852 <- (cum_1820_1845 + imm_1846)/ cum_1820_1850
-  pct_1853 <- (cum_1820_1845 + imm_1846 + imm_1847)/ cum_1820_1850
-  pct_1854 <- (cum_1820_1845 + imm_1846 + imm_1847 + imm_1848)/ cum_1820_1850
-  pct_1855 <- (cum_1820_1845 + imm_1846 + imm_1847 + imm_1848 + imm_1849)/ cum_1820_1850
+  pct_1852 <- (cum_1820_1845 + imm_1846) / cum_1820_1850
+  pct_1853 <- (cum_1820_1845 + imm_1846 + imm_1847) / cum_1820_1850
+  pct_1854 <- (cum_1820_1845 + imm_1846 + imm_1847 + imm_1848) / cum_1820_1850
+  pct_1855 <- (cum_1820_1845 + imm_1846 + imm_1847 + imm_1848 + imm_1849) / cum_1820_1850
   #  Assume that the literacy requirement enacted in 1855 effectively suppresses
   # significant addition of foreign-born voters for the 1856 and 1857 elections.
   foreign_voters <- case_when(
@@ -153,20 +153,24 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
 # Data were hand-entered into a spreadsheet from FamilySearch Social Statistics census schedule images:
 # https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census
 religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
-  select (Town,where(is.numeric)) %>%
+  select(Town, where(is.numeric)) %>%
   mutate(combined = get_combined(Town)) %>%
   rowwise() %>%
-  mutate (total = sum(c_across(Congregational:Friends))) %>%
+  mutate(total = sum(c_across(Congregational:Friends))) %>%
   group_by(combined) %>%
-  summarise(cong=sum(Congregational),
-            bap=sum(Baptist),
-            meth=sum(Methodist),
-            epis=sum(Episcopal),
-            total=sum(total)) %>%
-  mutate (pct_cong = cong / total,
-          pct_bap = bap / total,
-          pct_meth = meth / total,
-          pct_epis = epis /total) %>%
+  summarise(
+    cong = sum(Congregational),
+    bap = sum(Baptist),
+    meth = sum(Methodist),
+    epis = sum(Episcopal),
+    total = sum(total)
+  ) %>%
+  mutate(
+    pct_cong = cong / total,
+    pct_bap = bap / total,
+    pct_meth = meth / total,
+    pct_epis = epis / total
+  ) %>%
   select(combined, starts_with("pct_"))
 
 # Construct tibbles with data about household wealth and demographics
@@ -310,4 +314,6 @@ factors <- ungroup(ct_1860_hh %>%
     farm_change = pct_farm_1860 - pct_farm_1850
   ) %>%
   filter(combined != "UNKNOWN")) %>%
-  select(town, combined, ends_with("gini"), ends_with("wealth"), ends_with("age_1850"), ends_with("age_1860"), starts_with("pct"), ends_with("change"))
+  select(town, combined, ends_with("gini"), ends_with("wealth"),
+         ends_with("age_1850"), ends_with("age_1860"),
+         starts_with("pct"), ends_with("change"))

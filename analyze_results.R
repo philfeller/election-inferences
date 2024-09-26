@@ -34,13 +34,13 @@ non.mu.55 <- weighted.mean(results.55$Abstaining_in_1855, weights.55)
 non.sd.55 <- sqrt(sum(weights.55 * (results.55$Abstaining_in_1855 - non.mu.55)^2))
 
 for (t in 1:nrow(results.55)) {
-  if (abs((results.55$Whig_in_1854[t] - whig.mu.54) / whig.sd.54) < 0.55 &
-    abs((results.55$Democrat_in_1854[t] - dem.mu.54) / dem.sd.54) < 0.55 &
-    abs((results.54$Whig_in_1853[t] - whig.mu.53) / whig.sd.53) < 0.55 &
-    abs((results.54$Democrat_in_1853[t] - dem.mu.53) / dem.sd.53) < 0.55 &
-    (results.55$Know_Nothing_in_1855[t] - kn.mu.55) / kn.sd.55 > 0.55 &
+  if (abs((results.55$Whig_in_1854[t] - whig.mu.54) / whig.sd.54) < 0.55 &&
+    abs((results.55$Democrat_in_1854[t] - dem.mu.54) / dem.sd.54) < 0.55 &&
+    abs((results.54$Whig_in_1853[t] - whig.mu.53) / whig.sd.53) < 0.55 &&
+    abs((results.54$Democrat_in_1853[t] - dem.mu.53) / dem.sd.53) < 0.55 &&
+    (results.55$Know_Nothing_in_1855[t] - kn.mu.55) / kn.sd.55 > 0.55 &&
     (results.55$Free_Soil_in_1854[t] - fs.mu.54) / fs.sd.54 > 0.55) {
-    betas <- betasMD(beta_simsMD(ei.55, p55, t))
+    betas <- betas.MD(beta.sims.MD(ei.55, p55, t))
     print(kable(construct_contingency(results.55, betas, 1854, 1855, t, 1),
       caption = paste(t, results.55$town[t], sep = ": ")
     ))
@@ -52,7 +52,7 @@ for (t in 1:nrow(results.55)) {
 # Know Nothing than they were statewide, even at a 99.99% confidence level.
 
 meriden <- results.55 %>% with(which(town == "Meriden"))
-meriden.sims.55 <- beta_simsMD(ei.55, p55, meriden)
-ct.sims.55 <- beta_simsMD(ei.55, p55)
+meriden.sims.55 <- beta.sims.MD(ei.55, p55, meriden)
+ct.sims.55 <- beta.sims.MD(ei.55, p55)
 t.test(meriden.sims.55[1, 3, ], ct.sims.55[1, 3, ], conf.level = 0.9999)
 t.test(meriden.sims.55[2, 3, ], ct.sims.55[2, 3, ], conf.level = 0.9999)
