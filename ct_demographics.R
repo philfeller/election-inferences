@@ -4,11 +4,11 @@
 #   ct_eligible - tibble with estimated number of eligible voters by town and year
 #   factors - tibble with calculated informtion about a town, such as gini
 
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(readr)
 library(tibble)
 library(tidyr)
-library(lubridate)
+library(lubridate, warn.conflicts = FALSE)
 library(ipumsr)
 library(ineq)
 
@@ -98,7 +98,7 @@ estimate_naturalization <- function(foreign_begin, foreign_end) {
 
 ddi1850 <- read_ipums_ddi(ipums_1850)
 ddi1860 <- read_ipums_ddi(ipums_1860)
-ct_1850 <- read_ipums_micro(ddi1850) %>%
+ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
   select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP) %>%
   mutate(
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
@@ -123,7 +123,7 @@ ct_1850 <- read_ipums_micro(ddi1850) %>%
   ) %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
-ct_1860 <- read_ipums_micro(ddi1860) %>%
+ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
   select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP, PERSPROP) %>%
   mutate(
     WEALTH = REALPROP + PERSPROP,
@@ -152,7 +152,7 @@ ct_1860 <- read_ipums_micro(ddi1860) %>%
 # Load 1860 religious-accommodation data, which is used to estimate degree of denominational affiliation.
 # Data were hand-entered into a spreadsheet from FamilySearch Social Statistics census schedule images:
 # https://www.familysearch.org/records/images/search-results?page=1&place=346&endDate=1860&startDate=1860&creator=Federal%20Census
-religion_1860 <- read_csv(religion_file) %>%
+religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
   select (Town,where(is.numeric)) %>%
   mutate(combined = get_combined(Town)) %>%
   rowwise() %>%
@@ -297,8 +297,8 @@ factors <- ungroup(ct_1860_hh %>%
     filter(BPL == 414) %>%
     group_by(combined) %>%
     summarize(irish_1860 = n()), by = "combined") %>%
-  left_join(ct_pop) %>%
-  left_join(religion_1860) %>%
+  left_join(ct_pop, by = "combined") %>%
+  left_join(religion_1860, by = "combined") %>%
   mutate(
     wealth = wealth / pop,
     comb_wealth = comb_wealth / comb_pop,

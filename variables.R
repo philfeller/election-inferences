@@ -1,5 +1,12 @@
-library(ipumsr)
 # Variables used in other scripts are consolidated here
+
+library(ipumsr)
+
+# Suppress warnings; the ei.MD.bayes function produces uninformative warnings because the
+# row and column marginals are proportions.
+# Suppress messages about the default group that deplyr.summarise chooses.
+options(warn = -1,
+        dplyr.summarise.inform = FALSE)
 
 # Codes used in IPUMS census records
 connecticut_icp <- 01

@@ -52,3 +52,7 @@ jobs:
           push: true
           context: "{{defaultContext}}:docker"
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      # Rebuild GitHub runner when image changes
+      - name: Build runner
+        uses: ./.github/workflows/deploy-runner-image.yml
