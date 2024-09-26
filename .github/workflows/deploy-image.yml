@@ -15,7 +15,7 @@ jobs:
   # Push image to GitHub Packages.
   # See https://docs.docker.com/build/ci/github-actions/
   # and https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions
-  push:
+  push-main-image:
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -25,9 +25,7 @@ jobs:
       - name: Check out docker files
         uses: actions/checkout@v4
         with:
-          sparse-checkout: |
-            docker
-            runner
+          sparse-checkout: docker
 
       - name: Run file diff checking image
         id: changed-docker-files
@@ -56,5 +54,5 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       # Rebuild GitHub runner when image changes
-      - name: Build runner
-        uses: ./.github/workflows/deploy-runner-image.yml
+  push-runner- image:
+    uses: ./.github/workflows/deploy-runner-image.yml
