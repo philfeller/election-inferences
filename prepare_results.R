@@ -189,7 +189,7 @@ create_factors <- function(tibble, beg_yr, end_yr) {
 # Read and process the downloaded election results file
 read_results <- function(file) {
   return(
-    read_csv(file) %>%
+    read_csv(file, show_col_types = FALSE) %>%
       select(
         election_date,
         candidate_name,
