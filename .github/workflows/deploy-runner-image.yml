@@ -1,10 +1,11 @@
 name: Docker for GitHub runner
 
 on:
+  workflow_dispatch:
+  workflow_call:
   push:
     paths:
       - 'runner/**'
-  workflow_call:
 
 env:
   # Use GitHub Packages as registry

@@ -1,6 +1,7 @@
 name: Docker for image capable of running R with all required packages
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'docker/**'
