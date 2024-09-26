@@ -59,3 +59,4 @@ jobs:
       packages: write
       contents: read
     uses: ./.github/workflows/deploy-runner-image.yml
+    secrets: inherit
