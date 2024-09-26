@@ -25,7 +25,9 @@ jobs:
       - name: Check out docker files
         uses: actions/checkout@v4
         with:
-          sparse-checkout: docker
+          sparse-checkout:
+            - docker
+            - runner
 
       - name: Run file diff checking image
         id: changed-docker-files
