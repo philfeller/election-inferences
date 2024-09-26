@@ -150,8 +150,8 @@ for (ipums_extract in ipums_extracts) {
   if (grepl("1860", ipums_extract$description)) last_1860 <- ipums_extract$number
 }
 
-ipums_1850 <- paste("./data/usa_", formatC(last_1850, width=5, flag="0"), ".xml", sep="")
-ipums_1860 <- paste("./data/usa_", formatC(last_1860, width=5, flag="0"), ".xml", sep="")
+ipums_1850 <- paste("./data/usa_", formatC(last_1850, width = 5, flag = "0"), ".xml", sep = "")
+ipums_1860 <- paste("./data/usa_", formatC(last_1860, width = 5, flag = "0"), ".xml", sep = "")
 # ipums_1850 <- "./data/usa_00023.xml"
 # ipums_1860 <- "./data/usa_00024.xml"
 

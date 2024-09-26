@@ -37,7 +37,7 @@ tune_size <- 10000
 sample <- 2000
 thin <- 10
 burnin <- 1000
-covariate <- '~ LON + pct_farm_1850'
+covariate <- "~ LON + pct_farm_1850"
 
 # Set parameters for gamma-distribution based on observed alpha results
 lambda2 <- 5 / 32.5
@@ -61,7 +61,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.52, p52))[, 1]
 }
-table.52 <- construct_contingency(results.52, betasMD(beta_simsMD(cov.ei.52, p52)), 1851, 1852)
+table.52 <- construct_contingency(results.52, betas.MD(beta.sims.MD(cov.ei.52, p52)), 1851, 1852)
 print(table.52)
 
 lambda2 <- 4.55 / 56
@@ -85,7 +85,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.53, p53))[, 1]
 }
-table.53 <- construct_contingency(results.53, betasMD(beta_simsMD(cov.ei.53, p53)), 1852, 1853)
+table.53 <- construct_contingency(results.53, betas.MD(beta.sims.MD(cov.ei.53, p53)), 1852, 1853)
 print(table.53)
 
 lambda2 <- 1.75 / 13.5
@@ -109,7 +109,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.54, p54))[, 1]
 }
-table.54 <- construct_contingency(results.54, betasMD(beta_simsMD(cov.ei.54, p54)), 1853, 1854)
+table.54 <- construct_contingency(results.54, betas.MD(beta.sims.MD(cov.ei.54, p54)), 1853, 1854)
 print(table.54)
 
 lambda2 <- 2.5 / 16
@@ -133,7 +133,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.55, p55))[, 1]
 }
-table.55 <- construct_contingency(results.55, betasMD(beta_simsMD(cov.ei.55, p55)), 1854, 1855)
+table.55 <- construct_contingency(results.55, betas.MD(beta.sims.MD(cov.ei.55, p55)), 1854, 1855)
 print(table.55)
 
 lambda2 <- 2 / 16
@@ -157,7 +157,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.56, p56))[, 1]
 }
-table.56 <- construct_contingency(results.56, betasMD(beta_simsMD(cov.ei.56, p56)), 1855, 1856)
+table.56 <- construct_contingency(results.56, betas.MD(beta.sims.MD(cov.ei.56, p56)), 1855, 1856)
 print(table.56)
 
 lambda2 <- 2 / 4
@@ -181,7 +181,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.57, p57))[, 1]
 }
-table.57 <- construct_contingency(results.57, betasMD(beta_simsMD(cov.ei.57, p57)), 1856, 1857)
+table.57 <- construct_contingency(results.57, betas.MD(beta.sims.MD(cov.ei.57, p57)), 1856, 1857)
 print(table.57)
 
 lambda2 <- 2 / 5.5
@@ -205,7 +205,7 @@ while (sum(h) != length(h)) {
   )
   h <- heidel.diag(lambda.MD(cov.ei.51_57, p57))[, 1]
 }
-table.51_57 <- construct_contingency(results.51_57, betasMD(beta_simsMD(cov.ei.51_57, p57)), 1851, 1857)
+table.51_57 <- construct_contingency(results.51_57, betas.MD(beta.sims.MD(cov.ei.51_57, p57)), 1851, 1857)
 print(table.51_57)
 
 save(

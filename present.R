@@ -24,7 +24,7 @@ beta_round <- function(matrix, beg_round, end_round, sig_fig) {
   remain <- function(floor, x, y) {
     col_remain <- (beg_round - rowSums(floor))[y]
     row_remain <- (end_round - colSums(floor))[x]
-    if (col_remain > 0 & row_remain > 0) {
+    if (col_remain > 0 && row_remain > 0) {
       return(TRUE)
     } else {
       return(FALSE)
@@ -64,8 +64,8 @@ get_shares <- function(results, yr, townID) {
   if (missing(townID)) {
     totals <- apply(results %>%
                       select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
-  } else{
-    totals <- apply(results[townID,] %>%
+  } else {
+    totals <- apply(results[townID, ] %>%
                       select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
   }
   elig <- totals[length(totals)]
@@ -85,7 +85,8 @@ construct_contingency <- function(results, betas, beg_yr, end_yr, townID, sig_fi
   r_names <- rownames(betas)
   r_name <- paste("share in", end_yr, sep = " ")
   end_shares <- as.vector(get_shares(results, end_yr, townID))
-  beta_shares <- beta_round(betas * beg_shares,pct_round(beg_shares, sig_fig),pct_round(end_shares, sig_fig), sig_fig) * 100
+  beta_shares <- beta_round(betas * beg_shares, pct_round(beg_shares, sig_fig),
+                            pct_round(end_shares, sig_fig), sig_fig) * 100
   beg_shares <- pct_round(beg_shares, sig_fig) * 100
   end_shares <- pct_round(end_shares, sig_fig) * 100
   matrix <- cbind(rbind(beta_shares, end_shares), c(beg_shares, 100))
