@@ -1,6 +1,7 @@
 name: Test integrity of R code
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - '**.R'
