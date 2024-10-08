@@ -24,7 +24,7 @@ combine_results <- function(input_tibble, beg_yr, end_yr) {
   # https://portal.ct.gov/SOTS/Register-Manual/Section-VII/Connecticut-Towns-in-the-Order-of-their-Establishment
 
   # When comparing pre-1856 results to 1856 or 1857, combine towns that split in 1856
-  if (beg_yr < 1856 & end_yr >= 1856) {
+  if (beg_yr < 1856 && end_yr >= 1856) {
     # Putnam, taken from Killingly, Thompson, and Pomfret, in is 1856 and 1857 results
     kp_combined <- combine_towns(input_tibble, killingly_et_al, "Killingly, Thompson, and Pomfret")
     # Bethel, taken from Danbury, is in 1856 and 1857 results
@@ -38,7 +38,7 @@ combine_results <- function(input_tibble, beg_yr, end_yr) {
   }
 
   # When comparing pre-1855 results to 1855 or later, combine towns that split in 1855
-  if (beg_yr < 1855 & end_yr >= 1855) {
+  if (beg_yr < 1855 && end_yr >= 1855) {
     # West Hartford, taken from Hartford, is in 1855, 1856, and 1857 results
     h_combined <- combine_towns(input_tibble, hartford, "Hartford")
     # Windsor Locks taken from Windsor in 1855, 1856, and 1857 results
@@ -49,7 +49,7 @@ combine_results <- function(input_tibble, beg_yr, end_yr) {
   }
 
   # When comparing pre-1852 results to 1852 or later, combine town that split in 1851
-  if (beg_yr < 1852 & end_yr >= 1852) {
+  if (beg_yr < 1852 && end_yr >= 1852) {
     # Cromwell, taken from Middletown, is in results after 1851
     m_combined <- combine_towns(input_tibble, middletown, "Middletown")
   } else {
@@ -106,10 +106,10 @@ assign_party <- function(input_tibble, other = FALSE) {
 
   # Candidates whose names appeared on stray ballots when not their party's nominee
   stray_votes <- input_tibble %>%
-    filter(yr == 1856 & candidate_name == "Henry Dutton") %>%
-    filter(yr > 1853 & candidate_name == "Francis Gillette") %>%
-    filter(yr == 1853 & candidate_name == "Samuel Ingham") %>%
-    filter(yr == 1857 & candidate_name == "William T. Minor")
+    filter(yr == 1856 && candidate_name == "Henry Dutton") %>%
+    filter(yr > 1853 && candidate_name == "Francis Gillette") %>%
+    filter(yr == 1853 && candidate_name == "Samuel Ingham") %>%
+    filter(yr == 1857 && candidate_name == "William T. Minor")
 
   minor_votes <- input_tibble %>%
     filter(!candidate_name %in% major_candidates) %>%
@@ -124,10 +124,10 @@ assign_party <- function(input_tibble, other = FALSE) {
     mutate(candidate_name = ifelse(candidate_name %in% ingham, "Samuel Ingham", candidate_name)) %>%
     filter(candidate_name %in% major_candidates) %>%
     # Remove candidates whose names appeared on stray ballots when their not party's nominee
-    filter(!(yr == 1856 & candidate_name == "Henry Dutton")) %>%
-    filter(!(yr > 1853 & candidate_name == "Francis Gillette")) %>%
-    filter(!(yr == 1853 & candidate_name == "Samuel Ingham")) %>%
-    filter(!(yr == 1857 & candidate_name == "William T. Minor")) %>%
+    filter(!(yr == 1856 && candidate_name == "Henry Dutton")) %>%
+    filter(!(yr > 1853 && candidate_name == "Francis Gillette")) %>%
+    filter(!(yr == 1853 && candidate_name == "Samuel Ingham")) %>%
+    filter(!(yr == 1857 && candidate_name == "William T. Minor")) %>%
     mutate(candidate_party = case_when(
       candidate_name == "Alexander H. Holley" ~ "Republican_votes",
       candidate_name == "Charles Chapman" ~ "Temperance_votes",
@@ -275,7 +275,7 @@ create_results <- function(beg_yr, end_yr) {
   e51 <- raw_results %>%
     filter(yr == 1851) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -291,7 +291,7 @@ create_results <- function(beg_yr, end_yr) {
   e52 <- raw_results %>%
     filter(yr == 1852) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -308,7 +308,7 @@ create_results <- function(beg_yr, end_yr) {
   e53 <- raw_results %>%
     filter(yr == 1853) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -324,7 +324,7 @@ create_results <- function(beg_yr, end_yr) {
   e54 <- raw_results %>%
     filter(yr == 1854) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Know_Nothing_votes = NULL,
@@ -340,7 +340,7 @@ create_results <- function(beg_yr, end_yr) {
   e55 <- raw_results %>%
     filter(yr == 1855) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -356,7 +356,7 @@ create_results <- function(beg_yr, end_yr) {
   e56 <- raw_results %>%
     filter(yr == 1856) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -372,7 +372,7 @@ create_results <- function(beg_yr, end_yr) {
   e57 <- raw_results %>%
     filter(yr == 1857) %>%
     combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
+    filter(yr >= beg_yr && yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Whig_votes = NULL,
@@ -404,7 +404,7 @@ create_results <- function(beg_yr, end_yr) {
     select(TOWN_NAME, LON) %>%
     rename(town = TOWN_NAME) %>%
     mutate(town = ifelse(town == "Putnam" & beg_yr < 1856, "Killingly, Thompson, and Pomfret", town))
-
+  
   # Generate the demographic factors appropriate for the range of years
   demo_factors <- factors %>%
     create_factors(beg_yr, end_yr) %>%
