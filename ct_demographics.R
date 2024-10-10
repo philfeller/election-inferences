@@ -49,8 +49,10 @@ get_combined <- function(town) {
 # up a consistent portion of all immigrants from year to year.
 # Nationwide immigration by year is taken from the 2022 DHS Yearbook:
 # https://www.dhs.gov/ohss/topics/immigration/yearbook/2022
-estimate_voters <- function(yr, native_1850, foreign_1850, native_change) {
-  native_voters <- native_1850 + round((yr - 1850) * native_change)
+estimate_voters <- function(yr, native_1850, foreign_1850, native_change, POLL_CHANGE) {
+  # For towns with incorrect birthplace transcriptions estimate the total
+  # number of eligible using the increase in taxable polls
+  native_voters <- native_1850 + round((yr - 1850) * max(native_change, POLL_CHANGE))
 
   cum_1820_1845 <- 8385 + 9127 + 6911 + 6354 + 7912 + 10199 + 10837 + 18875 +
     27382 + 22520 + 23322 + 22633 + 60482 + 58640 + 65365 + 45374 + 76242 +
@@ -80,20 +82,10 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change) {
     yr == 1854 ~ round(foreign_1850 * pct_1854),
     yr >= 1855 ~ round(foreign_1850 * pct_1855)
   )
-  return(native_voters + foreign_voters)
-}
 
-# Estimate the number of foreign-born residents who are eligible to vote;
-# assume that all otherwise-eligible immigrant residents from the beginning
-# census year are eligible after ten years and that 4/10 of the increase have
-# also become eligible.
-# If the number of foreign-born hasn't increased, assume no further in-migration
-# and that all otherwise-eligible immigrants at the end are eligible because
-# they have lived there for ten years.
-estimate_naturalization <- function(foreign_begin, foreign_end) {
-  increased_foreign <- 0.6 * foreign_begin + 0.4 * foreign_end
-  naturalized <- apply(data.frame(unlist(increased_foreign), unlist(foreign_end)), 1, max)
-  return(round(naturalized))
+  total_voters <- native_voters + foreign_voters
+
+  return(total_voters)
 }
 
 ddi1850 <- read_ipums_ddi(ipums_1850)
@@ -105,48 +97,55 @@ ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
       AGE < 20 ~ "0 - 20",
-      AGE >= 20 & AGE < 30 ~ "20 - 30",
-      AGE >= 30 & AGE < 40 ~ "30 - 40",
-      AGE >= 40 & AGE < 50 ~ "40 - 50",
-      AGE >= 50 & AGE < 60 ~ "50 - 60",
+      AGE >= 20 && AGE < 30 ~ "20 - 30",
+      AGE >= 30 && AGE < 40 ~ "30 - 40",
+      AGE >= 40 && AGE < 50 ~ "40 - 50",
+      AGE >= 50 && AGE < 60 ~ "50 - 60",
       AGE >= 60 ~ "Over 60"
     ),
     # The CLASS column categorizes people according to Doherty's 1977 model
     CLASS = case_when(
-      SEX == 1 & AGE > 30 & REALPROP >= 10000 ~ "elite",
-      SEX == 1 & AGE > 30 & REALPROP >= 750 & REALPROP < 10000 ~ "middle",
-      SEX == 1 & AGE >= 16 & AGE <= 30 & REALPROP < 750 ~ "young",
-      SEX == 1 & AGE > 30 & REALPROP < 750 ~ "casualties"
+      SEX == 1 && AGE > 30 && REALPROP >= 10000 ~ "elite",
+      SEX == 1 && AGE > 30 && REALPROP >= 750 && REALPROP < 10000 ~ "middle",
+      SEX == 1 && AGE >= 16 && AGE <= 30 && REALPROP < 750 ~ "young",
+      SEX == 1 && AGE > 30 && REALPROP < 750 ~ "casualties"
     ),
     town = get_1850_town(SERIAL),
     combined = get_combined(town)
   ) %>%
+  filter(town != "NULL") %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
+# Load file with data that is missing from IPUMS: first pages for Brooklyn and Hebron
+load(file = "missing_1860_ipums_rows.Rda")
+
 ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
+  mutate(RELATE = ifelse(SERIAL == 294445, 1, RELATE)) %>%
   select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP, PERSPROP) %>%
+  bind_rows(missing_rows) %>%
   mutate(
     WEALTH = REALPROP + PERSPROP,
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
       AGE < 20 ~ "0 - 20",
-      AGE >= 20 & AGE < 30 ~ "20 - 30",
-      AGE >= 30 & AGE < 40 ~ "30 - 40",
-      AGE >= 40 & AGE < 50 ~ "40 - 50",
-      AGE >= 50 & AGE < 60 ~ "50 - 60",
+      AGE >= 20 && AGE < 30 ~ "20 - 30",
+      AGE >= 30 && AGE < 40 ~ "30 - 40",
+      AGE >= 40 && AGE < 50 ~ "40 - 50",
+      AGE >= 50 && AGE < 60 ~ "50 - 60",
       AGE >= 60 ~ "Over 60"
     ),
     # The CLASS column categorizes people according to Doherty's 1977 model
     CLASS = case_when(
-      SEX == 1 & AGE > 30 & REALPROP >= 10000 ~ "elite",
-      SEX == 1 & AGE > 30 & REALPROP >= 750 & REALPROP < 10000 ~ "middle",
-      SEX == 1 & AGE >= 16 & AGE <= 30 & REALPROP < 750 ~ "young",
-      SEX == 1 & AGE > 30 & REALPROP < 750 ~ "casualties"
+      SEX == 1 && AGE > 30 && REALPROP >= 10000 ~ "elite",
+      SEX == 1 && AGE > 30 && REALPROP >= 750 && REALPROP < 10000 ~ "middle",
+      SEX == 1 && AGE >= 16 && AGE <= 30 && REALPROP < 750 ~ "young",
+      SEX == 1 && AGE > 30 && REALPROP < 750 ~ "casualties"
     ),
     town = get_1860_town(SERIAL),
     combined = get_combined(town)
   ) %>%
+  filter(town != "NULL") %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
 # Load 1860 religious-accommodation data, which is used to estimate degree of denominational affiliation.
@@ -176,7 +175,7 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
 # Construct tibbles with data about household wealth and demographics
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) & FAMUNIT == 1) | GQ == 4) %>%
+  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) | GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
     FAMILY_WEALTH = sum(REALPROP),
@@ -190,7 +189,7 @@ ct_1850_hh <- ct_1850 %>%
 
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) & FAMUNIT == 1) | GQ == 4) %>%
+  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) | GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
     FAMILY_WEALTH = sum(WEALTH),
@@ -233,21 +232,21 @@ ct_eligible <- ct_1850 %>%
     filter(AGE > 20) %>%
     group_by(combined) %>%
     summarize(ELIG_1860 = n()), by = "combined") %>%
-  inner_join(ct_1860 %>%
-    filter(SEX == 1) %>%
-    filter(BPL >= 100) %>%
-    filter(RACE == 1) %>%
-    filter(AGE > 20) %>%
-    group_by(combined) %>%
-    summarize(FOREIGN_1860 = n()), by = "combined") %>%
   mutate(POP_CHANGE = (ELIG_1860 - ELIG_1850) / 10) %>%
-  mutate(ELIG_1851 = estimate_voters(1851, ELIG_1850, FOREIGN_1850, POP_CHANGE)) %>%
-  mutate(ELIG_1852 = estimate_voters(1852, ELIG_1850, FOREIGN_1850, POP_CHANGE)) %>%
-  mutate(ELIG_1853 = estimate_voters(1853, ELIG_1850, FOREIGN_1850, POP_CHANGE)) %>%
-  mutate(ELIG_1854 = estimate_voters(1854, ELIG_1850, FOREIGN_1850, POP_CHANGE)) %>%
-  mutate(ELIG_1855 = estimate_voters(1855, ELIG_1850, FOREIGN_1850, POP_CHANGE)) %>%
-  mutate(ELIG_1856 = estimate_voters(1856, ELIG_1850, FOREIGN_1850, POP_CHANGE)) %>%
-  mutate(ELIG_1857 = estimate_voters(1857, ELIG_1850, FOREIGN_1850, POP_CHANGE))
+  mutate(POLL_CHANGE = case_when(
+    combined == "Avon" ~ avon_poll_change,
+    combined == "Burlington" ~ burlington_poll_change,
+    combined == "Farmington" ~ farmington_poll_change,
+    combined == "New Britain" ~ new_britain_poll_change,
+    !combined %in% bad_birthplace ~ 0
+  )) %>%
+  mutate(ELIG_1851 = estimate_voters(1851, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
+  mutate(ELIG_1852 = estimate_voters(1852, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
+  mutate(ELIG_1853 = estimate_voters(1853, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
+  mutate(ELIG_1854 = estimate_voters(1854, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
+  mutate(ELIG_1855 = estimate_voters(1855, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
+  mutate(ELIG_1856 = estimate_voters(1856, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
+  mutate(ELIG_1857 = estimate_voters(1857, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE))
 
 factors <- ungroup(ct_1860_hh %>%
   group_by(town, combined) %>%
@@ -297,21 +296,14 @@ factors <- ungroup(ct_1860_hh %>%
     filter(JOB == "farm") %>%
     group_by(combined) %>%
     summarize(farm_1860_hh = n()), by = "combined") %>%
-  left_join(ct_1860 %>%
-    filter(BPL == 414) %>%
-    group_by(combined) %>%
-    summarize(irish_1860 = n()), by = "combined") %>%
   left_join(ct_pop, by = "combined") %>%
   left_join(religion_1860, by = "combined") %>%
   mutate(
     wealth = wealth / pop,
     comb_wealth = comb_wealth / comb_pop,
     pct_irish_1850 = irish_1850 / POP_1850,
-    pct_irish_1860 = irish_1860 / POP_1860,
-    irish_change = pct_irish_1860 - pct_irish_1850,
     pct_farm_1850 = farm_1850_hh / num_1850_hh,
-    pct_farm_1860 = farm_1860_hh / num_1860_hh,
-    farm_change = pct_farm_1860 - pct_farm_1850
+    pct_farm_1860 = farm_1860_hh / num_1860_hh
   ) %>%
   filter(combined != "UNKNOWN")) %>%
   select(town, combined, ends_with("gini"), ends_with("wealth"),

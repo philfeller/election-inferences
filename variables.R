@@ -133,6 +133,22 @@ saybrook <- c("Saybrook", "Essex", "Old Saybrook")
 # Cromwell, taken from Middleton, is in 1852 results
 middletown <- c("Cromwell", "Middletown")
 
+# 1860 IPUMS data has bad birthplace transcriptions for Avon, Burlington,
+# Farmington, and New Britain, and 1860 census data can't be used to estimate
+# eligible voters for those towns. Taxable polls have been used as a proxy for
+# eligible voters, and the rate of change in polls for these four towns will be
+# used to estimate the annual rate of change of change for eligible voters.
+# Numbers for 1852 and 1861 are taken from town statistics in the 1854 and 1862
+# Connecticut Registers:
+# https://babel.hathitrust.org/cgi/pt?id=hvd.li2mn1&view=1up&seq=105
+# https://babel.hathitrust.org/cgi/pt?id=nyp.33433081898748&seq=127
+
+avon_poll_change <- (201 - 197) / 9
+burlington_poll_change <- (284 - 208) / 9
+farmington_poll_change <- (645 - 534) / 9
+new_britain_poll_change <- (1277 - 628) / 9
+bad_birthplace <- c("Avon", "Burlington", "Farmington", "New Britain")
+
 # Locations of data files
 
 # Full-count census data taken using ./download_ipums.R
