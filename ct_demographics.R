@@ -49,10 +49,10 @@ get_combined <- function(town) {
 # up a consistent portion of all immigrants from year to year.
 # Nationwide immigration by year is taken from the 2022 DHS Yearbook:
 # https://www.dhs.gov/ohss/topics/immigration/yearbook/2022
-estimate_voters <- function(yr, native_1850, foreign_1850, native_change, POLL_CHANGE) {
+estimate_voters <- function(yr, native_1850, foreign_1850, native_change, poll_change) {
   # For towns with incorrect birthplace transcriptions estimate the total
   # number of eligible using the increase in taxable polls
-  native_voters <- native_1850 + round((yr - 1850) * max(native_change, POLL_CHANGE))
+  native_voters <- native_1850 + round((yr - 1850) * ifelse(poll_change == 0, native_change, poll_change))
 
   cum_1820_1845 <- 8385 + 9127 + 6911 + 6354 + 7912 + 10199 + 10837 + 18875 +
     27382 + 22520 + 23322 + 22633 + 60482 + 58640 + 65365 + 45374 + 76242 +
@@ -97,18 +97,18 @@ ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
       AGE < 20 ~ "0 - 20",
-      AGE >= 20 && AGE < 30 ~ "20 - 30",
-      AGE >= 30 && AGE < 40 ~ "30 - 40",
-      AGE >= 40 && AGE < 50 ~ "40 - 50",
-      AGE >= 50 && AGE < 60 ~ "50 - 60",
+      AGE >= 20 & AGE < 30 ~ "20 - 30",
+      AGE >= 30 & AGE < 40 ~ "30 - 40",
+      AGE >= 40 & AGE < 50 ~ "40 - 50",
+      AGE >= 50 & AGE < 60 ~ "50 - 60",
       AGE >= 60 ~ "Over 60"
     ),
     # The CLASS column categorizes people according to Doherty's 1977 model
     CLASS = case_when(
-      SEX == 1 && AGE > 30 && REALPROP >= 10000 ~ "elite",
-      SEX == 1 && AGE > 30 && REALPROP >= 750 && REALPROP < 10000 ~ "middle",
-      SEX == 1 && AGE >= 16 && AGE <= 30 && REALPROP < 750 ~ "young",
-      SEX == 1 && AGE > 30 && REALPROP < 750 ~ "casualties"
+      SEX == 1 & AGE > 30 & REALPROP >= 10000 ~ "elite",
+      SEX == 1 & AGE > 30 & REALPROP >= 750 & REALPROP < 10000 ~ "middle",
+      SEX == 1 & AGE >= 16 & AGE <= 30 & REALPROP < 750 ~ "young",
+      SEX == 1 & AGE > 30 & REALPROP < 750 ~ "casualties"
     ),
     town = get_1850_town(SERIAL),
     combined = get_combined(town)
@@ -129,18 +129,18 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
       AGE < 20 ~ "0 - 20",
-      AGE >= 20 && AGE < 30 ~ "20 - 30",
-      AGE >= 30 && AGE < 40 ~ "30 - 40",
-      AGE >= 40 && AGE < 50 ~ "40 - 50",
-      AGE >= 50 && AGE < 60 ~ "50 - 60",
+      AGE >= 20 & AGE < 30 ~ "20 - 30",
+      AGE >= 30 & AGE < 40 ~ "30 - 40",
+      AGE >= 40 & AGE < 50 ~ "40 - 50",
+      AGE >= 50 & AGE < 60 ~ "50 - 60",
       AGE >= 60 ~ "Over 60"
     ),
     # The CLASS column categorizes people according to Doherty's 1977 model
     CLASS = case_when(
-      SEX == 1 && AGE > 30 && REALPROP >= 10000 ~ "elite",
-      SEX == 1 && AGE > 30 && REALPROP >= 750 && REALPROP < 10000 ~ "middle",
-      SEX == 1 && AGE >= 16 && AGE <= 30 && REALPROP < 750 ~ "young",
-      SEX == 1 && AGE > 30 && REALPROP < 750 ~ "casualties"
+      SEX == 1 & AGE > 30 & REALPROP >= 10000 ~ "elite",
+      SEX == 1 & AGE > 30 & REALPROP >= 750 & REALPROP < 10000 ~ "middle",
+      SEX == 1 & AGE >= 16 & AGE <= 30 & REALPROP < 750 ~ "young",
+      SEX == 1 & AGE > 30 & REALPROP < 750 ~ "casualties"
     ),
     town = get_1860_town(SERIAL),
     combined = get_combined(town)
@@ -309,3 +309,5 @@ factors <- ungroup(ct_1860_hh %>%
   select(town, combined, ends_with("gini"), ends_with("wealth"),
          ends_with("age_1850"), ends_with("age_1860"),
          starts_with("pct"), ends_with("change"))
+
+save(factors, ct_1860_hh, file = "ct_demographics.Rda")
