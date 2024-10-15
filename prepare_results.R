@@ -403,7 +403,7 @@ create_results <- function(beg_yr, end_yr) {
     select(TOWN_NAME, LON) %>%
     rename(town = TOWN_NAME) %>%
     mutate(town = ifelse(town == "Putnam" & beg_yr < 1856, "Killingly, Thompson, and Pomfret", town))
-  
+
   # Generate the demographic factors appropriate for the range of years
   demo_factors <- factors %>%
     create_factors(beg_yr, end_yr) %>%

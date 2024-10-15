@@ -40,8 +40,8 @@ while (sum(h) != length(h)) {
 }
 
 print(construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52)), 1851, 1852))
-meriden <- results.52 %>% with(which(town=="Meriden"))
-print(construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52,meriden)), 1851, 1852, meriden))
+meriden <- results.52 %>% with(which(town == "Meriden"))
+print(construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52, meriden)), 1851, 1852, meriden))
 
 boxplot <- boxplotMD(beta.sims.MD(ei.52, p52), 1851, 1852)
 ridge <- ridgelineMD(beta.sims.MD(ei.52, p52), 1851, 1852)

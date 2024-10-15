@@ -18,9 +18,7 @@ source("prepare_results.R")
 
 results.55 <- create_results(1854, 1855)
 
-# Although the model factors have been chosen to produce MCMC results that converge fairly
-# reliably, individual runs sometimes fail to converge. The calls to the ei.MD.bayes function
-# are wrapped in a loop that tests for convergence to ensure that results are useable.
+# Run an inference using longitude as a covariate
 
 # Define model factors
 tune_size <- 10000
@@ -53,5 +51,16 @@ while (sum(h) != length(h)) {
 table.55 <- construct_contingency(results.55, betas.MD(beta.sims.MD(cov.ei.55, p55)), 1854, 1855)
 print(table.55)
 
-save(cov.ei.55, file = "1855_covariate_inference.Rda"
-)
+combined_betas <- combine_betas(beta.sims.MD(cov.ei.55, p55))
+
+for (from_party in pull(distinct(combined_betas %>% select(from)))) {
+  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
+    transition <- combined_betas %>% filter(from == from_party) %>% filter(to == to_party) %>% select(value)
+    beta_sd <- sd(pull(transition))
+    if (beta_sd > 2.5) {
+      print(paste(from_party, " to ", to_party, ": ", as.character(beta_sd)))
+    }
+  }
+}
+
+save(cov.ei.55, file = "1855_covariate_inference.Rda")
