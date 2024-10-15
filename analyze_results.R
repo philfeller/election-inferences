@@ -1,3 +1,4 @@
+library(tidyr)
 library(eiPack)
 library(ineq)
 
@@ -58,10 +59,35 @@ for (t in 1:nrow(results.55)) {
 
 summary(lm(gini ~ pct_farm_1860 + age_1860 + wealth, factors))
 
-# 1855 party support is best described by a town's longitude.
+# The greatest uncertainty in the 1855 inference is in determining what became of
+# 1854 Free Soil voters, followed by doubt about Temperance and Whig voters.
+# Similar results are obtained when standard deviations are calculated for the
+# models alphas.
 
-for (party in colnames(results.55)[grep("[aiocn][tgle]_in_1855", colnames(results.55))]) {
-  form <- as.formula(paste(party, "LON", sep = "~"))
+combined_betas <- combine_betas(beta.sims.MD(ei.55, p55))
+
+for (from_party in pull(distinct(combined_betas %>% select(from)))) {
+  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
+    transition <- combined_betas %>%
+      filter(from == from_party) %>%
+      filter(to == to_party) %>%
+      select(value)
+    beta_sd <- sd(pull(transition))
+    if (beta_sd > 2.5) {
+      print(paste(from_party, " to ", to_party, ": ", as.character(beta_sd)))
+    }
+  }
+}
+
+test_cols <- paste(colnames(results.55 %>% select(LON, gini:pct_farm_1860)), collapse = " + ")
+
+# A town's longitude is the factor that best explains support for the parties
+# whose transitions are least certain.
+
+test_parties <- c("Know_Nothing_in_1855", "Free_Soil_in_1854", "Temperance_in_1854", "Whig_in_1854")
+for (party in test_parties) {
+  form <- as.formula(paste(party, test_cols, sep = "~"))
+  print(party)
   print(summary(lm(form, results.55, weights = results.55$ELIG_1855)))
 }
 
@@ -99,4 +125,71 @@ for (age in age_cats) {
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
-kable(gini_grid, label = "1860 Meriden GINI Index by Age Range")
+kable(gini_grid, label = "1860 Meriden Wealth GINI Index by Age Range")
+
+# Calculate real-property-only GINI indices for 1850 and 1860
+gini_all <- data.frame(row.names = c("all"))
+gini_by_birth <- data.frame(row.names = c("native", "immigrant"))
+gini_by_job <- data.frame(row.names = c("farm", "nonfarm"))
+for (age in age_cats) {
+  g <- ct_1850_hh %>%
+    filter(town == "Meriden") %>%
+    filter(AGE_CAT == age) %>%
+    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    select(gini)
+  gini_all <- bind_cols(gini_all, g, .name_repair = "unique_quiet")
+}
+for (age in age_cats) {
+  g <- ct_1850_hh %>%
+    filter(town == "Meriden") %>%
+    filter(AGE_CAT == age) %>%
+    group_by(BIRTH) %>%
+    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    select(gini)
+  gini_by_birth <- bind_cols(gini_by_birth, g, .name_repair = "unique_quiet")
+}
+for (age in age_cats) {
+  g <- ct_1850_hh %>%
+    filter(town == "Meriden") %>%
+    filter(AGE_CAT == age) %>%
+    group_by(JOB) %>%
+    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    select(gini)
+  gini_by_job <- bind_cols(gini_by_job, g, .name_repair = "unique_quiet")
+}
+gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
+colnames(gini_grid) <- age_cats
+kable(gini_grid, label = "1850 Meriden Real Property GINI Index by Age Range")
+
+gini_all <- data.frame(row.names = c("all"))
+gini_by_birth <- data.frame(row.names = c("native", "immigrant"))
+gini_by_job <- data.frame(row.names = c("farm", "nonfarm"))
+for (age in age_cats) {
+  g <- ct_1860_hh %>%
+    filter(town == "Meriden") %>%
+    filter(AGE_CAT == age) %>%
+    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    select(gini)
+  gini_all <- bind_cols(gini_all, g, .name_repair = "unique_quiet")
+}
+for (age in age_cats) {
+  g <- ct_1860_hh %>%
+    filter(town == "Meriden") %>%
+    filter(AGE_CAT == age) %>%
+    group_by(BIRTH) %>%
+    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    select(gini)
+  gini_by_birth <- bind_cols(gini_by_birth, g, .name_repair = "unique_quiet")
+}
+for (age in age_cats) {
+  g <- ct_1860_hh %>%
+    filter(town == "Meriden") %>%
+    filter(AGE_CAT == age) %>%
+    group_by(JOB) %>%
+    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    select(gini)
+  gini_by_job <- bind_cols(gini_by_job, g, .name_repair = "unique_quiet")
+}
+gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
+colnames(gini_grid) <- age_cats
+kable(gini_grid, label = "1860 Meriden Real Property GINI Index by Age Range")
