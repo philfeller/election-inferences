@@ -175,7 +175,7 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
 # Construct tibbles with data about household wealth and demographics
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) | GQ == 4) %>%
+  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
     FAMILY_REALPROP = sum(REALPROP),
@@ -189,7 +189,7 @@ ct_1850_hh <- ct_1850 %>%
 
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) | GQ == 4) %>%
+  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
     FAMILY_REALPROP = sum(REALPROP),
