@@ -178,7 +178,7 @@ ct_1850_hh <- ct_1850 %>%
   filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) | GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
-    FAMILY_WEALTH = sum(REALPROP),
+    FAMILY_REALPROP = sum(REALPROP),
     AGE_CAT = first(AGE_CAT),
     BIRTH = first(BIRTH),
     JOB = first(JOB),
@@ -192,6 +192,7 @@ ct_1860_hh <- ct_1860 %>%
   filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) | GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
+    FAMILY_REALPROP = sum(REALPROP),
     FAMILY_WEALTH = sum(WEALTH),
     AGE_CAT = first(AGE_CAT),
     BIRTH = first(BIRTH),
@@ -254,6 +255,12 @@ factors <- ungroup(ct_1860_hh %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
     summarise(comb_gini = ineq(FAMILY_WEALTH, type = "Gini")), by = c("combined")) %>%
+  left_join(ct_1860_hh %>%
+    group_by(combined) %>%
+    summarise(real_1860_gini = ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
+  left_join(ct_1850_hh %>%
+    group_by(combined) %>%
+    summarise(real_1850_gini = ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
   left_join(ct_1860 %>%
     group_by(town) %>%
     summarise(
@@ -276,14 +283,9 @@ factors <- ungroup(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(farm_1850_hh = n()), by = "combined") %>%
   left_join(ct_1850 %>%
-    group_by(combined, town) %>%
-    summarise(
-      age_1850 = mean(AGE)
-    ), by = c("combined", "town")) %>%
-  left_join(ct_1850 %>%
     group_by(combined) %>%
     summarise(
-      comb_age_1850 = mean(AGE)
+      age_1850 = mean(AGE)
     ), by = c("combined")) %>%
   left_join(ct_1850 %>%
     filter(BPL == 414) %>%
@@ -306,8 +308,10 @@ factors <- ungroup(ct_1860_hh %>%
     pct_farm_1860 = farm_1860_hh / num_1860_hh
   ) %>%
   filter(combined != "UNKNOWN")) %>%
-  select(town, combined, ends_with("gini"), ends_with("wealth"),
-         ends_with("age_1850"), ends_with("age_1860"),
-         starts_with("pct"), ends_with("change"))
+  select(
+    town, combined, ends_with("gini"), ends_with("wealth"),
+    ends_with("age_1850"), ends_with("age_1860"),
+    starts_with("pct"), ends_with("change")
+  )
 
-save(factors, ct_1860_hh, file = "ct_demographics.Rda")
+save(factors, ct_1860_hh, ct_1850_hh, file = "ct_demographics.Rda")

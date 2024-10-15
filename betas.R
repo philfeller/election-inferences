@@ -58,10 +58,6 @@ beta.sims.MD <- function(ei.model, cols, town.id) {
 
 # Combine the output of beta.sims.MD() into a matrix, by the rows and columns
 # from which marginals were taken, of the mean beta values.
-# Ideally, only the confirmed converged simulations should be used—
-# heidel.diag(lambda.MD(ei.model, cols))[,2]:1000—but the MCMC output in this
-# project shows no substantial change in the estimated distribution, not enough
-# to justify the added complexity
 betas.MD <- function(beta_sims) {
   rmed <- function(x) round(mean(x), 3)
   r_names <- rownames(beta_sims)

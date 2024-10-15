@@ -166,7 +166,7 @@ create_factors <- function(tibble, beg_yr, end_yr) {
   if (beg_yr >= 1856) {
     towns <- c(towns, danbury, lyme)
   }
-  if (end_yr <= 1855 | beg_yr >= 1856) {
+  if (end_yr <= 1855 || beg_yr >= 1856) {
     towns <- c(towns, killingly_et_al)
   }
   tibble %>%
@@ -175,7 +175,6 @@ create_factors <- function(tibble, beg_yr, end_yr) {
       combined = ifelse(combined == "Old Lyme", "South Lyme", combined),
       gini = ifelse(town %in% towns, gini, comb_gini),
       wealth = ifelse(town %in% towns, wealth, comb_wealth),
-      age_1850 = ifelse(town %in% towns, age_1850, comb_age_1850),
       age_1860 = ifelse(town %in% towns, age_1860, comb_age_1860),
       town = NULL,
       comb_gini = NULL,
