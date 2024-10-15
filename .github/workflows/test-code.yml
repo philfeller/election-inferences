@@ -24,7 +24,7 @@ jobs:
         id: changed-analysis
         uses: tj-actions/changed-files@v45
         with:
-          files: analyze_results.R.not_now
+          files: analyze_results.R
 
       - name: Check out model output, inferences.Rda
         if: steps.changed-analysis.outputs.any_changed == 'true'
