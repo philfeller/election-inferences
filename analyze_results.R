@@ -1,6 +1,7 @@
-library(tidyr)
 library(eiPack)
 library(ineq)
+library(knitr)
+library(tidyr)
 
 source("betas.R")
 source("present.R")
