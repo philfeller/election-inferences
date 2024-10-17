@@ -119,10 +119,20 @@ ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
 # Load file with data that is missing from IPUMS: first pages for Brooklyn and Hebron
 load(file = "missing_1860_ipums_rows.Rda")
 
+# The IPUMS data contains some transcription errors. Although GINI indices calculated
+# from IPUMS data vary insignificantly from indices calculated with correct real and
+# personal property values, update transcription errors for Meriden with corrected
+# values.
 ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
   mutate(RELATE = ifelse(SERIAL == 294445, 1, RELATE)) %>%
   select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP, PERSPROP) %>%
   bind_rows(missing_rows) %>%
+  left_join(read_csv("corrected_meriden_wealth.csv", show_col_types = FALSE), 
+            by = c("SERIAL", "SEX", "AGE", "BPL", "REALPROP", "PERSPROP")) %>%
+  mutate(
+    REALPROP = ifelse(!is.na(real) & is.numeric(real), real, REALPROP),
+    PERSPROP = ifelse(!is.na(pers) & is.numeric(pers), pers, PERSPROP)
+  ) %>%
   mutate(
     WEALTH = REALPROP + PERSPROP,
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
