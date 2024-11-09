@@ -329,4 +329,4 @@ factors <- ungroup(ct_1860_hh %>%
     starts_with("pct"), ends_with("change")
   )
 
-save(factors, ct_1860_hh, ct_1850_hh, file = "ct_demographics.Rda")
+save(factors, ct_1850, ct_1860, ct_1860_hh, ct_1850_hh, file = "ct_demographics.Rda")
