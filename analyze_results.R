@@ -53,6 +53,10 @@ for (t in 1:nrow(results.55)) {
   }
 }
 
+# Meriden has a disproportionate number of native-born, young-adult males
+plot(table(ct_1850 %>% filter(BIRTH == 'native' & SEX == 1) %>% select(AGE) + 5))
+plot(table(ct_1850 %>% filter(town == 'Meriden' & BIRTH == 'native' & SEX == 1) %>% select(AGE) + 5))
+
 # GINI index is strongly correlated to the degree of urbanization, using the
 # percentage of household-head non-farm occupations as a proxy for urbanization,
 # is inversely correlated to the average age of households heads, and is
