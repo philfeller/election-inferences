@@ -301,6 +301,10 @@ factors <- ungroup(ct_1860_hh %>%
     filter(BPL == 414) %>%
     group_by(combined) %>%
     summarize(irish_1850 = n()), by = "combined") %>%
+  left_join(ct_1850 %>%
+    filter(AGE >= 15 & AGE <= 30 & SEX == 1 & BIRTH == "native") %>%
+    group_by(combined) %>%
+    summarize(ya_male_1850 = n()), by = "combined") %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(num_1860_hh = n()), by = "combined") %>%
@@ -314,6 +318,7 @@ factors <- ungroup(ct_1860_hh %>%
     wealth = wealth / pop,
     comb_wealth = comb_wealth / comb_pop,
     pct_irish_1850 = irish_1850 / POP_1850,
+    pct_ya_male_1850 = ya_male_1850 / POP_1850,
     pct_farm_1850 = farm_1850_hh / num_1850_hh,
     pct_farm_1860 = farm_1860_hh / num_1860_hh
   ) %>%
