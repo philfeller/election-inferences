@@ -54,8 +54,14 @@ for (t in 1:nrow(results.55)) {
 }
 
 # Meriden has a disproportionate number of native-born, young-adult males
-plot(table(ct_1850 %>% filter(BIRTH == 'native' & SEX == 1) %>% select(AGE) + 5))
-plot(table(ct_1850 %>% filter(town == 'Meriden' & BIRTH == 'native' & SEX == 1) %>% select(AGE) + 5))
+# Stonington and New London, other Know Nothing hotbeds, show the same pattern
+hist((ct_1850 %>% filter(BIRTH == "native" & SEX == 1))$AGE, main="Connecticut")
+for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
+  native_male <- ct_1850 %>% filter(town == t & BIRTH == "native" & SEX == 1)
+  if (nrow(native_male %>% filter(AGE >= 20 & AGE <= 25)) > nrow(native_male %>% filter(AGE >= 10 & AGE <= 15)) * 1.5) {
+    hist(native_male$AGE, breaks = "Scott", main = t)
+  }
+}
 
 # GINI index is strongly correlated to the degree of urbanization, using the
 # percentage of household-head non-farm occupations as a proxy for urbanization,
