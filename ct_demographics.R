@@ -127,8 +127,9 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
   mutate(RELATE = ifelse(SERIAL == 294445, 1, RELATE)) %>%
   select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP, PERSPROP) %>%
   bind_rows(missing_rows) %>%
-  left_join(read_csv("corrected_meriden_wealth.csv", show_col_types = FALSE), 
-            by = c("SERIAL", "SEX", "AGE", "BPL", "REALPROP", "PERSPROP")) %>%
+  left_join(read_csv("corrected_meriden_wealth.csv", show_col_types = FALSE),
+    by = c("SERIAL", "SEX", "AGE", "BPL", "REALPROP", "PERSPROP")
+  ) %>%
   mutate(
     REALPROP = ifelse(!is.na(real) & is.numeric(real), real, REALPROP),
     PERSPROP = ifelse(!is.na(pers) & is.numeric(pers), pers, PERSPROP)
@@ -302,9 +303,13 @@ factors <- ungroup(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(irish_1850 = n()), by = "combined") %>%
   left_join(ct_1850 %>%
-    filter(AGE >= 15 & AGE <= 30 & SEX == 1 & BIRTH == "native") %>%
+    filter(AGE >= 20 & AGE <= 25 & SEX == 1 & BIRTH == "native") %>%
     group_by(combined) %>%
     summarize(ya_male_1850 = n()), by = "combined") %>%
+  left_join(ct_1850 %>%
+    filter(AGE >= 10 & AGE <= 15 & SEX == 1 & BIRTH == "native") %>%
+    group_by(combined) %>%
+    summarize(child_male_1850 = n()), by = "combined") %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(num_1860_hh = n()), by = "combined") %>%
@@ -318,7 +323,7 @@ factors <- ungroup(ct_1860_hh %>%
     wealth = wealth / pop,
     comb_wealth = comb_wealth / comb_pop,
     pct_irish_1850 = irish_1850 / POP_1850,
-    pct_ya_male_1850 = ya_male_1850 / POP_1850,
+    pct_ya_male_1850 = ya_male_1850 / POP_1850 - child_male_1850 / POP_1850,
     pct_farm_1850 = farm_1850_hh / num_1850_hh,
     pct_farm_1860 = farm_1860_hh / num_1860_hh
   ) %>%
