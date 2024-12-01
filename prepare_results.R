@@ -472,3 +472,131 @@ create_results <- function(beg_yr, end_yr) {
 
   return(full_results)
 }
+
+# Calculate results for individual years, in order to calculate a town's
+# z-score for particular results
+results.1851 <- raw_results %>%
+  filter(yr == 1851) %>%
+  mutate(
+    yr = NULL,
+    Temperance_votes = NULL,
+    Know_Nothing_votes = NULL,
+    Republican_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1851_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Free_Soil = Free_Soil_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Free_Soil)) %>%
+  select(town, weight, Democrat, Whig, Free_Soil, Abstaining)
+
+results.1852 <- raw_results %>%
+  filter(yr == 1852) %>%
+  mutate(
+    yr = NULL,
+    Temperance_votes = NULL,
+    Know_Nothing_votes = NULL,
+    Republican_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1852_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Free_Soil = Free_Soil_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Free_Soil)) %>%
+  select(town, weight, Democrat, Whig, Free_Soil, Abstaining)
+
+results.1853 <- raw_results %>%
+  filter(yr == 1853) %>%
+  mutate(
+    yr = NULL,
+    Temperance_votes = NULL,
+    Know_Nothing_votes = NULL,
+    Republican_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1853_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Free_Soil = Free_Soil_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Free_Soil)) %>%
+  select(town, weight, Democrat, Whig, Free_Soil, Abstaining)
+
+results.1854 <- raw_results %>%
+  filter(yr == 1854) %>%
+  mutate(
+    yr = NULL,
+    Know_Nothing_votes = NULL,
+    Republican_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1854_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Free_Soil = Free_Soil_votes / ELIG,
+    Temperence = Temperance_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Free_Soil + Temperence)) %>%
+  select(town, weight, Democrat, Whig, Free_Soil, Temperence, Abstaining)
+
+results.1855 <- raw_results %>%
+  filter(yr == 1855) %>%
+  mutate(
+    yr = NULL,
+    Free_Soil_votes = NULL,
+    Temperence_votes = NULL,
+    Republican_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1855_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Know_Nothing = Know_Nothing_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Know_Nothing)) %>%
+  select(town, weight, Democrat, Whig, Know_Nothing, Abstaining)
+
+results.1856 <- raw_results %>%
+  filter(yr == 1856) %>%
+  mutate(
+    yr = NULL,
+    Free_Soil_votes = NULL,
+    Temperence_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1856_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Know_Nothing = Know_Nothing_votes / ELIG,
+    Republican = Republican_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Know_Nothing + Republican)) %>%
+  select(town, weight, Democrat, Whig, Know_Nothing, Republican, Abstaining)
+
+results.1857 <- raw_results %>%
+  filter(yr == 1857) %>%
+  mutate(
+    yr = NULL,
+    Whig_votes = NULL,
+    Free_Soil_votes = NULL,
+    Temperence_votes = NULL,
+    Know_Nothing_votes = NULL
+  ) %>%
+  left_join(eligible_pct, by = "combined") %>%
+  mutate(
+    ELIG = round(total / ELIG_1857_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Republican = Republican_votes / ELIG,
+    Abstaining = remainder(Democrat + Republican)) %>%
+  select(town, weight, Democrat, Republican, Abstaining)
