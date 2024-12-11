@@ -473,70 +473,71 @@ create_results <- function(beg_yr, end_yr) {
   return(full_results)
 }
 
+weighted.sd <- function(results) {
+  returns <- as.matrix(results %>% filter(town != "Weighted mean") %>% select(Democrat:Abstaining))
+  num_rows <- nrow(returns)
+  mu <- unlist(rep((results %>% filter(town == "Weighted mean") %>% select(Democrat:Abstaining)), num_rows, byrow = TRUE))
+  num_cols <- length(mu) / num_rows
+  mu <- t(matrix(mu, nrow = num_cols))
+  weights <- unlist(results %>% filter(town != "Weighted mean") %>% select(weight))
+  sd <- as.data.frame(t(sqrt(colSums((returns - mu)^2 * weights))))
+  cbind(data.frame(town = "Weighted SD", weight = NA), sd)
+}
+
+# Define functions to be used when generating yearly results
+yr_results <- function(raw, filter_yr) {
+  raw %>%
+    filter(yr == filter_yr) %>%
+    select_if(function(x) any(x > 0)) %>%
+    mutate(yr = NULL) %>%
+    left_join(eligible_pct, by = "combined")
+}
+
+result_summary <- function(results) {
+  results_plus_mean <- results %>%
+    select(!starts_with("ELIG") & !ends_with("votes") & !total & !combined) %>%
+    bind_rows(summarise(., across(Democrat:Abstaining, ~ weighted.mean(.x, weight)))) %>%
+    mutate(town = replace(town, is.na(town), "Weighted mean"))
+  result_sd <- weighted.sd(results_plus_mean)
+  results_plus_mean %>% bind_rows(result_sd)
+}
+
 # Calculate results for individual years, in order to calculate a town's
 # z-score for particular results
-results.1851 <- raw_results %>%
-  filter(yr == 1851) %>%
-  mutate(
-    yr = NULL,
-    Temperance_votes = NULL,
-    Know_Nothing_votes = NULL,
-    Republican_votes = NULL
-  ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+results.1851 <- yr_results(raw_results, 1851) %>%
   mutate(
     ELIG = round(total / ELIG_1851_PCT),
     weight = ELIG / sum(ELIG),
     Democrat = Democrat_votes / ELIG,
     Whig = Whig_votes / ELIG,
     Free_Soil = Free_Soil_votes / ELIG,
-    Abstaining = remainder(Democrat + Whig + Free_Soil)) %>%
-  select(town, weight, Democrat, Whig, Free_Soil, Abstaining)
-
-results.1852 <- raw_results %>%
-  filter(yr == 1852) %>%
-  mutate(
-    yr = NULL,
-    Temperance_votes = NULL,
-    Know_Nothing_votes = NULL,
-    Republican_votes = NULL
+    Abstaining = remainder(Democrat + Whig + Free_Soil)
   ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+  result_summary()
+
+results.1852 <- yr_results(raw_results, 1852) %>%
   mutate(
     ELIG = round(total / ELIG_1852_PCT),
     weight = ELIG / sum(ELIG),
     Democrat = Democrat_votes / ELIG,
     Whig = Whig_votes / ELIG,
     Free_Soil = Free_Soil_votes / ELIG,
-    Abstaining = remainder(Democrat + Whig + Free_Soil)) %>%
-  select(town, weight, Democrat, Whig, Free_Soil, Abstaining)
-
-results.1853 <- raw_results %>%
-  filter(yr == 1853) %>%
-  mutate(
-    yr = NULL,
-    Temperance_votes = NULL,
-    Know_Nothing_votes = NULL,
-    Republican_votes = NULL
+    Abstaining = remainder(Democrat + Whig + Free_Soil)
   ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+  result_summary()
+
+results.1853 <- yr_results(raw_results, 1853) %>%
   mutate(
     ELIG = round(total / ELIG_1853_PCT),
     weight = ELIG / sum(ELIG),
     Democrat = Democrat_votes / ELIG,
     Whig = Whig_votes / ELIG,
     Free_Soil = Free_Soil_votes / ELIG,
-    Abstaining = remainder(Democrat + Whig + Free_Soil)) %>%
-  select(town, weight, Democrat, Whig, Free_Soil, Abstaining)
-
-results.1854 <- raw_results %>%
-  filter(yr == 1854) %>%
-  mutate(
-    yr = NULL,
-    Know_Nothing_votes = NULL,
-    Republican_votes = NULL
+    Abstaining = remainder(Democrat + Whig + Free_Soil)
   ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+  result_summary()
+
+results.1854 <- yr_results(raw_results, 1854) %>%
   mutate(
     ELIG = round(total / ELIG_1854_PCT),
     weight = ELIG / sum(ELIG),
@@ -544,35 +545,22 @@ results.1854 <- raw_results %>%
     Whig = Whig_votes / ELIG,
     Free_Soil = Free_Soil_votes / ELIG,
     Temperence = Temperance_votes / ELIG,
-    Abstaining = remainder(Democrat + Whig + Free_Soil + Temperence)) %>%
-  select(town, weight, Democrat, Whig, Free_Soil, Temperence, Abstaining)
-
-results.1855 <- raw_results %>%
-  filter(yr == 1855) %>%
-  mutate(
-    yr = NULL,
-    Free_Soil_votes = NULL,
-    Temperence_votes = NULL,
-    Republican_votes = NULL
+    Abstaining = remainder(Democrat + Whig + Free_Soil + Temperence)
   ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+  result_summary()
+
+results.1855 <- yr_results(raw_results, 1855) %>%
   mutate(
     ELIG = round(total / ELIG_1855_PCT),
     weight = ELIG / sum(ELIG),
     Democrat = Democrat_votes / ELIG,
     Whig = Whig_votes / ELIG,
     Know_Nothing = Know_Nothing_votes / ELIG,
-    Abstaining = remainder(Democrat + Whig + Know_Nothing)) %>%
-  select(town, weight, Democrat, Whig, Know_Nothing, Abstaining)
-
-results.1856 <- raw_results %>%
-  filter(yr == 1856) %>%
-  mutate(
-    yr = NULL,
-    Free_Soil_votes = NULL,
-    Temperence_votes = NULL
+    Abstaining = remainder(Democrat + Whig + Know_Nothing)
   ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+  result_summary()
+
+results.1856 <- yr_results(raw_results, 1856) %>%
   mutate(
     ELIG = round(total / ELIG_1856_PCT),
     weight = ELIG / sum(ELIG),
@@ -580,23 +568,16 @@ results.1856 <- raw_results %>%
     Whig = Whig_votes / ELIG,
     Know_Nothing = Know_Nothing_votes / ELIG,
     Republican = Republican_votes / ELIG,
-    Abstaining = remainder(Democrat + Whig + Know_Nothing + Republican)) %>%
-  select(town, weight, Democrat, Whig, Know_Nothing, Republican, Abstaining)
-
-results.1857 <- raw_results %>%
-  filter(yr == 1857) %>%
-  mutate(
-    yr = NULL,
-    Whig_votes = NULL,
-    Free_Soil_votes = NULL,
-    Temperence_votes = NULL,
-    Know_Nothing_votes = NULL
+    Abstaining = remainder(Democrat + Whig + Know_Nothing + Republican)
   ) %>%
-  left_join(eligible_pct, by = "combined") %>%
+  result_summary()
+
+results.1857 <- yr_results(raw_results, 1857) %>%
   mutate(
     ELIG = round(total / ELIG_1857_PCT),
     weight = ELIG / sum(ELIG),
     Democrat = Democrat_votes / ELIG,
     Republican = Republican_votes / ELIG,
-    Abstaining = remainder(Democrat + Republican)) %>%
-  select(town, weight, Democrat, Republican, Abstaining)
+    Abstaining = remainder(Democrat + Republican)
+  ) %>%
+  result_summary()

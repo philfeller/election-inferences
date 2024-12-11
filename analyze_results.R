@@ -15,114 +15,84 @@ load("ct_demographics.Rda")
 
 # Calculate weighted means and standard deviations for results
 
-whig.mu.51 <- weighted.mean(results.1851$Whig, results.1851$weight)
-whig.sd.51 <- sqrt(sum(results.1851$weight * (results.1851$Whig - whig.mu.51)^2))
-dem.mu.51 <- weighted.mean(results.1851$Democrat , results.1851$weight)
-dem.sd.51 <- sqrt(sum(results.1851$weight * (results.1851$Democrat - dem.mu.51)^2))
-fs.mu.51 <- weighted.mean(results.1851$Free_Soil , results.1851$weight)
-fs.sd.51 <- sqrt(sum(results.1851$weight * (results.1851$Free_Soil - fs.mu.51)^2))
-non.mu.51 <- weighted.mean(results.1851$Abstaining, results.1851$weight)
-non.sd.51 <- sqrt(sum(results.1851$weight * (results.1851$Abstaining - non.mu.51)^2))
+tag_yr <- function(results, yr, type) {
+  results %>% filter(town == type) %>%
+    mutate(weight = NULL) %>%
+    rename(year = town) %>%
+    mutate(year = yr)
+}
 
-whig.mu.52 <- weighted.mean(results.1852$Whig, results.1852$weight)
-whig.sd.52 <- sqrt(sum(results.1852$weight * (results.1852$Whig - whig.mu.52)^2))
-dem.mu.52 <- weighted.mean(results.1852$Democrat , results.1852$weight)
-dem.sd.52 <- sqrt(sum(results.1852$weight * (results.1852$Democrat - dem.mu.52)^2))
-fs.mu.52 <- weighted.mean(results.1852$Free_Soil , results.1852$weight)
-fs.sd.52 <- sqrt(sum(results.1852$weight * (results.1852$Free_Soil - fs.mu.52)^2))
-non.mu.52 <- weighted.mean(results.1852$Abstaining, results.1852$weight)
-non.sd.52 <- sqrt(sum(results.1852$weight * (results.1852$Abstaining - non.mu.52)^2))
+result_mu <- results.1851 %>% tag_yr(1851, "Weighted mean") %>%
+  bind_rows(results.1852 %>% tag_yr(1852, "Weighted mean")) %>%
+  bind_rows(results.1853 %>% tag_yr(1853, "Weighted mean")) %>%
+  bind_rows(results.1854 %>% tag_yr(1854, "Weighted mean")) %>%
+  bind_rows(results.1855 %>% tag_yr(1855, "Weighted mean")) %>%
+  bind_rows(results.1856 %>% tag_yr(1856, "Weighted mean")) %>%
+  bind_rows(results.1857 %>% tag_yr(1857, "Weighted mean"))
 
-whig.mu.53 <- weighted.mean(results.1853$Whig, results.1853$weight)
-whig.sd.53 <- sqrt(sum(results.1853$weight * (results.1853$Whig - whig.mu.53)^2))
-dem.mu.53 <- weighted.mean(results.1853$Democrat , results.1853$weight)
-dem.sd.53 <- sqrt(sum(results.1853$weight * (results.1853$Democrat - dem.mu.53)^2))
-fs.mu.53 <- weighted.mean(results.1853$Free_Soil , results.1853$weight)
-fs.sd.53 <- sqrt(sum(results.1853$weight * (results.1853$Free_Soil - fs.mu.53)^2))
-non.mu.53 <- weighted.mean(results.1853$Abstaining, results.1853$weight)
-non.sd.53 <- sqrt(sum(results.1853$weight * (results.1853$Abstaining - non.mu.53)^2))
+result_sd <- results.1851 %>% tag_yr(1851, "Weighted SD") %>%
+  bind_rows(results.1852 %>% tag_yr(1852, "Weighted SD")) %>%
+  bind_rows(results.1853 %>% tag_yr(1853, "Weighted SD")) %>%
+  bind_rows(results.1854 %>% tag_yr(1854, "Weighted SD")) %>%
+  bind_rows(results.1855 %>% tag_yr(1855, "Weighted SD")) %>%
+  bind_rows(results.1856 %>% tag_yr(1856, "Weighted SD")) %>%
+  bind_rows(results.1857 %>% tag_yr(1857, "Weighted SD"))
 
-whig.mu.54 <- weighted.mean(results.1854$Whig, results.1854$weight)
-whig.sd.54 <- sqrt(sum(results.1854$weight * (results.1854$Whig - whig.mu.54)^2))
-dem.mu.54 <- weighted.mean(results.1854$Democrat, results.1854$weight)
-dem.sd.54 <- sqrt(sum(results.1854$weight * (results.1854$Democrat - dem.mu.54)^2))
-fs.mu.54 <- weighted.mean(results.1854$Free_Soil, results.1854$weight)
-fs.sd.54 <- sqrt(sum(results.1854$weight * (results.1854$Free_Soil - fs.mu.54)^2))
-temp.mu.54 <- weighted.mean(results.1854$Temperence, results.1854$weight)
-temp.sd.54 <- sqrt(sum(results.1854$weight * (results.1854$Temperence - temp.mu.54)^2))
-non.mu.54 <- weighted.mean(results.1854$Abstaining, results.1854$weight)
-non.sd.54 <- sqrt(sum(results.1854$weight * (results.1854$Abstaining - non.mu.54)^2))
+single_stat <- function(stats, yr, party) {
+  stats %>% filter(year == yr) %>%
+    select(party)
+}
 
-whig.mu.55 <- weighted.mean(results.1855$Whig, results.1855$weight)
-whig.sd.55 <- sqrt(sum(results.1855$weight * (results.1855$Whig - whig.mu.55)^2))
-dem.mu.55 <- weighted.mean(results.1855$Democrat, results.1855$weight)
-dem.sd.55 <- sqrt(sum(results.1855$weight * (results.1855$Democrat - dem.mu.55)^2))
-kn.mu.55 <- weighted.mean(results.1855$Know_Nothing, results.1855$weight)
-kn.sd.55 <- sqrt(sum(results.1855$weight * (results.1855$Know_Nothing - kn.mu.55)^2))
-non.mu.55 <- weighted.mean(results.1855$Abstaining, results.1855$weight)
-non.sd.55 <- sqrt(sum(results.1855$weight * (results.1855$Abstaining - non.mu.55)^2))
+# Calculate the Z-score for a town's party share in a given year 
+z_score <- function(results, mus, sds, yr, party, town) {
+  town_result <- results %>% filter(town == "Meriden") %>% select(party)
+  mu <- single_stat(mus, yr, party)
+  sd <- single_stat(sds, yr, party)
+  round((town_result - mu) / sd, 2)
+}
 
-whig.mu.56 <- weighted.mean(results.1856$Whig, results.1856$weight)
-whig.sd.56 <- sqrt(sum(results.1856$weight * (results.1856$Whig - whig.mu.56)^2))
-dem.mu.56 <- weighted.mean(results.1856$Democrat, results.1856$weight)
-dem.sd.56 <- sqrt(sum(results.1856$weight * (results.1856$Democrat - dem.mu.56)^2))
-kn.mu.56 <- weighted.mean(results.1856$Know_Nothing, results.1856$weight)
-kn.sd.56 <- sqrt(sum(results.1856$weight * (results.1856$Know_Nothing - kn.mu.56)^2))
-rep.mu.56 <- weighted.mean(results.1856$Republican, results.1856$weight)
-rep.sd.56 <- sqrt(sum(results.1856$weight * (results.1856$Republican - rep.mu.56)^2))
-non.mu.56 <- weighted.mean(results.1856$Abstaining, results.1856$weight)
-non.sd.56 <- sqrt(sum(results.1856$weight * (results.1856$Abstaining - non.mu.56)^2))
-
-dem.mu.57 <- weighted.mean(results.1857$Democrat, results.1857$weight)
-dem.sd.57 <- sqrt(sum(results.1857$weight * (results.1857$Democrat - dem.mu.57)^2))
-rep.mu.57 <- weighted.mean(results.1857$Republican, results.1857$weight)
-rep.sd.57 <- sqrt(sum(results.1857$weight * (results.1857$Republican - rep.mu.57)^2))
-non.mu.57 <- weighted.mean(results.1857$Abstaining, results.1857$weight)
-non.sd.57 <- sqrt(sum(results.1857$weight * (results.1857$Abstaining - non.mu.57)^2))
-
+# Calculate the Z-scores for Meriden from 1851 - 1857
 z_scores <- data.frame(matrix(ncol = 7, nrow = 7))
-rownames(z_scores) <- (1851:1857)
-colnames(z_scores) <- c("Democrat", "Whig", "Free Soil", "Temperence", "Know Nothing", "Republican", "Abstaining")
-z_scores$Democrat[1] <- round((results.1851 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.51) / dem.sd.51, 2)
-z_scores$Democrat[2] <- round((results.1852 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.52) / dem.sd.52, 2)
-z_scores$Democrat[3] <- round((results.1853 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.53) / dem.sd.53, 2)
-z_scores$Democrat[4] <- round((results.1854 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.54) / dem.sd.54, 2)
-z_scores$Democrat[5] <- round((results.1855 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.55) / dem.sd.55, 2)
-z_scores$Democrat[6] <- round((results.1856 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.56) / dem.sd.56, 2)
-z_scores$Democrat[7] <- round((results.1857 %>% filter(town == "Meriden") %>% select(Democrat) - dem.mu.57) / dem.sd.57, 2)
-z_scores$Abstaining[1] <- round((results.1851 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.51) / non.sd.51, 2)
-z_scores$Abstaining[2] <- round((results.1852 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.52) / non.sd.52, 2)
-z_scores$Abstaining[3] <- round((results.1853 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.53) / non.sd.53, 2)
-z_scores$Abstaining[4] <- round((results.1854 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.54) / non.sd.54, 2)
-z_scores$Abstaining[5] <- round((results.1855 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.55) / non.sd.55, 2)
-z_scores$Abstaining[6] <- round((results.1856 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.56) / non.sd.56, 2)
-z_scores$Abstaining[7] <- round((results.1857 %>% filter(town == "Meriden") %>% select(Abstaining) - non.mu.57) / non.sd.57, 2)
-z_scores$Whig[1] <- round((results.1851 %>% filter(town == "Meriden") %>% select(Whig) - whig.mu.51) / whig.sd.51, 2)
-z_scores$Whig[2] <- round((results.1852 %>% filter(town == "Meriden") %>% select(Whig) - whig.mu.52) / whig.sd.52, 2)
-z_scores$Whig[3] <- round((results.1853 %>% filter(town == "Meriden") %>% select(Whig) - whig.mu.53) / whig.sd.53, 2)
-z_scores$Whig[4] <- round((results.1854 %>% filter(town == "Meriden") %>% select(Whig) - whig.mu.54) / whig.sd.54, 2)
-z_scores$Whig[5] <- round((results.1855 %>% filter(town == "Meriden") %>% select(Whig) - whig.mu.55) / whig.sd.55, 2)
-z_scores$Whig[6] <- round((results.1856 %>% filter(town == "Meriden") %>% select(Whig) - whig.mu.56) / whig.sd.56, 2)
-z_scores$"Free Soil"[1] <- round((results.1851 %>% filter(town == "Meriden") %>% select(Free_Soil) - fs.mu.51) / fs.sd.51, 2)
-z_scores$"Free Soil"[2] <- round((results.1852 %>% filter(town == "Meriden") %>% select(Free_Soil) - fs.mu.52) / fs.sd.52, 2)
-z_scores$"Free Soil"[3] <- round((results.1853 %>% filter(town == "Meriden") %>% select(Free_Soil) - fs.mu.53) / fs.sd.53, 2)
-z_scores$"Free Soil"[4] <- round((results.1854 %>% filter(town == "Meriden") %>% select(Free_Soil) - fs.mu.54) / fs.sd.54, 2)
-z_scores$Temperence[4] <- round((results.1854 %>% filter(town == "Meriden") %>% select(Temperence) - temp.mu.54) / temp.sd.54, 2)
-z_scores$"Know Nothing"[5] <- round((results.1855 %>% filter(town == "Meriden") %>% select(Know_Nothing) - kn.mu.55) / kn.sd.55, 2)
-z_scores$"Know Nothing"[6] <- round((results.1856 %>% filter(town == "Meriden") %>% select(Know_Nothing) - kn.mu.56) / kn.sd.56, 2)
-z_scores$Republican[6] <- round((results.1856 %>% filter(town == "Meriden") %>% select(Republican) - rep.mu.56) / rep.sd.56, 2)
-z_scores$Republican[7] <- round((results.1857 %>% filter(town == "Meriden") %>% select(Republican) - rep.mu.57) / rep.sd.57, 2)
+years <- 1851:1857
+parties <- c("Democrat", "Whig", "Free_Soil", "Temperence", "Know_Nothing", "Republican", "Abstaining")
+rownames(z_scores) <- years
+colnames(z_scores) <- parties
+results_files <- list(results.1851, results.1852, results.1853, results.1854, results.1855, results.1856, results.1857)
+for(party in parties) {
+  for(yr in years) {
+    i <- yr - 1850
+    j <- match(party, parties)
+    yr_results <- results_files[[i]]
+    yr_parties <- colnames(yr_results)
+    if(party %in% yr_parties) {
+      z_scores[i,j] <- z_score(yr_results, result_mu, result_sd, yr, party, "Meriden")
+    }
+  }
+}
 
 print(kable(z_scores, caption = "Z-scores for Meriden results"))
 
-# Meriden is the only town that passes a rough statistical proxy for
-# Tyler Anbinder's argument that the Know Nothings arose because of
+# Meriden is the town that best demonstrates a rough statistical proxy
+# for Tyler Anbinder's argument that the Know Nothings arose because of
 # anti-Nebraska sentiment.
 
 # Look for all towns that voted within 0.35 standard deviations of the
 # 1853 and 1854 mean Democratic and Whig shares but voted more than
 # 0.6 standard deviations above the 1854 Free Soil share and more
-# than 0.6 standard deviations above the 1855 mean Know Nothing share
+# than 0.6 standard deviations above the 1855 mean Know Nothing share.
+
+whig.mu.53 <- result_mu %>% single_stat(1853, "Whig")
+whig.sd.53 <- result_sd %>% single_stat(1853, "Whig")
+dem.mu.53 <- result_mu %>% single_stat(1853, "Democrat")
+dem.sd.53 <- result_sd %>% single_stat(1853, "Democrat")
+whig.mu.54 <- result_mu %>% single_stat(1854, "Whig")
+whig.sd.54 <- result_sd %>% single_stat(1854, "Whig")
+dem.mu.54 <- result_mu %>% single_stat(1854, "Democrat")
+dem.sd.54 <- result_sd %>% single_stat(1854, "Democrat")
+fs.mu.54 <- result_mu %>% single_stat(1854, "Free_Soil")
+fs.sd.54 <- result_sd %>% single_stat(1854, "Free_Soil")
+kn.mu.55 <- result_mu %>% single_stat(1855, "Know_Nothing")
+kn.sd.55 <- result_sd %>% single_stat(1855, "Know_Nothing")
 
 for (t in 1:nrow(results.55)) {
   if (abs((results.55$Whig_in_1854[t] - whig.mu.54) / whig.sd.54) < 0.35 &&
