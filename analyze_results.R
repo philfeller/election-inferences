@@ -1,3 +1,4 @@
+library(dplyr)
 library(eiPack)
 library(ineq)
 library(knitr)
@@ -16,13 +17,15 @@ load("ct_demographics.Rda")
 # Calculate weighted means and standard deviations for results
 
 tag_yr <- function(results, yr, type) {
-  results %>% filter(town == type) %>%
+  results %>%
+    filter(town == type) %>%
     mutate(weight = NULL) %>%
     rename(year = town) %>%
     mutate(year = yr)
 }
 
-result_mu <- results.1851 %>% tag_yr(1851, "Weighted mean") %>%
+result_mu <- results.1851 %>%
+  tag_yr(1851, "Weighted mean") %>%
   bind_rows(results.1852 %>% tag_yr(1852, "Weighted mean")) %>%
   bind_rows(results.1853 %>% tag_yr(1853, "Weighted mean")) %>%
   bind_rows(results.1854 %>% tag_yr(1854, "Weighted mean")) %>%
@@ -30,7 +33,8 @@ result_mu <- results.1851 %>% tag_yr(1851, "Weighted mean") %>%
   bind_rows(results.1856 %>% tag_yr(1856, "Weighted mean")) %>%
   bind_rows(results.1857 %>% tag_yr(1857, "Weighted mean"))
 
-result_sd <- results.1851 %>% tag_yr(1851, "Weighted SD") %>%
+result_sd <- results.1851 %>%
+  tag_yr(1851, "Weighted SD") %>%
   bind_rows(results.1852 %>% tag_yr(1852, "Weighted SD")) %>%
   bind_rows(results.1853 %>% tag_yr(1853, "Weighted SD")) %>%
   bind_rows(results.1854 %>% tag_yr(1854, "Weighted SD")) %>%
@@ -39,13 +43,16 @@ result_sd <- results.1851 %>% tag_yr(1851, "Weighted SD") %>%
   bind_rows(results.1857 %>% tag_yr(1857, "Weighted SD"))
 
 single_stat <- function(stats, yr, party) {
-  stats %>% filter(year == yr) %>%
+  stats %>%
+    filter(year == yr) %>%
     select(party)
 }
 
-# Calculate the Z-score for a town's party share in a given year 
+# Calculate the Z-score for a town's party share in a given year
 z_score <- function(results, mus, sds, yr, party, town) {
-  town_result <- results %>% filter(town == "Meriden") %>% select(party)
+  town_result <- results %>%
+    filter(town == "Meriden") %>%
+    select(party)
   mu <- single_stat(mus, yr, party)
   sd <- single_stat(sds, yr, party)
   round((town_result - mu) / sd, 2)
@@ -58,14 +65,14 @@ parties <- c("Democrat", "Whig", "Free_Soil", "Temperence", "Know_Nothing", "Rep
 rownames(z_scores) <- years
 colnames(z_scores) <- parties
 results_files <- list(results.1851, results.1852, results.1853, results.1854, results.1855, results.1856, results.1857)
-for(party in parties) {
-  for(yr in years) {
+for (party in parties) {
+  for (yr in years) {
     i <- yr - 1850
     j <- match(party, parties)
     yr_results <- results_files[[i]]
     yr_parties <- colnames(yr_results)
-    if(party %in% yr_parties) {
-      z_scores[i,j] <- z_score(yr_results, result_mu, result_sd, yr, party, "Meriden")
+    if (party %in% yr_parties) {
+      z_scores[i, j] <- z_score(yr_results, result_mu, result_sd, yr, party, "Meriden")
     }
   }
 }
@@ -108,13 +115,56 @@ for (t in 1:nrow(results.55)) {
   }
 }
 
-# Meriden has a disproportionate number of native-born, young-adult males
-# Stonington and New London, other Know Nothing hotbeds, show the same pattern
-hist((ct_1850 %>% filter(BIRTH == "native" & SEX == 1))$AGE, main="Connecticut")
+# Meriden has a disproportionate number of native-born, young-adult males.
+# Stonington and New London, other Know Nothing hotbeds, show the same pattern,
+# as do the cities of Hartford and New Haven.
+
+# Define a function to identify maxima
+find_peaks <- function(x, m = 10) {
+  shape <- diff(sign(diff(x, na.pad = FALSE)))
+  pks <- sapply(which(shape < 0), FUN = function(i) {
+    z <- i - m + 1
+    z <- ifelse(z > 0, z, 1)
+    w <- i + m + 1
+    w <- ifelse(w < length(x), w, length(x))
+    if (all(x[c(z:i, (i + 2):w)] <= x[i + 1])) {
+      return(i + 1)
+    } else {
+      return(numeric(0))
+    }
+  })
+  pks <- unlist(pks)
+  pks
+}
+
+ct_native_male <- ct_1850 %>%
+  filter(BIRTH == "native" & SEX == 1) %>%
+  select(AGE) %>%
+  arrange(AGE) %>%
+  group_by(AGE) %>%
+  summarize(n = n())
+ct_native_male.ss <- smooth.spline(ct_native_male)
+plot(ct_native_male)
+lines(ct_native_male.ss)
+title("Connecticut Native-born Male Age Distribution")
 for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
-  native_male <- ct_1850 %>% filter(town == t & BIRTH == "native" & SEX == 1)
-  if (nrow(native_male %>% filter(AGE >= 20 & AGE <= 25)) > nrow(native_male %>% filter(AGE >= 10 & AGE <= 15)) * 1.5) {
-    hist(native_male$AGE, breaks = "Scott", main = t)
+  native_male <- ct_1850 %>%
+    filter(town == t & BIRTH == "native" & SEX == 1) %>%
+    select(AGE) %>%
+    arrange(AGE) %>%
+    group_by(AGE) %>%
+    summarize(n = n())
+  native_male.ss <- smooth.spline(native_male)
+  # Find the maxima in the smoothed age-distribution data
+  peaks <- find_peaks(native_male.ss$y, m = 5)
+  for (peak in peaks) {
+    # Plot age distributions for towns that have a well-defined peak
+    if (length(peaks) < 3 && native_male.ss$y[peak] - native_male.ss$y[10] > 10) {
+      plot(native_male)
+      lines(native_male.ss)
+      title(paste(t, "Native-born Male Age Distribution"))
+      break
+    }
   }
 }
 
