@@ -1,8 +1,8 @@
-# Calculate ecological inferences of voters transitions using the multinomial
-# Dirichlet method, without covariates. If necessary, repeat with a greater
-# burn-in factor until the results show convergence. Calculate the residuals
-# and test them for normality. For any that aren't normally distributed, test
-# the significance of various factors.
+# Calculate ecological inferences of 1854-1855 voter transitions using the multinomial
+# Dirichlet method. Longitude is used as a covariate because it was the factor
+# that best explained the results obtained by the parties that exhibited the
+# greatest uncertainty in inferences without covariates. Use of the covariate
+# didn't significantly decrease the uncertainty.
 #
 # The eiPack pacakge is used to perform ecological inferences:
 # https://www.rdocumentation.org/packages/eiPack/versions/0.1-7
