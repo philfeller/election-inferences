@@ -113,6 +113,8 @@ litchfield <- c("Morris", "Litchfield")
 # and Windsor Locks retained a large majority of its population. For purposes of
 # computing demographic factors, it's safe to ignore Windsor Locks.
 granby <- c("East Granby", "Granby")
+# North Canaan, taken from Canaan, is in 1860 census
+canaan <- c("Canaan", "North Canaan")
 # Scotland, taken from Windham, is in 1858 results, 1860 census
 windham <- c("Scotland", "Windham")
 # Bridgewater , taken from New Milford, is in 1857 results

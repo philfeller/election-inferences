@@ -1,5 +1,6 @@
 library(dplyr)
 library(eiPack)
+library(haven)
 library(ineq)
 library(knitr)
 library(tidyr)
@@ -137,33 +138,48 @@ find_peaks <- function(x, m = 10) {
   pks
 }
 
-ct_native_male <- ct_1850 %>%
-  filter(BIRTH == "native" & SEX == 1) %>%
+ct_native_male_1850 <- ct_1850 %>%
+  filter(BIRTH == "native" & SEX == 1)
+ct_native_male_1860 <- ct_1860 %>%
+  filter(BIRTH == "native" & SEX == 1)
+ct_age_distribution <- ct_native_male_1850 %>%
   select(AGE) %>%
   arrange(AGE) %>%
   group_by(AGE) %>%
   summarize(n = n())
-ct_native_male.ss <- smooth.spline(ct_native_male)
-plot(ct_native_male)
+ct_native_male.ss <- smooth.spline(ct_age_distribution)
+plot(ct_age_distribution)
 lines(ct_native_male.ss)
 title("Connecticut Native-born Male Age Distribution")
 for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
-  native_male <- ct_1850 %>%
-    filter(town == t & BIRTH == "native" & SEX == 1) %>%
+  native_male_1850 <- ct_native_male_1850 %>%
+    filter(town == t) %>%
     select(AGE) %>%
     arrange(AGE) %>%
     group_by(AGE) %>%
     summarize(n = n())
-  native_male.ss <- smooth.spline(native_male)
+  native_male_1850.ss <- smooth.spline(native_male_1850)
+  native_male_1860 <- ct_native_male_1860 %>%
+    filter(town == t) %>%
+    select(AGE) %>%
+    arrange(AGE) %>%
+    group_by(AGE) %>%
+    summarize(n = n())
+  native_male_1860.ss <- smooth.spline(native_male_1860)
   # Find the maxima in the smoothed age-distribution data
-  peaks <- find_peaks(native_male.ss$y, m = 5)
-  for (peak in peaks) {
-    # Plot age distributions for towns that have a well-defined peak
-    if (length(peaks) < 3 && native_male.ss$y[peak] - native_male.ss$y[10] > 10) {
-      plot(native_male)
-      lines(native_male.ss)
-      title(paste(t, "Native-born Male Age Distribution"))
-      break
+  peaks <- find_peaks(native_male_1850.ss$y, m = 5)
+  if (length(peaks) < 3) {
+    for (peak in peaks) {
+      # Plot age distributions for towns that have a well-defined peak
+      if (native_male_1850.ss$y[peak] - native_male_1850.ss$y[10] > 10) {
+        max_age <- max(max(native_male_1850$n), max(native_male_1850.ss$y), max(native_male_1860.ss$y))
+        plot(native_male_1850, ylim = c(0, max_age))
+        lines(native_male_1850.ss)
+        lines(native_male_1860.ss, lty = "dashed")
+        legend("topright", legend = c("1850 ages", "1850 smoothed ages", "1860 smoothed ages"), pch = c(1, NA, NA), lty = c(NA, 1, 2))
+        title(paste(t, "Native-born Male Age Distribution"))
+        break
+      }
     }
   }
 }
@@ -198,7 +214,10 @@ for (from_party in pull(distinct(combined_betas %>% select(from)))) {
 test_cols <- paste(colnames(results.55 %>% select(LON, gini:pct_farm_1860)), collapse = " + ")
 
 # A town's longitude is the factor that best explains support for the parties
-# whose transitions are least certain.
+# whose transitions are least certain. Among the covariates that explained
+# individual parties, one that is of interest is that the percentage of 
+# low-wealth, young-adult, native-born males in 1850 negatively correlated to
+# 1854 Whig support.
 
 test_parties <- c("Know_Nothing_in_1855", "Free_Soil_in_1854", "Temperance_in_1854", "Whig_in_1854")
 for (party in test_parties) {

@@ -28,6 +28,7 @@ get_1860_town <- function(SERIAL) {
 # on one census
 get_combined <- function(town) {
   case_when(
+    town %in% canaan ~ "Canaan",
     town %in% litchfield ~ "Litchfield",
     town %in% windham ~ "Windham",
     town %in% granby ~ "Granby",
@@ -173,13 +174,15 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
     bap = sum(Baptist),
     meth = sum(Methodist),
     epis = sum(Episcopal),
+    piet = sum(Baptist) + sum(Methodist) + sum(Christian) + sum(Disciples) + sum(Sandemanian) + sum(Free) + sum(Union) + sum(Adventist) + sum(Spiritualist) + sum(Friends),
     total = sum(total)
   ) %>%
   mutate(
     pct_cong = cong / total,
     pct_bap = bap / total,
     pct_meth = meth / total,
-    pct_epis = epis / total
+    pct_epis = epis / total,
+    pct_piet = piet / total
   ) %>%
   select(combined, starts_with("pct_"))
 
@@ -303,13 +306,9 @@ factors <- ungroup(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(irish_1850 = n()), by = "combined") %>%
   left_join(ct_1850 %>%
-    filter(AGE >= 20 & AGE <= 25 & SEX == 1 & BIRTH == "native") %>%
+    filter(AGE >= 20 & AGE <= 30 & SEX == 1 & BIRTH == "native" & REALPROP <= 2000) %>%
     group_by(combined) %>%
     summarize(ya_male_1850 = n()), by = "combined") %>%
-  left_join(ct_1850 %>%
-    filter(AGE >= 10 & AGE <= 15 & SEX == 1 & BIRTH == "native") %>%
-    group_by(combined) %>%
-    summarize(child_male_1850 = n()), by = "combined") %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(num_1860_hh = n()), by = "combined") %>%
@@ -323,7 +322,7 @@ factors <- ungroup(ct_1860_hh %>%
     wealth = wealth / pop,
     comb_wealth = comb_wealth / comb_pop,
     pct_irish_1850 = irish_1850 / POP_1850,
-    pct_ya_male_1850 = ya_male_1850 / POP_1850 - child_male_1850 / POP_1850,
+    pct_ya_male_1850 = ya_male_1850 / POP_1850,
     pct_farm_1850 = farm_1850_hh / num_1850_hh,
     pct_farm_1860 = farm_1860_hh / num_1860_hh
   ) %>%
