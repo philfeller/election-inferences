@@ -25,8 +25,10 @@ tag_yr <- function(results, yr, type) {
     mutate(year = yr)
 }
 
-result_mu <- results.1851 %>%
-  tag_yr(1851, "Weighted mean") %>%
+result_mu <- results.1849 %>%
+  tag_yr(1849, "Weighted mean") %>%
+  bind_rows(results.1850 %>% tag_yr(1850, "Weighted mean")) %>%
+  bind_rows(results.1851 %>% tag_yr(1851, "Weighted mean")) %>%
   bind_rows(results.1852 %>% tag_yr(1852, "Weighted mean")) %>%
   bind_rows(results.1853 %>% tag_yr(1853, "Weighted mean")) %>%
   bind_rows(results.1854 %>% tag_yr(1854, "Weighted mean")) %>%
@@ -34,8 +36,10 @@ result_mu <- results.1851 %>%
   bind_rows(results.1856 %>% tag_yr(1856, "Weighted mean")) %>%
   bind_rows(results.1857 %>% tag_yr(1857, "Weighted mean"))
 
-result_sd <- results.1851 %>%
-  tag_yr(1851, "Weighted SD") %>%
+result_sd <- results.1849 %>%
+  tag_yr(1849, "Weighted SD") %>%
+  bind_rows(results.1850 %>% tag_yr(1850, "Weighted SD")) %>%
+  bind_rows(results.1851 %>% tag_yr(1851, "Weighted SD")) %>%
   bind_rows(results.1852 %>% tag_yr(1852, "Weighted SD")) %>%
   bind_rows(results.1853 %>% tag_yr(1853, "Weighted SD")) %>%
   bind_rows(results.1854 %>% tag_yr(1854, "Weighted SD")) %>%
@@ -59,18 +63,18 @@ z_score <- function(results, mus, sds, yr, party, town) {
   round((town_result - mu) / sd, 2)
 }
 
-# Calculate the Z-scores for Meriden from 1851 - 1857
-z_scores <- data.frame(matrix(ncol = 7, nrow = 7))
-years <- 1851:1857
+# Calculate the Z-scores for Meriden from 1849 - 1857
+z_scores <- data.frame(matrix(ncol = 7, nrow = 9))
+years <- 1849:1857
 parties <- c("Democrat", "Whig", "Free_Soil", "Temperence", "Know_Nothing", "Republican", "Abstaining")
 rownames(z_scores) <- years
 colnames(z_scores) <- parties
-results_files <- list(results.1851, results.1852, results.1853, results.1854, results.1855, results.1856, results.1857)
+results_dfs <- list(results.1849, results.1850, results.1851, results.1852, results.1853, results.1854, results.1855, results.1856, results.1857)
 for (party in parties) {
   for (yr in years) {
-    i <- yr - 1850
+    i <- yr - 1848
     j <- match(party, parties)
-    yr_results <- results_files[[i]]
+    yr_results <- results_dfs[[i]]
     yr_parties <- colnames(yr_results)
     if (party %in% yr_parties) {
       z_scores[i, j] <- z_score(yr_results, result_mu, result_sd, yr, party, "Meriden")
