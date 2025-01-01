@@ -82,8 +82,10 @@ combine_results <- function(input_tibble, beg_yr, end_yr) {
 
 # Define function to assign party designation to candidates
 assign_party <- function(input_tibble, other = FALSE) {
-  # Nominees of major parties between 1852 and 1857
+  # Nominees of major parties between 1849 and 1857
   major_candidates <- c(
+    "John M. Niles",
+    "Joseph Trumbull",
     "Alexander H. Holley",
     "Charles Chapman",
     "Gideon Welles",
@@ -99,8 +101,9 @@ assign_party <- function(input_tibble, other = FALSE) {
     "William T. Minor"
   )
 
-  # Alternate names used to vote for Seymour, Ingham, and Foster
-  seymour <- c("T. H. Seymour", "T. Seymour", "Thomas Seymour", "Thomas S. Seymour")
+  # Alternate names used to vote for Niles, Seymour, Ingham, and Foster
+  niles <- c("J. M. Niles")
+  seymour <- c("Jonas H. Senor", "T. H. Seymour", "T. Seymour", "Thomas Seymour", "Thomas S. Seymour", "Ths. H. Seymour", "Tom H. Seymour")
   ingham <- c("Samuel D. Ingham", "Samuel Engraham")
   foster <- c("L. S. Foster", "Lafayette Foster")
 
@@ -119,16 +122,22 @@ assign_party <- function(input_tibble, other = FALSE) {
     add_column(candidate_party = "Other_votes", .after = "yr")
 
   major_votes <- input_tibble %>%
+    mutate(candidate_name = ifelse(candidate_name %in% niles, "John M. Niles", candidate_name)) %>%
     mutate(candidate_name = ifelse(candidate_name %in% seymour, "Thomas H. Seymour", candidate_name)) %>%
     mutate(candidate_name = ifelse(candidate_name %in% foster, "Lafayette S. Foster", candidate_name)) %>%
     mutate(candidate_name = ifelse(candidate_name %in% ingham, "Samuel Ingham", candidate_name)) %>%
     filter(candidate_name %in% major_candidates) %>%
     # Remove candidates whose names appeared on stray ballots when their not party's nominee
+    # Francis Gillette is coded as Free Soil in 1849, even though John M. Niles was the party
+    # nominee; he was the Liberty party candidate in 1848, before the Free Soil party formed,
+    # and he outpolled Niles 88-4 in East Haven
     filter(!(yr == 1856 && candidate_name == "Henry Dutton")) %>%
     filter(!(yr > 1853 && candidate_name == "Francis Gillette")) %>%
     filter(!(yr == 1853 && candidate_name == "Samuel Ingham")) %>%
     filter(!(yr == 1857 && candidate_name == "William T. Minor")) %>%
     mutate(candidate_party = case_when(
+      candidate_name == "John M. Niles" ~ "Free_Soil_votes",
+      candidate_name == "Joseph Trumbull" ~ "Whig_votes",
       candidate_name == "Alexander H. Holley" ~ "Republican_votes",
       candidate_name == "Charles Chapman" ~ "Temperance_votes",
       candidate_name == "Gideon Welles" ~ "Republican_votes",
@@ -203,7 +212,7 @@ read_results <- function(file) {
       ) %>%
       filter(!candidate_name == "Total Ballots Cast") %>%
       filter(!candidate_name == "Total Votes Cast") %>%
-      filter(yr >= 1851) %>%
+      filter(yr >= 1849) %>%
       assign_party() %>%
       # Change blank votes to zero
       replace(is.na(.), 0) %>%
@@ -251,9 +260,11 @@ remainder <- function(arry) {
 # cast; set the percentage to 100% in these cases.
 eligible_pct <- raw_results %>%
   select(yr, combined, total) %>%
-  pivot_wider(names_prefix = "TOTAL_", names_from = yr, values_from = total, values_fn = sum) %>%
+  pivot_wider(names_prefix = "TOTAL_", names_from = yr, values_from = total, values_fn = sum, values_fill = 0) %>%
   left_join(ct_eligible, by = "combined") %>%
   mutate(
+    ELIG_1849_PCT = sapply(TOTAL_1849 / ELIG_1850, cap),
+    ELIG_1850_PCT = sapply(TOTAL_1850 / ELIG_1850, cap),
     ELIG_1851_PCT = sapply(TOTAL_1851 / ELIG_1851, cap),
     ELIG_1852_PCT = sapply(TOTAL_1852 / ELIG_1852, cap),
     ELIG_1853_PCT = sapply(TOTAL_1853 / ELIG_1853, cap),
@@ -504,6 +515,28 @@ result_summary <- function(results) {
 
 # Calculate results for individual years, in order to calculate a town's
 # z-score for particular results
+results.1849 <- yr_results(raw_results, 1849) %>%
+  mutate(
+    ELIG = round(total / ELIG_1850_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Free_Soil = Free_Soil_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Free_Soil)
+  ) %>%
+  result_summary()
+
+results.1850 <- yr_results(raw_results, 1850) %>%
+  mutate(
+    ELIG = round(total / ELIG_1850_PCT),
+    weight = ELIG / sum(ELIG),
+    Democrat = Democrat_votes / ELIG,
+    Whig = Whig_votes / ELIG,
+    Free_Soil = Free_Soil_votes / ELIG,
+    Abstaining = remainder(Democrat + Whig + Free_Soil)
+  ) %>%
+  result_summary()
+
 results.1851 <- yr_results(raw_results, 1851) %>%
   mutate(
     ELIG = round(total / ELIG_1851_PCT),
