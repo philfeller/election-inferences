@@ -15,6 +15,25 @@ load("results.Rda")
 load("1855_inference.Rda")
 load("ct_demographics.Rda")
 
+# Calculate Meriden's rank among towns for Free Soil votes as a percentage
+# of total votes cast
+
+rank <- which((vote_share.1849 %>% arrange(desc(Free_Soil)))$town == "Meriden")
+towns <- nrow(vote_share.1849)
+print(paste("Meriden ranks", rank, "of", towns, "towns for Free Soil vote share in 1849"))
+rank <- which((vote_share.1849 %>% arrange(desc(Whig)))$town == "Meriden")
+print(paste("Meriden ranks", rank, "of", towns, "towns for Whig vote share in 1849"))
+rank <- which((vote_share.1850 %>% arrange(desc(Free_Soil)))$town == "Meriden")
+towns <- nrow(vote_share.1850)
+print(paste("Meriden ranks", rank, "of", towns, "towns for Free Soil vote share in 1850"))
+rank <- which((vote_share.1850 %>% arrange(desc(Whig)))$town == "Meriden")
+print(paste("Meriden ranks", rank, "of", towns, "towns for Whig vote share in 1850"))
+rank <- which((vote_share.1851 %>% arrange(desc(Free_Soil)))$town == "Meriden")
+towns <- nrow(vote_share.1851)
+print(paste("Meriden ranks", rank, "of", towns, "towns for Free Soil vote share in 1851"))
+rank <- which((vote_share.1851 %>% arrange(desc(Whig)))$town == "Meriden")
+print(paste("Meriden ranks", rank, "of", towns, "towns for Whig vote share in 1851"))
+
 # Calculate weighted means and standard deviations for results
 
 tag_yr <- function(results, yr, type) {
@@ -219,7 +238,7 @@ test_cols <- paste(colnames(results.55 %>% select(LON, gini:pct_farm_1860)), col
 
 # A town's longitude is the factor that best explains support for the parties
 # whose transitions are least certain. Among the covariates that explained
-# individual parties, one that is of interest is that the percentage of 
+# individual parties, one that is of interest is that the percentage of
 # low-wealth, young-adult, native-born males in 1850 negatively correlated to
 # 1854 Whig support.
 
