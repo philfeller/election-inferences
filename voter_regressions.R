@@ -25,7 +25,8 @@ results.57 <- create_results(1856, 1857)
 results.51_57 <- create_results(1851, 1857)
 
 save(
-  results.52, results.53, results.54, results.55, results.56, results.51_57,
+  raw_results, results.52, results.53, results.54, results.55, results.56, results.51_57,
+  vote_share.1849, vote_share.1850, vote_share.1851,
   results.1849, results.1850, results.1851, results.1852, results.1853, results.1854, results.1855, results.1856, results.1857,
   file = "results.Rda"
 )
