@@ -1325,6 +1325,11 @@
       ],
       "Hash": "d804462e9b0a9e91b7b9d2c3007509d1"
     },
+    "lsr": {
+      "Package": "lsr",
+      "Version": "0.5.2",
+      "Source": "Repository"
+    },
     "lubridate": {
       "Package": "lubridate",
       "Version": "1.9.3",
