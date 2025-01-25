@@ -513,6 +513,23 @@ result_summary <- function(results) {
   results_plus_mean %>% bind_rows(result_sd)
 }
 
+# Calculate vote shares for 1849 to 1851
+
+vote_share.1849 <- yr_results(raw_results, 1849) %>%
+  mutate(Free_Soil = Free_Soil_votes / total,
+         Whig = Whig_votes / total,
+         Democrat = Democrat_votes / total)
+
+vote_share.1850 <- yr_results(raw_results, 1850) %>%
+  mutate(Free_Soil = Free_Soil_votes / total,
+         Whig = Whig_votes / total,
+         Democrat = Democrat_votes / total)
+
+vote_share.1851 <- yr_results(raw_results, 1851) %>%
+  mutate(Free_Soil = Free_Soil_votes / total,
+         Whig = Whig_votes / total,
+         Democrat = Democrat_votes / total)
+
 # Calculate results for individual years, in order to calculate a town's
 # z-score for particular results
 results.1849 <- yr_results(raw_results, 1849) %>%
