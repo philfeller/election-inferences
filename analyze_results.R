@@ -3,6 +3,7 @@ library(eiPack)
 library(haven)
 library(ineq)
 library(knitr)
+library(lsr)
 library(tidyr)
 
 source("betas.R")
@@ -11,28 +12,37 @@ source("variables.R")
 
 # Load the saved voter-inference results and perform statistical analysis
 
-load("results.Rda")
-load("1855_inference.Rda")
-load("ct_demographics.Rda")
+load(file = "results.Rda")
+load(file = "1855_inference.Rda")
+load(file = "ct_demographics.Rda")
 
-# Calculate Meriden's rank among towns for Free Soil votes as a percentage
-# of total votes cast
+# Calculate Meriden's rank among towns for Free Soil and Whig votes as a percentage
+# of total votes cast; present in a table with vote tallies and percentages
 
-rank <- which((vote_share.1849 %>% arrange(desc(Free_Soil)))$town == "Meriden")
-towns <- nrow(vote_share.1849)
-print(paste("Meriden ranks", rank, "of", towns, "towns for Free Soil vote share in 1849"))
-rank <- which((vote_share.1849 %>% arrange(desc(Whig)))$town == "Meriden")
-print(paste("Meriden ranks", rank, "of", towns, "towns for Whig vote share in 1849"))
-rank <- which((vote_share.1850 %>% arrange(desc(Free_Soil)))$town == "Meriden")
-towns <- nrow(vote_share.1850)
-print(paste("Meriden ranks", rank, "of", towns, "towns for Free Soil vote share in 1850"))
-rank <- which((vote_share.1850 %>% arrange(desc(Whig)))$town == "Meriden")
-print(paste("Meriden ranks", rank, "of", towns, "towns for Whig vote share in 1850"))
-rank <- which((vote_share.1851 %>% arrange(desc(Free_Soil)))$town == "Meriden")
-towns <- nrow(vote_share.1851)
-print(paste("Meriden ranks", rank, "of", towns, "towns for Free Soil vote share in 1851"))
-rank <- which((vote_share.1851 %>% arrange(desc(Whig)))$town == "Meriden")
-print(paste("Meriden ranks", rank, "of", towns, "towns for Whig vote share in 1851"))
+table_1849_1851 <- data.frame(matrix(ncol = 9, nrow = 3))
+years <- 1849:1851
+stats <- c("Number of towns", "Whig share rank", "Free Soil share rank", "Whig votes", "Democratic votes", "Free soil votes", "Whig share", "Democratic share", "Free soil share")
+rownames(table_1849_1851) <- years
+colnames(table_1849_1851) <- stats
+table_1849_1851[1, 1] <- nrow(vote_share.1849)
+table_1849_1851[1, 2] <- which((vote_share.1849 %>% arrange(desc(Whig)))$town == "Meriden")
+table_1849_1851[1, 3] <- which((vote_share.1849 %>% arrange(desc(Free_Soil)))$town == "Meriden")
+table_1849_1851[2, 1] <- nrow(vote_share.1850)
+table_1849_1851[2, 2] <- which((vote_share.1850 %>% arrange(desc(Whig)))$town == "Meriden")
+table_1849_1851[2, 3] <- which((vote_share.1850 %>% arrange(desc(Free_Soil)))$town == "Meriden")
+table_1849_1851[3, 1] <- nrow(vote_share.1851)
+table_1849_1851[3, 2] <- which((vote_share.1851 %>% arrange(desc(Whig)))$town == "Meriden")
+table_1849_1851[3, 3] <- which((vote_share.1851 %>% arrange(desc(Free_Soil)))$town == "Meriden")
+table_1849_1851[1, 4:9] <- vote_share.1849 %>%
+  filter(town == "Meriden") %>%
+  select(Whig_votes, Democrat_votes, Free_Soil_votes, Whig, Democrat, Free_Soil)
+table_1849_1851[2, 4:9] <- vote_share.1850 %>%
+  filter(town == "Meriden") %>%
+  select(Whig_votes, Democrat_votes, Free_Soil_votes, Whig, Democrat, Free_Soil)
+table_1849_1851[3, 4:9] <- vote_share.1851 %>%
+  filter(town == "Meriden") %>%
+  select(Whig_votes, Democrat_votes, Free_Soil_votes, Whig, Democrat, Free_Soil)
+print(kable(table_1849_1851, caption = "Meriden election results and statewide rank, 1849-1851"))
 
 # Calculate weighted means and standard deviations for results
 
@@ -101,7 +111,8 @@ for (party in parties) {
   }
 }
 
-print(kable(z_scores, caption = "Z-scores for Meriden results"))
+print("         Z-scores for Meriden results")
+print(z_scores)
 
 # Meriden is the town that best demonstrates a rough statistical proxy
 # for Tyler Anbinder's argument that the Know Nothings arose because of
@@ -214,6 +225,50 @@ for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
 
 summary(lm(gini ~ pct_farm_1860 + age_1860 + wealth, factors))
 
+# GINI index for native white males is strongly correlated to age, and age
+# accounts for about 25% to the variance. Wealth is also correlated to age,
+# and to GINI index, but it only accounts for about 5% of the variance in GINI
+
+# Use the average age for each of the age categories when doing regression
+avg_ages <- c()
+age_cats <- c("20 - 29", "30 - 39", "40 - 49", "50 - 59", "60 and over")
+for (age in age_cats) {
+  avg_ages <- c(avg_ages, as.numeric(white_male_1860_hh %>%
+    filter(AGE_CAT == age) %>%
+    filter(BIRTH == "native") %>%
+    summarise(avg_age = mean(AGE)) %>%
+    select(avg_age)))
+}
+
+gini_by_town <- distinct(ct_1860_hh %>% select(town))
+for (age in age_cats) {
+  avg_age <- avg_ages[1]
+  avg_ages <- avg_ages[2:length(avg_ages)]
+  g <- white_male_1860_hh %>%
+    filter(AGE_CAT == age) %>%
+    filter(BIRTH == "native") %>%
+    group_by(town) %>%
+    summarise(
+      gini = ineq(FAMILY_WEALTH, type = "Gini"),
+      avg_wealth = mean(FAMILY_WEALTH)
+    ) %>%
+    select(town, gini, avg_wealth)
+  colnames(g) <- c("town", avg_age, paste(avg_age, "wealth", sep = "_"))
+  gini_by_town <- gini_by_town %>% left_join(g, by = join_by(town))
+}
+
+gini_age <- gini_by_town %>%
+  select(!ends_with("wealth")) %>%
+  pivot_longer(cols = !town, names_to = "age", values_to = "gini") %>%
+  mutate(age = as.double(age))
+
+wealth_age <- gini_by_town %>%
+  select(town, ends_with("wealth")) %>%
+  pivot_longer(cols = !town, names_to = "age", values_to = "wealth") %>%
+  mutate(age = as.double(substring(age, 1, nchar(age) - 7)))
+
+etaSquared(lm(gini ~ wealth + age, gini_age %>% left_join(wealth_age, by = join_by(town, age))))
+
 # The greatest uncertainty in the 1855 inference is in determining what became of
 # 1854 Free Soil voters, followed by doubt about Temperance and Whig voters.
 # Similar results are obtained when standard deviations are calculated for the
@@ -251,7 +306,7 @@ for (party in test_parties) {
 
 # Show GINI indices for Meriden subgroups
 
-age_cats <- c("0 - 20", "20 - 30", "30 - 40", "40 - 50", "50 - 60", "Over 60")
+age_cats <- c("0 - 19", age_cats)
 gini_all <- data.frame(row.names = c("all"))
 gini_by_birth <- data.frame(row.names = c("native", "immigrant"))
 gini_by_job <- data.frame(row.names = c("farm", "nonfarm"))

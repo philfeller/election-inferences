@@ -97,12 +97,12 @@ ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
-      AGE < 20 ~ "0 - 20",
-      AGE >= 20 & AGE < 30 ~ "20 - 30",
-      AGE >= 30 & AGE < 40 ~ "30 - 40",
-      AGE >= 40 & AGE < 50 ~ "40 - 50",
-      AGE >= 50 & AGE < 60 ~ "50 - 60",
-      AGE >= 60 ~ "Over 60"
+      AGE < 20 ~ "0 - 19",
+      AGE >= 20 & AGE < 30 ~ "20 - 29",
+      AGE >= 30 & AGE < 40 ~ "30 - 39",
+      AGE >= 40 & AGE < 50 ~ "40 - 49",
+      AGE >= 50 & AGE < 60 ~ "50 - 59",
+      AGE >= 60 ~ "60 and over"
     ),
     # The CLASS column categorizes people according to Doherty's 1977 model
     CLASS = case_when(
@@ -140,12 +140,12 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
-      AGE < 20 ~ "0 - 20",
-      AGE >= 20 & AGE < 30 ~ "20 - 30",
-      AGE >= 30 & AGE < 40 ~ "30 - 40",
-      AGE >= 40 & AGE < 50 ~ "40 - 50",
-      AGE >= 50 & AGE < 60 ~ "50 - 60",
-      AGE >= 60 ~ "Over 60"
+      AGE < 20 ~ "0 - 19",
+      AGE >= 20 & AGE < 30 ~ "20 - 29",
+      AGE >= 30 & AGE < 40 ~ "30 - 39",
+      AGE >= 40 & AGE < 50 ~ "40 - 49",
+      AGE >= 50 & AGE < 60 ~ "50 - 59",
+      AGE >= 60 ~ "60 and over"
     ),
     # The CLASS column categorizes people according to Doherty's 1977 model
     CLASS = case_when(
@@ -215,6 +215,25 @@ ct_1860_hh <- ct_1860 %>%
     town = first(town),
     combined = first(combined)
   )
+
+white_male_1860_hh <- ct_1860 %>%
+  # Exclude servants and institutional housing
+  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  group_by(SERIAL * 100 + FAMUNIT) %>%
+  summarise(
+    FAMILY_REALPROP = sum(REALPROP),
+    FAMILY_WEALTH = sum(WEALTH),
+    AGE = first(AGE),
+    AGE_CAT = first(AGE_CAT),
+    BIRTH = first(BIRTH),
+    SEX = first(SEX),
+    RACE = first(RACE),
+    JOB = first(JOB),
+    CLASS = first(CLASS),
+    town = first(town),
+    combined = first(combined)
+  ) %>%
+  filter(SEX == 1 && RACE == 1)
 
 ct_pop <- ct_1850 %>%
   group_by(combined) %>%
@@ -333,4 +352,4 @@ factors <- ungroup(ct_1860_hh %>%
     starts_with("pct"), ends_with("change")
   )
 
-save(factors, ct_1850, ct_1860, ct_1860_hh, ct_1850_hh, file = "ct_demographics.Rda")
+save(factors, ct_1850, ct_1860, ct_1860_hh, ct_1850_hh, white_male_1860_hh, file = "ct_demographics.Rda")
