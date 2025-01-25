@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y libudunits2-dev \
     apt-get clean && apt-get autoremove
 
 # Use renv version 1.0.7
-ENV RENV_VERSION v1.0.7
+ENV RENV_VERSION=v1.0.7
 
 # Create a directory named after our project directory
 WORKDIR /election-inferences
