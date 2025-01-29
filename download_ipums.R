@@ -4,8 +4,8 @@ library(ipumsr)
 # https://developer.ipums.org/docs/v2/get-started/
 
 # API key is retreived from an HCP secrets vault and defined as an environment variable
-api_key <- Sys.getenv("API_KEY")
-set_ipums_api_key(api_key)
+# The API key is set in variables.R
+source(variables.R)
 
 # Select data only for Connecticut and limit the columns to only those that will be used
 variables_1850 <- list(
@@ -26,7 +26,7 @@ extract_1850 <- submit_extract(
 )
 
 ddi_1850 <- wait_for_extract(extract_1850) %>%
-  download_extract()
+  download_extract(download_dir = ipums_data_path)
 
 # Define that data will be extracted from the 1860 full-count US census
 extract_1860 <- submit_extract(
@@ -38,4 +38,4 @@ extract_1860 <- submit_extract(
 )
 
 ddi_1860 <- wait_for_extract(extract_1860) %>%
-  download_extract()
+  download_extract(download_dir = ipums_data_path)
