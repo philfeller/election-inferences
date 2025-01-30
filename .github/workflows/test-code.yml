@@ -16,6 +16,13 @@ jobs:
         with:
           lfs: false
 
+      - name: Check out data files from private repo
+        uses: actions/checkout@v4
+        with:
+          repository: philfeller/licensed-data
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          path: data/licensed-data
+
       - name: Lint
         run: lintr::lint_dir()
         shell: Rscript {0}
