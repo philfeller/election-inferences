@@ -5,8 +5,10 @@ library(ipumsr)
 # Suppress warnings; the ei.MD.bayes function produces uninformative warnings because the
 # row and column marginals are proportions.
 # Suppress messages about the default group that deplyr.summarise chooses.
-options(warn = -1,
-        dplyr.summarise.inform = FALSE)
+options(
+  warn = -1,
+  dplyr.summarise.inform = FALSE
+)
 
 # Codes used in IPUMS census records
 connecticut_icp <- 01
@@ -162,17 +164,23 @@ set_ipums_api_key(api_key)
 
 # Last two extracts will be those requested by download_ipums.R
 # The names of the files with the downloaded data include the extract number
-ipums_extracts <- get_extract_history("usa", how_many = 2)
+ipums_extracts <- get_extract_history("usa", how_many = 3)
 for (ipums_extract in ipums_extracts) {
-  if (grepl("1850", ipums_extract$description)) last_1850 <- ipums_extract$number
-  if (grepl("1860", ipums_extract$description)) last_1860 <- ipums_extract$number
+  if (grepl("1850 CT", ipums_extract$description)) last_1850 <- ipums_extract$number
+  if (grepl("1860 CT", ipums_extract$description)) last_1860_ct <- ipums_extract$number
+  if (grepl("1860 linked", ipums_extract$description)) last_1860_linked <- ipums_extract$number
 }
 
 ipums_data_path <- "./data/licensed-data/ipums/"
-ipums_1850 <- paste(ipums_data_path, "usa_", formatC(last_1850, width = 5, flag = "0"), ".xml", sep = "")
-ipums_1860 <- paste(ipums_data_path, "usa_", formatC(last_1860, width = 5, flag = "0"), ".xml", sep = "")
-# ipums_1850 <- "./data/usa_00023.xml"
-# ipums_1860 <- "./data/usa_00024.xml"
+if (exists("last_1850")) {
+  ipums_1850 <- paste(ipums_data_path, "usa_", formatC(last_1850, width = 5, flag = "0"), ".xml", sep = "")
+}
+if (exists("last_1860_ct")) {
+  ipums_1860 <- paste(ipums_data_path, "usa_", formatC(last_1860_ct, width = 5, flag = "0"), ".xml", sep = "")
+}
+if (exists("last_1860_linked")) {
+  ipums_1860_linked <- paste(ipums_data_path, "usa_", formatC(last_1860_linked, width = 5, flag = "0"), ".xml", sep = "")
+}
 
 # Election data taken from https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3
 results_file <- "./data/electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_office_id_4_show_granularity_dt_id_1.csv"

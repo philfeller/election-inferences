@@ -1,17 +1,21 @@
 library(ipumsr)
+library(magrittr)
 
 # You must have an IPUMS account and API key to be able to work with data via the API
 # https://developer.ipums.org/docs/v2/get-started/
 
-# API key is retreived from an HCP secrets vault and defined as an environment variable
+# API key is retreived from GitHub secrets and defined as an environment variable
 # The API key is set in variables.R
-source(variables.R)
+source("./variables.R")
+
+# Specify the variables to be downloaded in the data extracts
+ipums_vars <- list("HIK", "SERIAL", "GQ", "FAMUNIT", "RELATE", "SEX", "AGE", "RACE", "BPL", "OCC1950", "REALPROP",
+                "SCHOOL", "LIT", "PAUPER", "CRIME")
 
 # Select data only for Connecticut and limit the columns to only those that will be used
-variables_1850 <- list(
-  var_spec("STATEICP", case_selections = c("01")),
-  "HIK", "SERIAL", "GQ", "FAMUNIT", "RELATE", "SEX", "AGE", "RACE", "BPL", "OCC1950", "REALPROP"
-)
+variables_1850 <- list(var_spec("STATEICP", case_selections = c("01")),
+                       "HIK", "SERIAL", "GQ", "FAMUNIT", "RELATE", "SEX", "AGE", "RACE", "BPL",
+                       "OCC1950", "REALPROP", "SCHOOL", "LIT", "PAUPER", "CRIME")
 
 # The 1860 census added personal property value
 variables_1860 <- append(variables_1850, "PERSPROP")
@@ -20,7 +24,7 @@ variables_1860 <- append(variables_1850, "PERSPROP")
 extract_1850 <- submit_extract(
   define_extract_usa(
     samples = "us1850c",
-    description = "CT records from 1850",
+    description = "1850 CT records",
     variables = variables_1850
   )
 )
@@ -32,10 +36,30 @@ ddi_1850 <- wait_for_extract(extract_1850) %>%
 extract_1860 <- submit_extract(
   define_extract_usa(
     samples = "us1860c",
-    description = "CT records from 1860",
+    description = "1860 CT records",
     variables = variables_1860
   )
 )
 
 ddi_1860 <- wait_for_extract(extract_1860) %>%
+  download_extract(download_dir = ipums_data_path)
+
+other_states <- c("02", "03", "04", "05", "06", "11", "12", "13", "14", "21", "22", "23", "24", "25",
+                  "31", "32", "33", "34", "35", "36", "37", "40", "41", "42", "43", "44", "45", "46",
+                  "47", "48", "49", "51", "52", "53", "54", "56", "61", "62", "63", "64", "65", "66",
+                  "67", "68", "71", "72", "73", "81", "82", "83", "96", "97", "98", "99")
+other_1860_vars <- list(var_spec("STATEICP", case_selections = other_states),
+                        var_spec("LINK1850", case_selections = c("1")),
+                        "HIK", "SERIAL", "GQ", "FAMUNIT", "RELATE", "SEX", "AGE", "RACE", "BPL",
+                        "OCC1950", "REALPROP", "SCHOOL", "LIT", "PAUPER", "CRIME", "PERSPROP")
+
+extract_1860_other <- submit_extract(
+  define_extract_usa(
+    samples = "us1860c",
+    description = "1860 linked non-CT records",
+    variables = other_1860_vars
+  )
+)
+
+ddi_1860_linked <- wait_for_extract(extract_1860_other) %>%
   download_extract(download_dir = ipums_data_path)
