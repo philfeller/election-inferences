@@ -91,7 +91,6 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change, poll_c
 
 ddi1850 <- read_ipums_ddi(ipums_1850)
 ddi1860 <- read_ipums_ddi(ipums_1860)
-ddi1860_linked <- read_ipums_ddi(ipums_1860_linked)
 ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
   select(HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
          OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME) %>%
@@ -163,34 +162,6 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
     combined = get_combined(town)
   ) %>%
   filter(town != "NULL") %>%
-  arrange(SERIAL, FAMUNIT, RELATE)
-
-# Read non-CT IPUMS data only for HIK values that are present in 1850 CT data
-hik_1850 <- (ct_1850 %>% filter(HIK != ""))$HIK
-linked_1860 <- read_ipums_micro(ddi1860_linked) %>%
-  select(STATEICP, HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
-         OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME, PERSPROP) %>%
-  filter(HIK %in% hik_1850) %>%
-  mutate(
-    WEALTH = REALPROP + PERSPROP,
-    BIRTH = ifelse(BPL < 100, "native", "immigrant"),
-    JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
-    AGE_CAT = case_when(
-      AGE < 20 ~ "0 - 19",
-      AGE >= 20 & AGE < 30 ~ "20 - 29",
-      AGE >= 30 & AGE < 40 ~ "30 - 39",
-      AGE >= 40 & AGE < 50 ~ "40 - 49",
-      AGE >= 50 & AGE < 60 ~ "50 - 59",
-      AGE >= 60 ~ "60 and over"
-    ),
-    # The CLASS column categorizes people according to Doherty's 1977 model
-    CLASS = case_when(
-      SEX == 1 & AGE > 30 & REALPROP >= 10000 ~ "elite",
-      SEX == 1 & AGE > 30 & REALPROP >= 750 & REALPROP < 10000 ~ "middle",
-      SEX == 1 & AGE >= 16 & AGE <= 30 & REALPROP < 750 ~ "young",
-      SEX == 1 & AGE > 30 & REALPROP < 750 ~ "casualties"
-    )
-  ) %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
 # Load 1860 religious-accommodation data, which is used to estimate degree of denominational affiliation.
@@ -326,11 +297,6 @@ ct_eligible <- ct_1850 %>%
 ct_hik_1850 <- ct_1850 %>%
   filter(HIK != "") %>%
   left_join(ct_1850_hh %>% select(family, FAMILY_HEAD_AGE), by = c("family"))
-
-moved_1860 <- ct_1850 %>%
-  left_join(ct_1850_hh %>% select(family, FAMILY_HEAD_AGE), by = c("family")) %>%
-  inner_join(linked_1860, by = c("HIK"), suffix = c("_1850", "_1860")) %>%
-  mutate(migrate_age = ifelse(RELATE_1860 == 1, AGE_1850, FAMILY_HEAD_AGE))
 
 ct_hik_1860 <- ct_1860 %>%
   filter(HIK != "")

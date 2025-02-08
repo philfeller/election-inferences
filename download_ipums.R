@@ -44,22 +44,3 @@ extract_1860 <- submit_extract(
 ddi_1860 <- wait_for_extract(extract_1860) %>%
   download_extract(download_dir = ipums_data_path)
 
-other_states <- c("02", "03", "04", "05", "06", "11", "12", "13", "14", "21", "22", "23", "24", "25",
-                  "31", "32", "33", "34", "35", "36", "37", "40", "41", "42", "43", "44", "45", "46",
-                  "47", "48", "49", "51", "52", "53", "54", "56", "61", "62", "63", "64", "65", "66",
-                  "67", "68", "71", "72", "73", "81", "82", "83", "96", "97", "98", "99")
-other_1860_vars <- list(var_spec("STATEICP", case_selections = other_states),
-                        var_spec("LINK1850", case_selections = c("1")),
-                        "HIK", "SERIAL", "GQ", "FAMUNIT", "RELATE", "SEX", "AGE", "RACE", "BPL",
-                        "OCC1950", "REALPROP", "SCHOOL", "LIT", "PAUPER", "CRIME", "PERSPROP")
-
-extract_1860_other <- submit_extract(
-  define_extract_usa(
-    samples = "us1860c",
-    description = "1860 linked non-CT records",
-    variables = other_1860_vars
-  )
-)
-
-ddi_1860_linked <- wait_for_extract(extract_1860_other) %>%
-  download_extract(download_dir = ipums_data_path)

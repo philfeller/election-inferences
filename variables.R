@@ -164,11 +164,10 @@ set_ipums_api_key(api_key)
 
 # Last two extracts will be those requested by download_ipums.R
 # The names of the files with the downloaded data include the extract number
-ipums_extracts <- get_extract_history("usa", how_many = 3)
+ipums_extracts <- get_extract_history("usa", how_many = 2)
 for (ipums_extract in ipums_extracts) {
   if (grepl("1850 CT", ipums_extract$description)) last_1850 <- ipums_extract$number
   if (grepl("1860 CT", ipums_extract$description)) last_1860_ct <- ipums_extract$number
-  if (grepl("1860 linked", ipums_extract$description)) last_1860_linked <- ipums_extract$number
 }
 
 ipums_data_path <- "./data/licensed-data/ipums/"
@@ -177,9 +176,6 @@ if (exists("last_1850")) {
 }
 if (exists("last_1860_ct")) {
   ipums_1860 <- paste(ipums_data_path, "usa_", formatC(last_1860_ct, width = 5, flag = "0"), ".xml", sep = "")
-}
-if (exists("last_1860_linked")) {
-  ipums_1860_linked <- paste(ipums_data_path, "usa_", formatC(last_1860_linked, width = 5, flag = "0"), ".xml", sep = "")
 }
 
 # Election data taken from https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3
