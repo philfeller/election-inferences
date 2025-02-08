@@ -92,8 +92,10 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change, poll_c
 ddi1850 <- read_ipums_ddi(ipums_1850)
 ddi1860 <- read_ipums_ddi(ipums_1860)
 ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
-  select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP) %>%
+  select(HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
+         OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME) %>%
   mutate(
+    family = SERIAL * 100 + FAMUNIT,
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
     AGE_CAT = case_when(
@@ -126,7 +128,8 @@ load(file = "missing_1860_ipums_rows.Rda")
 # values.
 ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
   mutate(RELATE = ifelse(SERIAL == 294445, 1, RELATE)) %>%
-  select(SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL, OCC1950, REALPROP, PERSPROP) %>%
+  select(HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
+         OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME, PERSPROP) %>%
   bind_rows(missing_rows) %>%
   left_join(read_csv("corrected_meriden_wealth.csv", show_col_types = FALSE),
     by = c("SERIAL", "SEX", "AGE", "BPL", "REALPROP", "PERSPROP")
@@ -136,6 +139,7 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
     PERSPROP = ifelse(!is.na(pers) & is.numeric(pers), pers, PERSPROP)
   ) %>%
   mutate(
+    family = SERIAL * 100 + FAMUNIT,
     WEALTH = REALPROP + PERSPROP,
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
     JOB = ifelse(OCC1950 %in% c(810, 820, 830, 840, 100, 123), "farm", "nonfarm"),
@@ -190,9 +194,11 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
   filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
-  group_by(SERIAL * 100 + FAMUNIT) %>%
+  mutate(family = SERIAL * 100 + FAMUNIT) %>%
+  group_by(family) %>%
   summarise(
     FAMILY_REALPROP = sum(REALPROP),
+    FAMILY_HEAD_AGE = first(AGE),
     AGE_CAT = first(AGE_CAT),
     BIRTH = first(BIRTH),
     JOB = first(JOB),
@@ -204,10 +210,12 @@ ct_1850_hh <- ct_1850 %>%
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
   filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
-  group_by(SERIAL * 100 + FAMUNIT) %>%
+  mutate(family = SERIAL * 100 + FAMUNIT) %>%
+  group_by(family) %>%
   summarise(
     FAMILY_REALPROP = sum(REALPROP),
     FAMILY_WEALTH = sum(WEALTH),
+    FAMILY_HEAD_AGE = first(AGE),
     AGE_CAT = first(AGE_CAT),
     BIRTH = first(BIRTH),
     JOB = first(JOB),
@@ -281,6 +289,22 @@ ct_eligible <- ct_1850 %>%
   mutate(ELIG_1855 = estimate_voters(1855, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
   mutate(ELIG_1856 = estimate_voters(1856, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
   mutate(ELIG_1857 = estimate_voters(1857, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE))
+
+# Find information about people who moved out of state between 1850 and 1860.
+# The 1860 records need to have an HIK variable in both censuses.
+# The intent is to capture the age of the person who initiated the move, either
+# as a family member or a independent adult
+ct_hik_1850 <- ct_1850 %>%
+  filter(HIK != "") %>%
+  left_join(ct_1850_hh %>% select(family, FAMILY_HEAD_AGE), by = c("family"))
+
+ct_hik_1860 <- ct_1860 %>%
+  filter(HIK != "")
+
+intrastate_moved_1860 <- ct_hik_1850 %>%
+  inner_join(ct_hik_1860, by = c("HIK"), suffix = c("_1850", "_1860")) %>%
+  filter(combined_1850 != combined_1860) %>%
+  mutate(migrate_age = ifelse(RELATE_1860 == 1, AGE_1850, FAMILY_HEAD_AGE))
 
 factors <- ungroup(ct_1860_hh %>%
   group_by(town, combined) %>%

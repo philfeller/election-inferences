@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: philfeller/licensed-data
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          token: ${{ secrets.GH_TOKEN }}
           path: data/licensed-data
 
       - name: Lint
