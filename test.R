@@ -9,7 +9,9 @@ source("betas.R")
 source("present.R")
 source("prepare_results.R")
 
-results.52 <- create_results(1851, 1852)
+data.52 <- create_results(raw_results, map.1855, 1851, 1852)
+results.52 <- data.52$results
+map.52 <- data.52$shp
 
 # Define model factors
 tune_size <- 10000
@@ -46,4 +48,4 @@ print(construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52, meride
 
 boxplot <- boxplotMD(beta.sims.MD(ei.52, p52), 1851, 1852)
 ridge <- ridgelineMD(beta.sims.MD(ei.52, p52), 1851, 1852)
-map <- create_map(1851, (results.1851 %>% filter(! str_detect(town, "^Weighted")))$Free_Soil)
+map <- create_map(1851, map.52, (results.1851 %>% filter(!str_detect(town, "^Weighted")))$Free_Soil)

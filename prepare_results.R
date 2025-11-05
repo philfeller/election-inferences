@@ -2,13 +2,19 @@
 # results for a pair of years:
 #   create_results - prepares a tibble with percentage election results
 
+library(magrittr)
 library(sf)
+library(spdep)
 
 # Define constants
 source("./variables.R")
 
 # Estimate nonvoters and calculate potential covariates
 source("./ct_demographics.R")
+
+# Either the 1855 or 1857 map will be used as the base shapefile
+map.1855 <- read_sf("./maps/1855_CT_towns.shp")
+map.1857 <- read_sf("./maps/1857_CT_towns.shp")
 
 # Define functions to use when combining election results from multiple towns
 combine_towns <- function(input_tibble, towns, combined_name) {
@@ -19,65 +25,80 @@ combine_towns <- function(input_tibble, towns, combined_name) {
     add_column(town = combined_name, .after = "yr"))
 }
 
-combine_results <- function(input_tibble, beg_yr, end_yr) {
-  # Combine results to account for new towns that were incorporated during time period
-  # https://portal.ct.gov/SOTS/Register-Manual/Section-VII/Connecticut-Towns-in-the-Order-of-their-Establishment
+# Define function to dissolve towns in a spatial dataframe
+dissolve_towns <- function(map, town_vector, new_name, name_col = "town") {
+  geom <- st_union(map %>% filter(.data[[name_col]] %in% town_vector))
+  comb_poly <- st_sf(setNames(data.frame(new_name), name_col), geometry = geom)
+  rest <- map %>% filter(!(.data[[name_col]] %in% town_vector))
+  bind_rows(rest, comb_poly)
+}
+
+# Define function to get list of town groupings based on year range
+year_groupings <- function(beg_yr, end_yr) {
+  groupings <- list()
 
   # When comparing pre-1856 results to 1856 or 1857, combine towns that split in 1856
-  if (beg_yr < 1856 && end_yr >= 1856) {
-    # Putnam, taken from Killingly, Thompson, and Pomfret, in is 1856 and 1857 results
-    kp_combined <- combine_towns(input_tibble, killingly_et_al, "Killingly, Thompson, and Pomfret")
-    # Bethel, taken from Danbury, is in 1856 and 1857 results
-    d_combined <- combine_towns(input_tibble, danbury, "Danbury")
-    # South Lyme, taken from Lyme, is in 1856 and 1857 results
-    l_combined <- combine_towns(input_tibble, lyme, "Lyme")
-  } else {
-    kp_combined <- input_tibble %>% filter(town %in% killingly_et_al)
-    d_combined <- input_tibble %>% filter(town %in% danbury)
-    l_combined <- input_tibble %>% filter(town %in% lyme)
+  if (beg_yr < 1856 & end_yr >= 1856) {
+    # Putnam splits out in 1856; combine back for earlier
+    groupings <- c(groupings, list(list(towns = killingly_et_al, new = "Killingly, Thompson, and Pomfret")))
+    # Bethel splits out in 1856; combine back for earlier
+    groupings <- c(groupings, list(list(towns = danbury, new = "Danbury")))
+    # South Lyme splits out in 1856; combine back for earlier
+    groupings <- c(groupings, list(list(towns = lyme, new = "Lyme")))
   }
 
   # When comparing pre-1855 results to 1855 or later, combine towns that split in 1855
-  if (beg_yr < 1855 && end_yr >= 1855) {
-    # West Hartford, taken from Hartford, is in 1855, 1856, and 1857 results
-    h_combined <- combine_towns(input_tibble, hartford, "Hartford")
-    # Windsor Locks taken from Windsor in 1855, 1856, and 1857 results
-    w_combined <- combine_towns(input_tibble, windsor, "Windsor")
-  } else {
-    h_combined <- input_tibble %>% filter(town %in% hartford)
-    w_combined <- input_tibble %>% filter(town %in% windsor)
+  if (beg_yr < 1855 & end_yr >= 1855) {
+    # West Hartford splits out in 1855; combine back for earlier
+    groupings <- c(groupings, list(list(towns = hartford, new = "Hartford")))
+    # Windsor Locks splits out in 1855; combine back for earlier
+    groupings <- c(groupings, list(list(towns = windsor, new = "Windsor")))
   }
 
   # When comparing pre-1852 results to 1852 or later, combine town that split in 1851
-  if (beg_yr < 1852 && end_yr >= 1852) {
-    # Cromwell, taken from Middletown, is in results after 1851
-    m_combined <- combine_towns(input_tibble, middletown, "Middletown")
-  } else {
-    m_combined <- input_tibble %>% filter(town %in% middletown)
+  if (beg_yr < 1852 & end_yr >= 1852) {
+    # Cromwell splits out in 1852; combine back for earlier
+    groupings <- c(groupings, list(list(towns = middletown, new = "Middletown")))
   }
 
   # Division and renaming of parts of Saybrook affect results beginning in 1853
-  os_combined <- combine_towns(input_tibble, saybrook, "Saybrook")
-  # Bridgewater , taken from New Milford, is in 1857 results
-  nm_combined <- combine_towns(input_tibble, new_milford, "New Milford")
+  groupings <- c(groupings, list(list(towns = saybrook, new = "Saybrook")))
 
-  return(input_tibble %>%
-    filter(!town %in% middletown) %>%
-    add_row(m_combined) %>%
-    filter(!town %in% saybrook) %>%
-    add_row(os_combined) %>%
-    filter(!town %in% hartford) %>%
-    add_row(h_combined) %>%
-    filter(!town %in% windsor) %>%
-    add_row(w_combined) %>%
-    filter(!town %in% danbury) %>%
-    add_row(d_combined) %>%
-    filter(!town %in% lyme) %>%
-    add_row(l_combined) %>%
-    filter(!town %in% killingly_et_al) %>%
-    add_row(kp_combined) %>%
-    filter(!town %in% new_milford) %>%
-    add_row(nm_combined))
+  # Bridgewater , taken from New Milford, is in 1857 results
+  groupings <- c(groupings, list(list(towns = new_milford, new = "New Milford")))
+
+  return(groupings)
+}
+
+combine_results <- function(results, shp, result_grp, map_grp, name_col = "town") {
+  # results: the tibble/data.frame to combine
+  # shp: the sf object to dissolve
+  # result_grp: list of list(towns=..., new=...) for each combination
+  # map_grp: list of list(towns=..., new=...) for each combination in the map
+  # name_col: column with town names in both results and shp
+
+  # Save towns not to be combined
+  rest <- results %>%
+    filter(!(town %in% unlist(lapply(result_grp, function(x) x$towns))))
+
+  # Combine towns in results and dissolve polygons in shp for each grouping
+  for (grp in result_grp) {
+    # Combine results for town grouping
+    combined <- combine_towns(results, grp$towns, grp$new)
+    # Add to results
+    rest <- bind_rows(rest, combined)
+  }
+  for (grp in map_grp) {
+    # Dissolve in shapefile
+    shp <- dissolve_towns(shp, grp$towns, grp$new, name_col = name_col)
+  }
+
+  # Make sure the column order and names are consistent
+  results <- rest %>% arrange(town)
+  shp <- shp %>% arrange(town)
+
+  # Return both
+  list(results = results, shp = shp)
 }
 
 # Define function to assign party designation to candidates
@@ -280,12 +301,19 @@ eligible_pct <- raw_results %>%
 # This is particularly important in Windham County, where Killingly, Pomfret,
 # and Thompson were split to form Putnam. Unless comparing to 1856 or 1857
 # results, combining these towns results in a significant loss of detail.
-create_results <- function(beg_yr, end_yr) {
+create_results <- function(results, shp, beg_yr, end_yr) {
+  # Create list of towns to be combined based on year range
+  result_grp <- year_groupings(beg_yr, end_yr)
+  # Create list of towns to be combined in shapefile based on year range
+  # Because of Putnam's formation in 1856, the base map will be that of 1855
+  # or 1857, depending on the end year
+  map_grp <- year_groupings(beg_yr, max(1855, end_yr))
   # Create separate tibbles for each year
-  e51 <- raw_results %>%
+  e51 <- results %>%
     filter(yr == 1851) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -298,10 +326,11 @@ create_results <- function(beg_yr, end_yr) {
       Free_Soil_vote_in_1851 = Free_Soil_votes,
       total_1851 = total
     )
-  e52 <- raw_results %>%
+  e52 <- results %>%
     filter(yr == 1852) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -315,10 +344,11 @@ create_results <- function(beg_yr, end_yr) {
       total_1852 = total
     )
 
-  e53 <- raw_results %>%
+  e53 <- results %>%
     filter(yr == 1853) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -331,10 +361,11 @@ create_results <- function(beg_yr, end_yr) {
       Free_Soil_vote_in_1853 = Free_Soil_votes,
       total_1853 = total
     )
-  e54 <- raw_results %>%
+  e54 <- results %>%
     filter(yr == 1854) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Know_Nothing_votes = NULL,
@@ -347,10 +378,11 @@ create_results <- function(beg_yr, end_yr) {
       Temperance_vote_in_1854 = Temperance_votes,
       total_1854 = total
     )
-  e55 <- raw_results %>%
+  e55 <- results %>%
     filter(yr == 1855) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -363,10 +395,11 @@ create_results <- function(beg_yr, end_yr) {
       Know_Nothing_vote_in_1855 = Know_Nothing_votes,
       total_1855 = total
     )
-  e56 <- raw_results %>%
+  e56 <- results %>%
     filter(yr == 1856) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Temperance_votes = NULL,
@@ -379,10 +412,11 @@ create_results <- function(beg_yr, end_yr) {
       Republican_vote_in_1856 = Republican_votes,
       total_1856 = total
     )
-  e57 <- raw_results %>%
+  e57 <- results %>%
     filter(yr == 1857) %>%
-    combine_results(beg_yr, end_yr) %>%
-    filter(yr >= beg_yr && yr <= end_yr) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    extract2("results") %>%
+    filter(yr >= beg_yr & yr <= end_yr) %>%
     mutate(
       yr = NULL,
       Whig_votes = NULL,
@@ -396,24 +430,20 @@ create_results <- function(beg_yr, end_yr) {
       total_1857 = total
     )
 
-  # Choose the appropriate shapefile from which to get longitude
-  shapefile <- "./maps/1851_CT_towns.shp"
-  if (beg_yr >= 1852) {
-    shapefile <- "./maps/1852_CT_towns.shp"
-  }
-  if (beg_yr >= 1854) {
-    shapefile <- "./maps/1854_CT_towns.shp"
-  }
-  if (beg_yr >= 1855) {
-    shapefile <- "./maps/1855_CT_towns.shp"
-  }
-  if (end_yr >= 1856) {
-    shapefile <- "./maps/1856_CT_towns.shp"
-  }
-  longitude <- as.data.frame(read_sf(shapefile)) %>%
-    select(TOWN_NAME, LON) %>%
-    rename(town = TOWN_NAME) %>%
-    mutate(town = ifelse(town == "Putnam" & beg_yr < 1856, "Killingly, Thompson, and Pomfret", town))
+  # Choose the appropriate shapefile from which to get geographic data
+  shp <- combine_results(results, shp, result_grp, map_grp) %>%
+    extract2("shp") %>%
+    arrange(town)
+
+  # Create spatial weights for the towns
+  nb <- poly2nb(shp)
+  listw <- nb2listw(nb, style = "W")
+
+  # Get geographic centroids for each town
+  geo <- as.data.frame(st_coordinates(st_centroid(shp))) %>%
+    rename(lon = X) %>%
+    rename(lat = Y) %>%
+    bind_cols(shp %>% st_set_geometry(NULL) %>% select(town))
 
   # Generate the demographic factors appropriate for the range of years
   demo_factors <- factors %>%
@@ -429,7 +459,7 @@ create_results <- function(beg_yr, end_yr) {
     full_join(e56, by = "town") %>%
     full_join(e57, by = "town") %>%
     filter(!if_all(everything(), is.na)) %>%
-    left_join(longitude, by = "town") %>%
+    left_join(geo, by = "town") %>%
     mutate(combined = get_combined(town)) %>%
     left_join(eligible_pct, by = "combined") %>%
     left_join(demo_factors, by = "town") %>%
@@ -481,7 +511,17 @@ create_results <- function(beg_yr, end_yr) {
     ) %>%
     select_if(function(x) !any(is.na(x)))
 
-  return(full_results)
+  # Calculate spatial lag variables for party strength in beginning year
+  p_name <- paste0("p", substr(beg_yr, 3, 4))
+  vars <- get(p_name) # e.g., c("Democrat_in_1854", ...)
+
+  for (v in vars) {
+    lag_name <- paste0("lag_", v)
+    lag_var <- lag.listw(listw, full_results[[v]])
+    full_results[[lag_name]] <- lag_var
+  }
+
+  return(list(results = full_results, shp = shp))
 }
 
 weighted.sd <- function(results) {
@@ -516,19 +556,25 @@ result_summary <- function(results) {
 # Calculate vote shares for 1849 to 1851
 
 vote_share.1849 <- yr_results(raw_results, 1849) %>%
-  mutate(Free_Soil = Free_Soil_votes / total,
-         Whig = Whig_votes / total,
-         Democrat = Democrat_votes / total)
+  mutate(
+    Free_Soil = Free_Soil_votes / total,
+    Whig = Whig_votes / total,
+    Democrat = Democrat_votes / total
+  )
 
 vote_share.1850 <- yr_results(raw_results, 1850) %>%
-  mutate(Free_Soil = Free_Soil_votes / total,
-         Whig = Whig_votes / total,
-         Democrat = Democrat_votes / total)
+  mutate(
+    Free_Soil = Free_Soil_votes / total,
+    Whig = Whig_votes / total,
+    Democrat = Democrat_votes / total
+  )
 
 vote_share.1851 <- yr_results(raw_results, 1851) %>%
-  mutate(Free_Soil = Free_Soil_votes / total,
-         Whig = Whig_votes / total,
-         Democrat = Democrat_votes / total)
+  mutate(
+    Free_Soil = Free_Soil_votes / total,
+    Whig = Whig_votes / total,
+    Democrat = Democrat_votes / total
+  )
 
 # Calculate results for individual years, in order to calculate a town's
 # z-score for particular results

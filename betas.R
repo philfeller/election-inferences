@@ -8,7 +8,7 @@ beta.sims.MD <- function(ei.model, cols, town.id) {
   getY <- function(x) x[[1]]$y
   get2 <- function(x) x[2]
 
-# Use Heidelberger and Welsh to determine the point at which all betas converge.
+  # Use Heidelberger and Welsh to determine the point at which all betas converge.
   min_conv <- max(heidel.diag(lambda.MD(ei.model, cols))[, 2])
   num_sims <- length(ei.model$draws$Beta[, 1])
 
@@ -78,10 +78,10 @@ get_shares <- function(results, yr, town.id) {
   elig_col <- paste("G_", yr, sep = "")
   if (missing(town.id)) {
     totals <- apply(results %>%
-                      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
+      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
   } else {
     totals <- apply(results[town.id, ] %>%
-                      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
+      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
   }
   elig <- totals[length(totals)]
   votes <- totals[-1 * length(totals)]
@@ -116,11 +116,18 @@ calculate_residuals <- function(ei.model, results, beg_yr, end_yr) {
   return(resid)
 }
 
+# Use Shapiro-Wilk test to evaluate normality of residuals
 evaluate_residuals <- function(residuals) {
   suppressWarnings({
     for (i in 1:ncol(residuals)) {
-      if (ks.test(residuals[, i], "pnorm", 0, sd(residuals[, i]))$p.value < 0.05) {
-        print(paste("Residuals for", colnames(residuals)[i], "are not normally distributed."))
+      # Shapiro-Wilk test requires between 3 and 5000 samples
+      if (nrow(residuals) >= 3 && nrow(residuals) <= 5000) {
+        sw <- shapiro.test(residuals[, i])
+        if (sw$p.value < 0.05) {
+          print(paste("Residuals for", colnames(residuals)[i], "are not normally distributed."))
+        }
+      } else {
+        print(paste("Not enough (or too many) observations for Shapiro-Wilk test on", colnames(residuals)[i]))
       }
     }
   })
