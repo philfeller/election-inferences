@@ -165,9 +165,7 @@ densityMD <- function(betas, col_yr, row_yr, town) {
   }
 }
 
-create_map <- function(yr, data) {
-  shape_file <- paste("./maps/", yr, "_CT_towns.shp", sep = "")
-  map <- read_sf(shape_file) %>% arrange(TOWN_NAME)
+create_map <- function(yr, map, data) {
   map$data <- data
   ggplot() +
     geom_sf(data = map, aes(fill = data), col = NA) +

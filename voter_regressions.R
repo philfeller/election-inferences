@@ -16,13 +16,13 @@ source("prepare_results.R")
 # granular data possible, without unnecessarily combining towns that split before
 # the period to be analyzed:
 
-results.52 <- create_results(1851, 1852)
-results.53 <- create_results(1852, 1853)
-results.54 <- create_results(1853, 1854)
-results.55 <- create_results(1854, 1855)
-results.56 <- create_results(1855, 1856)
-results.57 <- create_results(1856, 1857)
-results.51_57 <- create_results(1851, 1857)
+results.52 <- create_results(raw_results, map.1855, 1851, 1852)$results
+results.53 <- create_results(raw_results, map.1855, 1852, 1853)$results
+results.54 <- create_results(raw_results, map.1855, 1853, 1854)$results
+results.55 <- create_results(raw_results, map.1855, 1854, 1855)$results
+results.56 <- create_results(raw_results, map.1857, 1855, 1856)$results
+results.57 <- create_results(raw_results, map.1857, 1856, 1857)$results
+results.51_57 <- create_results(raw_results, map.1857, 1851, 1857)$results
 
 save(
   raw_results, results.52, results.53, results.54, results.55, results.56, results.51_57,
