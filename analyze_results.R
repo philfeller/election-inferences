@@ -4,6 +4,7 @@ library(haven)
 library(ineq)
 library(knitr)
 library(lsr)
+library(purrr)
 library(tidyr)
 
 source("betas.R")
@@ -289,20 +290,38 @@ for (from_party in pull(distinct(combined_betas %>% select(from)))) {
   }
 }
 
-test_cols <- paste(colnames(results.55 %>% select(LON, gini:pct_farm_1860)), collapse = " + ")
+base_cols <- paste(colnames(results.55 %>% select(lon, lat, gini:pct_farm_1860)), sep = " + ")
 
-# A town's longitude is the factor that best explains support for the parties
-# whose transitions are least certain. Among the covariates that explained
-# individual parties, one that is of interest is that the percentage of
-# low-wealth, young-adult, native-born males in 1850 negatively correlated to
-# 1854 Whig support.
+# The geographic lag of 1854 party results are significant predictors of 
+# a majority of the residuals from the 1855 inference.
 
-test_parties <- c("Know_Nothing_in_1855", "Free_Soil_in_1854", "Temperance_in_1854", "Whig_in_1854")
-for (party in test_parties) {
-  form <- as.formula(paste(party, test_cols, sep = "~"))
-  print(party)
-  print(summary(lm(form, results.55, weights = results.55$ELIG_1855)))
+resid.55 <- calculate_residuals(ei.55, results.55, 1854, 1855)
+data <- cbind(resid.55, results.55)
+
+# 
+base_cols <- paste(colnames(results.55 %>% select(lon, lat, gini:pct_farm_1860)), sep = " + ")
+lag_cols <- c()
+for (party in p54) {
+  lag_col <- paste("lag_", party, sep = "")
+  lag_cols <- c(lag_cols, lag_col)
 }
+cols <- c(base_cols, lag_cols)
+test_cols <- paste(cols, collapse = " + ")
+
+step_models <- map(p55, function(y) {
+  form <- as.formula(paste(y, test_cols, sep = "~"))
+  lm_full <- lm(form, data, weights = data$ELIG_1855)
+  step(lm_full, direction = "both", trace = 0)
+})
+
+# Extract selected covariates (excluding intercept)
+selected_covariates <- map(step_models, ~ names(coef(.x))[-1])
+
+# Flatten and count appearances
+var_counts <- table(unlist(selected_covariates))
+
+# Use the correct count based on step_models!
+majority_covars <- names(var_counts[var_counts > length(step_models)/2])
 
 # Show GINI indices for Meriden subgroups
 
