@@ -71,24 +71,14 @@ These data were downloaded from [the Connecticut Secetary of State](https://elec
 
 ### ESRI shapefiles
 These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-data-website-ctdeep.hub.arcgis.com/maps/82672ae5f3764021b9a4804f524f928b/about). Where towns were created from parts of other towns, I've drawn boundaries that conform as closely as possible to historic maps or town histories.
-- 1851_CT_towns.shp
-- 1851_CT_towns.shx
-- 1851_CT_towns.dbf
-- 1852_CT_towns.shp
-- 1852_CT_towns.shx
-- 1852_CT_towns.dbf
-- 1854_CT_towns.shp
-- 1854_CT_towns.shx
-- 1854_CT_towns.dbf
 - 1855_CT_towns.shp
 - 1855_CT_towns.shx
 - 1855_CT_towns.dbf
-- 1856_CT_towns.shp
-- 1856_CT_towns.shx
-- 1856_CT_towns.dbf
+- 1855_CT_towns.prj
 - 1857_CT_towns.shp
 - 1857_CT_towns.shx
 - 1857_CT_towns.dbf
+- 1857_CT_towns.prj
 
 ### Docker files
 - docker/Dockerfile - Docker file used to build the ghcr.io/philfeller/election-inferences image

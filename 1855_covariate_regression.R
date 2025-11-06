@@ -16,16 +16,16 @@ source("prepare_results.R")
 
 # Prepare a tibble with percentage election results for 1854 and 1855.
 
-results.55 <- create_results(1854, 1855)
+results.55 <- create_results(raw_results, map.1855, 1854, 1855)$results
 
-# Run an inference using longitude as a covariate
+# Run an inference using spacial lag and longitude as a covariate
 
 # Define model factors
 tune_size <- 10000
 sample <- 2000
 thin <- 10
 burnin <- 1000
-covariate <- "~ LON"
+covariate <- "~ lag_Democrat_in_1854 + lag_Whig_in_1854"
 
 lambda2 <- 2.5 / 16
 lambda1 <- 2.5 * lambda2
