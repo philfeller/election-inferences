@@ -677,3 +677,9 @@ results.1857 <- yr_results(raw_results, 1857) %>%
     Abstaining = remainder(Democrat + Republican)
   ) %>%
   result_summary()
+
+save(
+  vote_share.1849, vote_share.1850, vote_share.1851,
+  results.1849, results.1850, results.1851, results.1852, results.1853, results.1854, results.1855, results.1856, results.1857,
+  file = "yr_results.Rda"
+)

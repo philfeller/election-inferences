@@ -43,11 +43,12 @@ Rscript analyze_results.R
 - download_ipums.R - Download census data from IPUMS; requires an API key and that the key is defined in environment variable API_KEY.
 - variables.R - Defines variables that are used elsewhere, including the paths for the files that were loadloaded from IPUMS.
 - ct_demographics.R - Creates Tidyverse tibbles from the IPUMS data, summarizing by town and calculating information, such as GINI index.
-- prepare_results.R - Defines functions that take election results for a pair of year and prepare them for analysis.
+- prepare_results.R - Defines functions that take election results for a pair of years and prepare them for analysis
 - betas.R - Defines functions to extract beta values from the MCMC data that is created by the eiPack inference.
-- present.R - Defines functions for presenting betas in various formats.
+- present.R - Defines functions for presenting betas in various formats
+- inference_utils.R - Defines utility functions that are used by regression scripts
 - voter_regressions.R - This is the script that calculate election inferences. It sources the scripts that need to have been run first.
-- 1855_covariate_regression.R - Script that calculates voter changes between 1854 and 1855 using a town's longitude as a covariate.
+- covariate_regression.R - Script that calculates elecvtion inferences using demographic and geographic covariates
 - results.Rda - Tibbles with election-pair results
 - ct_demographics.Rda - Calculated demographic factors by town
 - 1852_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1852, and the data that was used in the statistical analysis for the paper.
@@ -57,7 +58,6 @@ Rscript analyze_results.R
 - 1856_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1855 and 1856, and the data that was used in the statistical analysis for the paper.
 - 1857_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1856 and 1857, and the data that was used in the statistical analysis for the paper.
 - 1851-1857_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1857, and the data that was used in the statistical analysis for the paper.
-- 1855_covariate_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1854 and 1855, and the data that was used in the statistical analysis for the paper.
 - analyze_results.R - Loads the inferences.Rda data file that was created by prepare_results.R and performs the statistical analysis that is used in the paper.
 - test.R - Contains one simple inference and a few graphs; it is used by the CI/CD pipeline to test that all needed files are included and working as expected.
 
