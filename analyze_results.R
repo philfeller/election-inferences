@@ -4,7 +4,7 @@ library(haven)
 library(ineq)
 library(knitr)
 library(lsr)
-library(purrr)
+library(purrr, warn.conflicts = FALSE)
 library(tidyr)
 
 source("betas.R")
@@ -16,6 +16,7 @@ source("variables.R")
 load(file = "results.Rda")
 load(file = "1855_inference.Rda")
 load(file = "ct_demographics.Rda")
+load(file = "yr_results.Rda")
 
 # Calculate Meriden's rank among towns for Free Soil and Whig votes as a percentage
 # of total votes cast; present in a table with vote tallies and percentages
@@ -289,39 +290,6 @@ for (from_party in pull(distinct(combined_betas %>% select(from)))) {
     }
   }
 }
-
-base_cols <- paste(colnames(results.55 %>% select(lon, lat, gini:pct_farm_1860)), sep = " + ")
-
-# The geographic lag of 1854 party results are significant predictors of 
-# a majority of the residuals from the 1855 inference.
-
-resid.55 <- calculate_residuals(ei.55, results.55, 1854, 1855)
-data <- cbind(resid.55, results.55)
-
-# 
-base_cols <- paste(colnames(results.55 %>% select(lon, lat, gini:pct_farm_1860)), sep = " + ")
-lag_cols <- c()
-for (party in p54) {
-  lag_col <- paste("lag_", party, sep = "")
-  lag_cols <- c(lag_cols, lag_col)
-}
-cols <- c(base_cols, lag_cols)
-test_cols <- paste(cols, collapse = " + ")
-
-step_models <- map(p55, function(y) {
-  form <- as.formula(paste(y, test_cols, sep = "~"))
-  lm_full <- lm(form, data, weights = data$ELIG_1855)
-  step(lm_full, direction = "both", trace = 0)
-})
-
-# Extract selected covariates (excluding intercept)
-selected_covariates <- map(step_models, ~ names(coef(.x))[-1])
-
-# Flatten and count appearances
-var_counts <- table(unlist(selected_covariates))
-
-# Use the correct count based on step_models!
-majority_covars <- names(var_counts[var_counts > length(step_models)/2])
 
 # Show GINI indices for Meriden subgroups
 
