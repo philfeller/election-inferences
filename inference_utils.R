@@ -90,6 +90,7 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
   if (covariate == TRUE && length(cols) > 0) {
     covariate_string <- paste("~", paste(cols, collapse = " + "))
     print(paste("Using covariates for", beg_yr, "to", end_yr, ":", covariate_string))
+    save(covariate_string, file = paste(end_yr, "_", beg_yr, "_covariates.Rda", sep = ""))
     covariate_formula <- as.formula(covariate_string)
     
     tune_cov <- tuneMD(
