@@ -3,7 +3,14 @@
 
 library(coda)
 
+# Extract individual simulations of beta values, either statewide or for a town
 beta.sims.MD <- function(ei.model, cols, town.id) {
+  # ei.model: ei.MD.bayes model object
+  # cols: vector of column names corresponding to the marginals for which
+  #       beta simulations are desired
+  # town.id: optional; if provided, extract beta simulations for the
+  #          specified town only (by name)
+  
   # Define functions used to extract information from the MCMC model
   getY <- function(x) x[[1]]$y
   get2 <- function(x) x[2]
@@ -59,7 +66,11 @@ beta.sims.MD <- function(ei.model, cols, town.id) {
 # Combine the output of beta.sims.MD() into a matrix, by the rows and columns
 # from which marginals were taken, of the mean beta values.
 betas.MD <- function(beta_sims) {
+  # beta_sims: output of beta.sims.MD()
+  
+  # Function to calculate rounded mean
   rmed <- function(x) round(mean(x), 3)
+  
   r_names <- rownames(beta_sims)
   c_names <- colnames(beta_sims)
   vote_trans <- array(dim = c(length(r_names), length(c_names)), dimnames = list(r_names, c_names))
@@ -74,6 +85,10 @@ betas.MD <- function(beta_sims) {
 
 # Create single-row data frame with the results for a given year
 get_shares <- function(results, yr, town.id) {
+  # results: tibble with election results
+  # yr: year for which to extract shares
+  # town.id: optional; if provided, extract shares for the specified town only (by row index)
+  
   vote_cols <- paste("vote_in_", yr, sep = "")
   elig_col <- paste("G_", yr, sep = "")
   if (missing(town.id)) {
@@ -88,18 +103,32 @@ get_shares <- function(results, yr, town.id) {
   return(votes / elig)
 }
 
+# Get the names of the vote columns for a given year
 get_names <- function(results, yr) {
+  # results: tibble with election results
+  # yr: year for which to extract column names
+  
   vote_cols <- paste("vote_in_", yr, sep = "")
   return(colnames(results %>% select(ends_with(vote_cols))))
 }
 
+# Get the names of the share columns for a given year
 get_share_names <- function(results, yr) {
+  # results: tibble with election results
+  # yr: year for which to extract share column names
+  
   vote_cols <- paste("vote_in_", yr, sep = "")
   in_cols <- paste("in_", yr, sep = "")
   return(colnames(results %>% select(ends_with(in_cols) & !ends_with(vote_cols))))
 }
 
+# Calculate residuals for the model
 calculate_residuals <- function(ei.model, results, beg_yr, end_yr) {
+  # ei.model: ei.MD.bayes model object
+  # results: tibble with election results
+  # beg_yr: beginning year of the transition
+  # end_yr: ending year of the transition
+  
   col_names <- get_names(results, end_yr)
   share_names <- get_share_names(results, end_yr)
   resid <- data.frame(matrix(ncol = length(col_names), nrow = 0))
@@ -118,6 +147,8 @@ calculate_residuals <- function(ei.model, results, beg_yr, end_yr) {
 
 # Use Shapiro-Wilk test to evaluate normality of residuals
 evaluate_residuals <- function(residuals) {
+  # residuals: data frame of residuals, as output by calculate_residuals()
+  
   suppressWarnings({
     for (i in 1:ncol(residuals)) {
       # Shapiro-Wilk test requires between 3 and 5000 samples
