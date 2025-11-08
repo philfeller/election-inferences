@@ -18,6 +18,10 @@ map.1857 <- read_sf("./maps/1857_CT_towns.shp")
 
 # Define functions to use when combining election results from multiple towns
 combine_towns <- function(input_tibble, towns, combined_name) {
+  # input_tibble: tibble with election results
+  # towns: vector of town names to be combined
+  # combined_name: name for the combined towns
+  
   return(input_tibble %>%
     filter(town %in% towns) %>%
     group_by(yr) %>%
@@ -27,6 +31,11 @@ combine_towns <- function(input_tibble, towns, combined_name) {
 
 # Define function to dissolve towns in a spatial dataframe
 dissolve_towns <- function(map, town_vector, new_name, name_col = "town") {
+  # map: sf object with town polygons
+  # town_vector: vector of town names to be combined
+  # new_name: name for the combined towns
+  # name_col: column with town names in the sf object
+  
   geom <- st_union(map %>% filter(.data[[name_col]] %in% town_vector))
   comb_poly <- st_sf(setNames(data.frame(new_name), name_col), geometry = geom)
   rest <- map %>% filter(!(.data[[name_col]] %in% town_vector))
@@ -35,6 +44,9 @@ dissolve_towns <- function(map, town_vector, new_name, name_col = "town") {
 
 # Define function to get list of town groupings based on year range
 year_groupings <- function(beg_yr, end_yr) {
+  # beg_yr: beginning year of election transition
+  # end_yr: ending year of election transition
+  
   groupings <- list()
 
   # When comparing pre-1856 results to 1856 or 1857, combine towns that split in 1856
@@ -103,6 +115,9 @@ combine_results <- function(results, shp, result_grp, map_grp, name_col = "town"
 
 # Define function to assign party designation to candidates
 assign_party <- function(input_tibble, other = FALSE) {
+  # input_tibble: tibble with election results
+  # other: whether to include minor party/independent votes as "Other_votes"
+  
   # Nominees of major parties between 1849 and 1857
   major_candidates <- c(
     "John M. Niles",
@@ -186,6 +201,10 @@ assign_party <- function(input_tibble, other = FALSE) {
 # Create a tibble with demographic factors for a particular year range,
 # appropriately combining towns that separated during the period
 create_factors <- function(tibble, beg_yr, end_yr) {
+  # tibble: input tibble with demographic factors
+  # beg_yr: beginning year of election transition
+  # end_yr: ending year of election transition
+  
   towns <- c()
   if (beg_yr >= 1852) {
     towns <- c(towns, middletown)
@@ -217,6 +236,8 @@ create_factors <- function(tibble, beg_yr, end_yr) {
 
 # Read and process the downloaded election results file
 read_results <- function(file) {
+  # file: path to CSV file with election results
+  
   return(
     read_csv(file, show_col_types = FALSE) %>%
       select(
@@ -302,6 +323,11 @@ eligible_pct <- raw_results %>%
 # and Thompson were split to form Putnam. Unless comparing to 1856 or 1857
 # results, combining these towns results in a significant loss of detail.
 create_results <- function(results, shp, beg_yr, end_yr) {
+  # results: tibble with raw election results
+  # shp: sf object with town polygons
+  # beg_yr: beginning year of election transition
+  # end_yr: ending year of election transition
+  
   # Create list of towns to be combined based on year range
   result_grp <- year_groupings(beg_yr, end_yr)
   # Create list of towns to be combined in shapefile based on year range
@@ -525,6 +551,8 @@ create_results <- function(results, shp, beg_yr, end_yr) {
 }
 
 weighted.sd <- function(results) {
+  # results: tibble with election results, including weighted mean row
+  
   returns <- as.matrix(results %>% filter(town != "Weighted mean") %>% select(Democrat:Abstaining))
   num_rows <- nrow(returns)
   mu <- unlist(rep((results %>% filter(town == "Weighted mean") %>% select(Democrat:Abstaining)), num_rows, byrow = TRUE))
@@ -537,6 +565,9 @@ weighted.sd <- function(results) {
 
 # Define functions to be used when generating yearly results
 yr_results <- function(raw, filter_yr) {
+  # raw: tibble with raw election results
+  # filter_yr: year for which results are to be extracted
+  
   raw %>%
     filter(yr == filter_yr) %>%
     select_if(function(x) any(x > 0)) %>%
@@ -544,7 +575,10 @@ yr_results <- function(raw, filter_yr) {
     left_join(eligible_pct, by = "combined")
 }
 
+# Define function to generate summary results with weighted mean and SD
 result_summary <- function(results) {
+  # results: tibble with election results for a particular year
+  
   results_plus_mean <- results %>%
     select(!starts_with("ELIG") & !ends_with("votes") & !total & !combined) %>%
     bind_rows(summarise(., across(Democrat:Abstaining, ~ weighted.mean(.x, weight)))) %>%

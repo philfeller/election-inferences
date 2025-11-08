@@ -6,6 +6,14 @@ library(purrr, warn.conflicts = FALSE)
 
 # Build stepwise regression models for each party's residuals; return the covariates
 regression_model <- function(results, ei.model, beg_yr, end_yr, selection_method = "all") {
+  # results: tibble with election results and covariates
+  # ei.model: ei.MD.bayes model object
+  # beg_yr: beginning year of election transition
+  # end_yr: ending year of election transition
+  # selection_method: "all" to return all covariates selected in any model;
+  #                   "majority" to return only covariates selected in at least
+  #                   half of the models
+ 
   beg_party <- get(paste("p", substring(as.character(beg_yr), 3, 4), sep = ""))
   end_party <- get(paste("p", substring(as.character(end_yr), 3, 4), sep = ""))
   resid <- calculate_residuals(ei.model, results, beg_yr, end_yr)
@@ -46,6 +54,15 @@ regression_model <- function(results, ei.model, beg_yr, end_yr, selection_method
 
 # Define function to tune and build ei.MD.bayes model for a given pair of years
 build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, results_tibble = NULL) {
+  # beg_yr: beginning year of election transition 
+  # end_yr: ending year of election transition
+  # lambda1: shape parameter for gamma prior on Dirichlet concentration parameters
+  # lambda2: scale parameter for gamma prior on Dirichlet concentration parameters
+  # covariate: whether to include covariates in the model
+  # results_tibble: optional tibble with election results and covariates; if not
+  #                  provided, the function will look for a tibble named
+  #                  results.<last two digits of end_yr>
+  
   # Define regression formula for parties in the given years
   beg_party <- get(paste("p", substring(as.character(beg_yr), 3, 4), sep = ""))
   end_party <- get(paste("p", substring(as.character(end_yr), 3, 4), sep = ""))
@@ -114,4 +131,3 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
   }
   return(ei.model)
 }
-

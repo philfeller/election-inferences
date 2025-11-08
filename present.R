@@ -8,6 +8,9 @@ library(knitr)
 
 # Ensure that rounded percentages total 100
 pct_round <- function(x, sig_fig) {
+  # x: vector of percentages summing to 1
+  # sig_fig: number of significant figures to round to
+  
   factor <- 100 * 10 ^ sig_fig
   x <- x * factor # multiply by a factor that reflects the desired number of significant digits
   y <- floor(x) # truncate to nearest tenth of a percent
@@ -19,6 +22,11 @@ pct_round <- function(x, sig_fig) {
 
 # Ensure that rounded betas add up to rounded row and column marginals
 beta_round <- function(matrix, beg_round, end_round, sig_fig) {
+  # matrix: matrix of betas to be rounded
+  # beg_round: vector of rounded row marginals
+  # end_round: vector of rounded column marginals
+  # sig_fig: number of significant figures to round to
+  
   factor <- 100 * 10 ^ sig_fig
   # Return TRUE if the beta has an allocatable remainder for both column and row
   remain <- function(floor, x, y) {
@@ -59,6 +67,10 @@ beta_round <- function(matrix, beg_round, end_round, sig_fig) {
 
 # Create single-row data frame with the results for a given year
 get_shares <- function(results, yr, townID) {
+  # results: tibble with election results
+  # yr: year for which to extract shares
+  # townID: optional; if provided, extract shares for the specified town only (by row index)
+  
   vote_cols <- paste("vote_in_", yr, sep = "")
   elig_col <- paste("G_", yr, sep = "")
   if (missing(townID)) {
@@ -76,6 +88,13 @@ get_shares <- function(results, yr, townID) {
 # Create a data frame with the contingency table for voter transitions
 # between two years, using the results of an MD inference
 construct_contingency <- function(results, betas, beg_yr, end_yr, townID, sig_fig) {
+  # results: tibble with election results
+  # betas: matrix of betas from the MD inference
+  # beg_yr: beginning year of the transition
+  # end_yr: ending year of the transition
+  # townID: optional; if provided, extract shares for the specified town only (by row index)
+  # sig_fig: number of significant figures to round to
+  
   if (missing(sig_fig)) {
     sig_fig <- 1
   }
@@ -97,6 +116,8 @@ construct_contingency <- function(results, betas, beg_yr, end_yr, townID, sig_fi
 
 # Transform betas tibble for presenting in a single chart
 combine_betas <- function(betas) {
+  # betas: matrix of betas from the MD inference
+  
   beta_df <- data.frame(matrix(ncol = 4, nrow = 0))
   colnames(beta_df) <- c("party", "value", "from", "to")
   for (op in 1:dim(betas)[1]) {
@@ -115,6 +136,11 @@ combine_betas <- function(betas) {
 
 # Plot the distributions of the estimated betas
 boxplotMD <- function(betas, col_yr, row_yr, town) {
+  # betas: matrix of betas from the MD inference
+  # col_yr: beginning year of the transition
+  # row_yr: ending year of the transition
+  # town: optional; if provided, include town name in title
+  
   x_label <- ifelse(col_yr > row_yr, "Party composition (percent)", "Vote shift (percent)")
   pre_title <- ""
   if (!missing(town)) {
@@ -131,7 +157,13 @@ boxplotMD <- function(betas, col_yr, row_yr, town) {
     theme_classic())
 }
 
+# Plot the ridgeline distributions of the estimated betas
 ridgelineMD <- function(betas, col_yr, row_yr, town) {
+  # betas: matrix of betas from the MD inference
+  # col_yr: beginning year of the transition
+  # row_yr: ending year of the transition
+  # town: optional; if provided, include town name in title
+  
   x_label <- ifelse(col_yr > row_yr, "Party composition (percent)", "Vote shift (percent)")
   pre_title <- ""
   if (!missing(town)) {
@@ -147,7 +179,13 @@ ridgelineMD <- function(betas, col_yr, row_yr, town) {
     labs(title = title, x = x_label, y = ""))
 }
 
+# Plot the density distributions of the estimated betas
 densityMD <- function(betas, col_yr, row_yr, town) {
+  # betas: matrix of betas from the MD inference
+  # col_yr: beginning year of the transition
+  # row_yr: ending year of the transition
+  # town: optional; if provided, include town name in title
+  
   pre_title <- ""
   if (!missing(town)) {
     pre_title <- paste(town, ": ", sep = "")
@@ -165,7 +203,12 @@ densityMD <- function(betas, col_yr, row_yr, town) {
   }
 }
 
+# Create a map with filled values
 create_map <- function(yr, map, data) {
+  # yr: year for which to create the map
+  # map: sf object with the map data
+  # data: vector of data values to fill the map
+  
   map$data <- data
   ggplot() +
     geom_sf(data = map, aes(fill = data), col = NA) +
