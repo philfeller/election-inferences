@@ -15,6 +15,7 @@ source("variables.R")
 
 load(file = "results.Rda")
 load(file = "1855_inference.Rda")
+load(file = "1855_covariate_inference.Rda")
 load(file = "ct_demographics.Rda")
 load(file = "yr_results.Rda")
 

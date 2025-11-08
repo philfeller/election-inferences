@@ -15,17 +15,36 @@ source("inference_utils.R")
 # granular data possible, without unnecessarily combining towns that split before
 # the period to be analyzed:
 
-results.52 <- create_results(raw_results, map.1855, 1851, 1852)$results
-results.53 <- create_results(raw_results, map.1855, 1852, 1853)$results
-results.54 <- create_results(raw_results, map.1855, 1853, 1854)$results
-results.55 <- create_results(raw_results, map.1855, 1854, 1855)$results
-results.56 <- create_results(raw_results, map.1857, 1855, 1856)$results
-results.57 <- create_results(raw_results, map.1857, 1856, 1857)$results
-results.51_57 <- create_results(raw_results, map.1857, 1851, 1857)$results
+results <- create_results(raw_results, map.1855, 1851, 1852)
+results.52 <- results$results
+map.52 <- results$shp
+results <- create_results(raw_results, map.1855, 1852, 1853)
+results.53 <- results$results
+map.53 <- results$shp
+results <- create_results(raw_results, map.1855, 1853, 1854)
+results.54 <- results$results
+map.54 <- results$shp
+results <- create_results(raw_results, map.1855, 1854, 1855)
+results.55 <- results$results
+map.55 <- results$shp
+results <- create_results(raw_results, map.1857, 1855, 1856)
+results.56 <- results$results
+map.56 <- results$shp
+results <- create_results(raw_results, map.1857, 1856, 1857)
+results.57 <- results$results
+map.57 <- results$shp
+results <- create_results(raw_results, map.1857, 1851, 1857)
+results.51_57 <- results$results
+map.51_57 <- results$shp
 
 save(
   raw_results, results.52, results.53, results.54, results.55, results.56, results.51_57,
   file = "results.Rda"
+)
+
+save(
+  map.52, map.53, map.54, map.55, map.56, map.57, map.51_57,
+  file = "maps.Rda"
 )
 
 # Although the model factors for each pair of years have been chosen to produce MCMC results

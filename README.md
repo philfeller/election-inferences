@@ -51,13 +51,28 @@ Rscript analyze_results.R
 - covariate_regression.R - Script that calculates elecvtion inferences using demographic and geographic covariates
 - results.Rda - Tibbles with election-pair results
 - ct_demographics.Rda - Calculated demographic factors by town
-- 1852_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1852, and the data that was used in the statistical analysis for the paper.
-- 1853_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1852 and 1853, and the data that was used in the statistical analysis for the paper.
-- 1854_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1853 and 1854, and the data that was used in the statistical analysis for the paper.
-- 1855_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1854 and 1855, and the data that was used in the statistical analysis for the paper.
-- 1856_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1855 and 1856, and the data that was used in the statistical analysis for the paper.
-- 1857_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1856 and 1857, and the data that was used in the statistical analysis for the paper.
-- 1851-1857_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1857, and the data that was used in the statistical analysis for the paper.
+- results.Rda - Tibbles with election-pair results
+- maps.Rda - Dynamically created maps of Connecticut towns for each of the regressions
+- 1852_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1852
+- 1852_1851_covariates.Rda - Demographic and geographic ovariates used in the 1851-1852 inference in covariate_regression.R
+- 1852_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1851 and 1852 using covariates
+- 1853_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1852 and 1853
+- 1853_1852_covariates.Rda - Demographic and geographic ovariates used in the 1852-1853 inference in covariate_regression.R
+- 1853_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1852 and 1853
+- 1854_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1853 and 1854
+- 1854_1853_covariates.Rda - Demographic and geographic ovariates used in the 1853-1854 inference in covariate_regression.R
+- 1855_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1854 and 1855
+- 1855_1854_covariates.Rda - Demographic and geographic ovariates used in the 1854-1855 inference in covariate_regression.R
+- 1855_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1854 and 1855
+- 1856_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1855 and 1856
+- 1856_covariates.Rda - Demographic and geographic ovariates used in the 1855-1856 inference in covariate_regression.R
+- 1856_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1855 and 1856
+- 1857_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1856 and 1857
+- 1857_1856_covariates.Rda - Demographic and geographic ovariates used in the 1856-1857 inference in covariate_regression.R
+- 1857_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1856 and 1857
+- 1851-1857_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1857
+- 1857-1851_covariates.Rda - Demographic and geographic ovariates used in the 1851-1857 inference in covariate_regression.R
+- 1851-1857_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1851 and 1857
 - analyze_results.R - Loads the inferences.Rda data file that was created by prepare_results.R and performs the statistical analysis that is used in the paper.
 - test.R - Contains one simple inference and a few graphs; it is used by the CI/CD pipeline to test that all needed files are included and working as expected.
 
