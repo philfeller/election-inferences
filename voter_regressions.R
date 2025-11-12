@@ -15,25 +15,25 @@ source("inference_utils.R")
 # granular data possible, without unnecessarily combining towns that split before
 # the period to be analyzed:
 
-results <- create_results(raw_results, map.1855, 1851, 1852)
+results <- create_results(raw_results, map.1855, 1851, 1852, eligible_pct, factors)
 results.52 <- results$results
 map.52 <- results$shp
-results <- create_results(raw_results, map.1855, 1852, 1853)
+results <- create_results(raw_results, map.1855, 1852, 1853, eligible_pct, factors)
 results.53 <- results$results
 map.53 <- results$shp
-results <- create_results(raw_results, map.1855, 1853, 1854)
+results <- create_results(raw_results, map.1855, 1853, 1854, eligible_pct, factors)
 results.54 <- results$results
 map.54 <- results$shp
-results <- create_results(raw_results, map.1855, 1854, 1855)
+results <- create_results(raw_results, map.1855, 1854, 1855, eligible_pct, factors)
 results.55 <- results$results
 map.55 <- results$shp
-results <- create_results(raw_results, map.1857, 1855, 1856)
+results <- create_results(raw_results, map.1857, 1855, 1856, eligible_pct, factors)
 results.56 <- results$results
 map.56 <- results$shp
-results <- create_results(raw_results, map.1857, 1856, 1857)
+results <- create_results(raw_results, map.1857, 1856, 1857, eligible_pct, factors)
 results.57 <- results$results
 map.57 <- results$shp
-results <- create_results(raw_results, map.1857, 1851, 1857)
+results <- create_results(raw_results, map.1857, 1851, 1857, eligible_pct, factors)
 results.51_57 <- results$results
 map.51_57 <- results$shp
 

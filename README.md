@@ -43,6 +43,7 @@ Rscript analyze_results.R
 - download_ipums.R - Download census data from IPUMS; requires an API key and that the key is defined in environment variable API_KEY.
 - variables.R - Defines variables that are used elsewhere, including the paths for the files that were loadloaded from IPUMS.
 - ct_demographics.R - Creates Tidyverse tibbles from the IPUMS data, summarizing by town and calculating information, such as GINI index.
+- results_utils.R - Defines utility functions that are used by prepare_results.R and regression scripts
 - prepare_results.R - Defines functions that take election results for a pair of years and prepare them for analysis
 - betas.R - Defines functions to extract beta values from the MCMC data that is created by the eiPack inference.
 - present.R - Defines functions for presenting betas in various formats

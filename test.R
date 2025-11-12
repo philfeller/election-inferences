@@ -8,7 +8,7 @@ source("present.R")
 source("prepare_results.R")
 source("inference_utils.R")
 
-data.52 <- create_results(raw_results, map.1855, 1851, 1852)
+data.52 <- create_results(raw_results, map.1855, 1851, 1852, eligible_pct, factors)
 results.52 <- data.52$results
 map.52 <- data.52$shp
 
