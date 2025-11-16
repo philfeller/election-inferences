@@ -3,8 +3,8 @@
 # and are written to apply specifically to a limited range of years
 #   create_results - prepares a tibble with percentage election results
 library(dplyr)
-library(lubridate)
-library(magrittr)
+library(lubridate, warn.conflicts = FALSE)
+library(magrittr, warn.conflicts = FALSE)
 library(readr)
 library(sf)
 library(spdep)
@@ -143,6 +143,12 @@ remainder <- function(arry) {
   }
 }
 
+# Exclude towns that appear with zero votes in elections returns for some offices
+# but do not appear in others for the same year. Having these towns appear causes
+# results for different offices to have different numbers of rows, preventing linear
+# regressions from being run.
+exclude_towns <- c("Plainville","East Granby","Newington","Ansonia","Beacon Falls")
+
 # Read and process the downloaded election results file
 read_results <- function(file, alias_map, party_assignments, office, beg_yr, end_yr) {
   # file: path to CSV file with election results
@@ -169,14 +175,14 @@ read_results <- function(file, alias_map, party_assignments, office, beg_yr, end
       # Remove total rows and filter by year and office
       filter(!candidate_name == "Total Ballots Cast") %>%
       filter(!candidate_name == "Total Votes Cast") %>%
+      filter(!town %in% exclude_towns) %>%
       filter(yr >= beg_yr) %>%
       filter(yr <= end_yr) %>%
       filter(office_name == office) %>%
-      select(-office_name) %>%
       # Clean candidate names and join with party assignments
       mutate(candidate_name = replace_aliases(candidate_name, alias_map)) %>%
       filter(candidate_name %in% party_assignments$candidate_name) %>%
-      left_join(party_assignments, by = c("candidate_name", "yr")) %>%
+      left_join(party_assignments, by = c("candidate_name", "office_name", "yr")) %>%
       # Remove rows with candidates not assigned to a party
       filter(!is.na(candidate_party)) %>%
       # Change blank votes to zero
@@ -196,6 +202,94 @@ read_results <- function(file, alias_map, party_assignments, office, beg_yr, end
         combined = get_combined(town)
       )
   )
+}
+
+# Create results for Judge of Probate, assuming that a candidate's party
+# affiliation is the same as for the Governor's race
+read_probate_results <- function(file, alias_map, party_assignments, beg_yr, end_yr) {
+  # file: path to CSV file with election results
+  # alias_map: named vector for replacing candidate name aliases
+  # party_assignments: tibble with candidate party assignments by year
+  # governor_results: tibble with processed election results for Governor
+  # beg_yr: beginning year of election returns to be processed
+  # end_yr: ending year of election returns to be processed
+
+  probate_results <- read_csv(file, show_col_types = FALSE) %>%
+    select(
+      election_date,
+      office_name,
+      candidate_name,
+      granular_division_name,
+      district_name,
+      votes
+    ) %>%
+    rename(town = granular_division_name) %>%
+    mutate(
+      yr = as.integer(year(election_date)),
+      election_date = NULL, .before = candidate_name
+    ) %>%
+    # Remove total rows and filter by year and office
+    filter(!candidate_name == "Total Ballots Cast") %>%
+    filter(!candidate_name == "Total Votes Cast") %>%
+    filter(votes != 0) %>%
+    filter(!town %in% exclude_towns) %>%
+    filter(yr >= beg_yr) %>%
+    filter(yr <= end_yr) %>%
+    filter(office_name == "Judge of Probate") %>%
+    # Change blank votes to zero
+    replace(is.na(.), 0)
+
+  governor_party <- read_csv(file, show_col_types = FALSE) %>%
+    select(
+      election_date,
+      office_name,
+      candidate_name,
+      granular_division_name,
+      votes
+    ) %>%
+    rename(town = granular_division_name) %>%
+    mutate(
+      yr = as.integer(year(election_date)),
+      election_date = NULL, .before = candidate_name
+    ) %>%
+    # Remove total rows and filter by year and office
+    filter(!candidate_name == "Total Ballots Cast") %>%
+    filter(!candidate_name == "Total Votes Cast") %>%
+    filter(votes != 0) %>%
+    filter(!town %in% exclude_towns) %>%
+    filter(yr >= beg_yr) %>%
+    filter(yr <= end_yr) %>%
+    filter(office_name == "Governor") %>%
+    # Clean candidate names and join with party assignments
+    mutate(candidate_name = replace_aliases(candidate_name, alias_map)) %>%
+    filter(candidate_name %in% party_assignments$candidate_name) %>%
+    left_join(party_assignments, by = c("candidate_name", "office_name", "yr")) %>%
+    group_by(yr, town) %>%
+    arrange(desc(votes)) %>%
+    mutate(gov_rank = row_number()) %>%
+    filter(gov_rank <= 2) %>%
+    select(yr, town, gov_rank, candidate_party)
+
+  return(probate_results %>%
+    group_by(yr, town) %>%
+    arrange(desc(votes)) %>%
+    mutate(judge_rank = row_number()) %>%
+    filter(judge_rank <= 2) %>%
+    # Join the top two Governor candidates in same town/year
+    left_join(governor_party, by = c("yr", "town", "judge_rank" = "gov_rank")) %>%
+    # Remove candidate names after joining
+    mutate(candidate_name = NULL) %>%
+    mutate(judge_rank = NULL) %>%
+    # Create tibble that combines all town results into one row
+    pivot_wider(
+      names_from = candidate_party,
+      values_from = votes,
+      values_fn = sum,
+      values_fill = 0
+    ) %>%
+    # Combine results for towns with more than one probate district
+    group_by(yr, town) %>%
+    summarise_if(is.double, sum, na.rm = TRUE))
 }
 
 # Create a tibble with demographic factors for a particular year range,

@@ -10,6 +10,7 @@ library(tidyr)
 source("betas.R")
 source("present.R")
 source("variables.R")
+source("results_utils.R")
 
 # Load the saved voter-inference results and perform statistical analysis
 
@@ -394,3 +395,41 @@ for (age in age_cats) {
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
 kable(gini_grid, label = "1860 Meriden Real Property GINI Index by Age Range")
+
+# Demonstrate the extent to which results for statewide offices are correlated
+# This is to be expected because voters are given a single ballot with all offices
+# listed on it, so their choices for different offices are not independent
+
+governor_results <- read_results(results_file,alias_map,party_assignments,"Governor",1849,1857)
+lt_governor_results <- read_results(results_file,alias_map,party_assignments,"Lieutenant Governor",1849,1857)
+secretary_results <- read_results(results_file,alias_map,party_assignments,"Secretary of the State",1849,1857)
+treasurer_results <- read_results(results_file,alias_map,party_assignments,"Treasurer",1849,1857)
+probate_results <- read_probate_results(results_file,alias_map,party_assignments,1849,1857)
+
+# Keep only those rows that have results for all five offices
+governor_results <- semi_join(governor_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+lt_governor_results <- semi_join(lt_governor_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+secretary_results <- semi_join(secretary_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(governor_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+treasurer_results <- semi_join(treasurer_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(governor_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr"))
+probate_results <- semi_join(probate_results, governor_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+
+parties <- c("Democrat", "Whig", "Free_Soil", "Temperance", "Know_Nothing", "Republican")
+for (party in parties) {
+  corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, party)
+  print(kable(corr_df, caption = paste("Correlation of", party, "vote tallies for statewide offices, 1849-1857")))
+}
