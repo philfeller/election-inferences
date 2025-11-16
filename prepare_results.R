@@ -11,55 +11,6 @@ source("./results_utils.R")
 # Estimate nonvoters and calculate potential covariates
 source("./ct_demographics.R")
 
-alias_map <- list(
-"Lafayette S. Foster" = c("L. S. Foster", "Lafayette Foster"),
-"Samuel Ingham" = c("Samuel D. Ingham", "Samuel Engraham"),
-"John M. Niles" = c("J. M. Niles"),
-"Thomas H. Seymour" = c("Jonas H. Senor", "T. H. Seymour", "T. Seymour", "Thomas Seymour", "Thomas S. Seymour", "Ths. H. Seymour", "Tom H. Seymour")
-)
-
-party_assignments <- data.frame(
-  candidate_name = c(rep("Thomas H. Seymour",5),
-                             rep("Samuel Ingham",4),
-                             rep("Lafayette S. Foster",3),
-                             "Green Kendrick",
-                             rep("Henry Dutton",3),
-                             "John A. Rockwell",
-                             "John M. Niles",
-                             rep("John Boyd",2),
-                             rep("Francis Gillette",2),
-                             "John Hooker",
-                             "Charles Chapman",
-                             rep("William T. Minor",2),
-                             "Gideon Welles",
-                             "Alexander H. Holley"
-  ),
-  yr = c(1849:1853,
-                   1854:1857,
-                   1849:1851,
-                   1852,
-                   1853:1855,
-                   1856,
-                   1849,
-                   1850:1851,
-                   1852:1853,
-                   1854,
-                   1854,
-                   1855:1856,
-                   1856,
-                   1857
-  ),
-  candidate_party = c(rep("Democrat_votes",9),
-                             rep("Whig_votes",8),
-                             rep("Free_Soil_votes",6),
-                             "Temperance_votes",
-                             rep("Know_Nothing_votes",2),
-                             rep("Republican_votes",2)
-  ),                  
-  stringsAsFactors = FALSE
-)
-party_assignments$yr <- as.integer(party_assignments$yr)
-
 raw_results <- read_results(results_file,alias_map,party_assignments,"Governor",1849,1857)
 
 # Because estimates of eligible voters depend on both 1850 and 1860 census data,

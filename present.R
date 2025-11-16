@@ -215,3 +215,44 @@ create_map <- function(yr, map, data) {
     theme_bw() +
     scale_fill_viridis_c()
 }
+
+# Create a correlation matrix for statewide office results
+
+corr_matrix_by_party <- function(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, party) {
+  # Set office order and display names
+  office_names <- c("Governor", "Lieutenant Governor", "Secretary of the State", "Treasurer", "Judge of Probate")
+  # Get the correct vote column name for the selected party
+  vote_col <- paste0(party, "_votes")
+  
+  # Prepare a named list so we can loop programmatically, ordered for display
+  dfs <- list(
+    "Governor" = governor_results,
+    "Lieutenant Governor" = lt_governor_results,
+    "Secretary of the State" = secretary_results,
+    "Treasurer" = treasurer_results,
+    "Judge of Probate" = probate_results
+  )
+  
+  # Build empty correlation matrix with readable row/col order
+  correlation_table <- matrix(NA, nrow = 5, ncol = 5)
+  rownames(correlation_table) <- office_names
+  colnames(correlation_table) <- office_names
+  
+  # Compute pairwise correlations for the given party and fill the matrix symmetrically
+  for (i in 1:5) {
+    for (j in i:5) {
+      cor_val <- NA
+      # Only compute if columns exist
+      if (vote_col %in% colnames(dfs[[office_names[i]]]) && vote_col %in% colnames(dfs[[office_names[j]]])) {
+        cor_val <- round(cor(dfs[[office_names[i]]][[vote_col]], dfs[[office_names[j]]][[vote_col]], use = "pairwise.complete.obs"), 3)
+      }
+      correlation_table[i, j] <- cor_val
+      correlation_table[j, i] <- cor_val
+    }
+  }
+  
+  # Turn to dataframe for printing with kable
+  correlation_df <- as.data.frame(correlation_table)
+  return(correlation_df)
+}
+

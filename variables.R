@@ -178,8 +178,8 @@ if (exists("last_1860_ct")) {
   ipums_1860 <- paste(ipums_data_path, "usa_", formatC(last_1860_ct, width = 5, flag = "0"), ".xml", sep = "")
 }
 
-# Election data taken from https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3
-results_file <- "./data/electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_office_id_4_show_granularity_dt_id_1.csv"
+# Election data taken from https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857
+results_file <- "./data/electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_stage_et_id_3_show_granularity_dt_id_1.csv.gz"
 
 # Religious accomodation data was taken from images of the 1860 Census Social Statistics schedule for each town.
 religion_file <- "./data/1860_CT_religious_accomodation.csv"
@@ -194,6 +194,215 @@ p56 <- c("Democrat_in_1856", "Whig_in_1856", "Know_Nothing_in_1856", "Republican
 p57 <- c("Democrat_in_1857", "Republican_in_1857", "Abstaining_in_1857")
 
 all_parties <- c("Democrat", "Whig", "Know Nothing", "Republican", "Free Soil", "Temperance", "Abstaining")
+
+# Map of candidate name variants to consistent names
+alias_map <- list(
+  "Lafayette S. Foster" = c("L. S. Foster", "Lafayette Foster"),
+  "Samuel Ingham" = c("Samuel D. Ingham", "Samuel Engraham"),
+  "John M. Niles" = c("J. M. Niles"),
+  "Thomas H. Seymour" = c("Jonas H. Senor", "T. H. Seymour", "T. Seymour", "Thomas Seymour", "Thomas S. Seymour", "Ths. H. Seymour", "Tom H. Seymour"),
+  "Alexander W Holley" = c("A H Holly", "Alexander H. Holley"),
+  "Charles H. Pond" = c("C H Pond"),
+  "John T. Wait" = c("J. T. Wait", "John T Waite"),
+  "Josiah M. Carter" = c("Joseph M Carter", "Joshua M Carter", "Josiah B Carter"),
+  "William Alexander" = c("William Alexander Jr."),
+  "Hiram Weed" = c("Miriam Weed"),
+  "J. Hammond Trumbull" = c("Hammond Trumbull", "Jonathan H. Trumbull"),
+  "John Boyd" = c("John D. Boyd"),
+  "Joseph W. White" = c("Joseph White"),
+  "Nehemiah D. Sperry" = c("N. D. Sperry", "Nehemiah Sperry", "Jeremiah D. Sperry"),
+  "Orville H. Platt" = c("O. H. Platt", "Orville Platt"),
+  "Amos Townsend, Jr." = c("Amos Townsend"),
+  "Arthur B. Calef" = c("A.B. Calef", "Arthur B. Caleff", "Arthur B. Califf"),
+  "Daniel W. Camp" = c("Daniel Camp"),
+  "Frederick P. Coe" = c("Frederick A. Poe"),
+  "George Reed" = c("George Read"),
+  "Jesse G. Baldwin" = c("Jesse Baldwin", "Jesse D. Baldwin", "Jesse W. Baldwin", "J. G. Baldwin"),
+  "Joseph B. Gay" = c("Joseph Gay"),
+  "Talcott Crosby" = c("Talcott L. Crosby"),
+  "Thomas Clark" = c("Th. Clark")
+)
+
+# Data frame assigning parties to candidates for each office and year
+party_assignments <- data.frame(
+  candidate_name = c(
+    # Governor
+    rep("Thomas H. Seymour", 5),
+    rep("Samuel Ingham", 4),
+    rep("Lafayette S. Foster", 3),
+    "Green Kendrick",
+    rep("Henry Dutton", 3),
+    "John A. Rockwell",
+    "John M. Niles",
+    rep("John Boyd", 2),
+    rep("Francis Gillette", 2),
+    "John Hooker",
+    "Charles Chapman",
+    rep("William T. Minor", 2),
+    "Gideon Welles",
+    "Alexander H. Holley",
+    # Lt. Governor
+    rep("Charles H. Pond", 5),
+    rep("John T. Wait", 4),
+    "Thomas Backus",
+    rep("Green Kendrick", 2),
+    "Roger H. Mills",
+    "Nathaniel I Kellogg",
+    rep("Alexander W Holley", 2),
+    "Josiah M. Carter",
+    rep("John Boyd", 2),
+    "Julius Clark",
+    rep("William Field", 2),
+    "William Alexander",
+    "Erastus Lester",
+    "William Field",
+    "Albert Day",
+    "Henry B. Harrison",
+    "Alfred A. Burnham",
+    # Secretary of State
+    rep("Hiram Weed", 2),
+    rep("John P. C. Mather", 3),
+    rep("Roger Averill", 4),
+    rep("Roger H. Mills", 3),
+    rep("J. Hammond Trumbull", 2),
+    "Thomas Robinson",
+    rep("Oliver H. Perry", 2),
+    "Edmund Perkins",
+    "Joseph W. White",
+    "George Read",
+    "Walter Webb",
+    "John S. Baldwin",
+    rep("David Lyman", 2),
+    "Edward S. Moseley",
+    rep("Nehemiah D. Sperry", 2),
+    "John Boyd",
+    "Orville H. Platt",
+    # Treasurer
+    rep("Henry D. Smith", 3),
+    rep("Edwin Stearns", 2),
+    rep("Talcott Crosby", 4),
+    "Stephen Taylor",
+    rep("Thomas Clark", 3),
+    rep("Daniel W. Camp", 3),
+    "Stephen D. Pardee",
+    rep("George Reed", 2),
+    rep("Jesse G. Baldwin", 2),
+    "Walter Webb",
+    rep("Amos Townsend, Jr.", 2),
+    "Thomas Clark",
+    "Arthur B. Calef",
+    "Frederick P. Coe",
+    "Joseph B. Gay",
+    "Frederick S. Wildman"
+  ),
+  office_name = c(
+    rep("Governor", 28),
+    rep("Lieutenant Governor", 28),
+    rep("Secretary of the State", 29),
+    rep("Treasurer", 29)
+    # rep("Comptroller", 8)
+  ),
+  yr = c(
+    # Governor
+    1849:1853,
+    1854:1857,
+    1849:1851,
+    1852,
+    1853:1855,
+    1856,
+    1849,
+    1850:1851,
+    1852:1853,
+    1854,
+    1854,
+    1855:1856,
+    1856,
+    1857,
+    # Lt. Governor
+    1849:1853,
+    1854:1857,
+    1849,
+    1850:1851,
+    1852,
+    1853,
+    1854:1855,
+    1856,
+    1849, 1853,
+    1850,
+    1851:1852,
+    1854,
+    1854,
+    1855,
+    1856,
+    1856,
+    1857,
+    # Secretary of State
+    1849:1850,
+    1851:1853,
+    1854:1857,
+    1849:1851,
+    1852, 1856,
+    1853,
+    1854:1855,
+    1849,
+    1850,
+    1851,
+    1852,
+    1853,
+    1854:1855,
+    1854,
+    1855:1856,
+    1856,
+    1857,
+    # Treasurer
+    1849:1851,
+    1852:1853,
+    1854:1857,
+    1849,
+    1850:1852,
+    1853:1855,
+    1856,
+    1849:1850,
+    1851:1852,
+    1853,
+    1854:1855,
+    1854,
+    1855:1856,
+    1856:1857
+  ),
+  candidate_party = c(
+    # Governor
+    rep("Democrat_votes", 9),
+    rep("Whig_votes", 8),
+    rep("Free_Soil_votes", 6),
+    "Temperance_votes",
+    rep("Know_Nothing_votes", 2),
+    rep("Republican_votes", 2),
+    # Lt. Governor
+    rep("Democrat_votes", 9),
+    rep("Whig_votes", 8),
+    rep("Free_Soil_votes", 6),
+    "Temperance_votes",
+    rep("Know_Nothing_votes", 2),
+    rep("Republican_votes", 2),
+    # Secretary of State
+    rep("Democrat_votes", 9),
+    rep("Whig_votes", 8),
+    rep("Free_Soil_votes", 7),
+    "Temperance_votes",
+    rep("Know_Nothing_votes", 2),
+    rep("Republican_votes", 2),
+    # Treasurer
+    rep("Democrat_votes", 9),
+    rep("Whig_votes", 8),
+    rep("Free_Soil_votes", 7),
+    "Temperance_votes",
+    rep("Know_Nothing_votes", 2),
+    rep("Republican_votes", 2)
+  ),
+  stringsAsFactors = FALSE
+)
+party_assignments$yr <- as.integer(party_assignments$yr)
 
 # Define consistent colors for each party;
 # colors are from https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=7
