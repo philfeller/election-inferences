@@ -11,6 +11,7 @@ source("betas.R")
 source("present.R")
 source("variables.R")
 source("results_utils.R")
+source("ct_demographics.R")
 
 # Load the saved voter-inference results and perform statistical analysis
 
