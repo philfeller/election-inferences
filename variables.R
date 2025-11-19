@@ -224,7 +224,7 @@ alias_map <- list(
 )
 
 # Data frame assigning parties to candidates for each office and year
-party_assignments <- data.frame(
+nominated_party_assignments <- data.frame(
   candidate_name = c(
     # Governor
     rep("Thomas H. Seymour", 5),
@@ -402,7 +402,91 @@ party_assignments <- data.frame(
   ),
   stringsAsFactors = FALSE
 )
-party_assignments$yr <- as.integer(party_assignments$yr)
+nominated_party_assignments$yr <- as.integer(nominated_party_assignments$yr)
+
+# Data frame assigning parties to candidates in towns that voted in large numbers
+# for someone other than the party nominee; party assignments were determined
+# by looking at other races in which the candidate ran, by known affiliations, or
+# by looking at vote patterns in towns where the candidate did well.
+imputed_party_assignments <- data.frame(
+  candidate_name = c(
+    # Secretary of the State
+    "Thomas Black",
+    "Erwin Swames",
+    "C. C. Cornstock",
+    "Daniel W. Camp",
+    "Walter Webb",
+    rep("Talcott Crosby", 2),
+    "Thomas Clark",
+    "Daniel H. Camp",
+    "Amos Townsend, Jr.",
+    "Arthur B. Calef",
+    "Joseph B. Gay",
+    "Stephen D. Pardre",
+    "Narnmore Trumbull",
+    # Treasurer
+    rep("J. Hammond Trumbull", 2),
+    "John J.C. Mather",
+    "Walter Booth",
+    "Charles Robinson",
+    "Jesse G. Baldwin",
+    "Roger Averill",
+    "Edward S. Mosely",
+    "Nehemiah D. Sperry",
+    "John Boyd"
+  ),
+  office_name = c(
+    rep("Secretary of the State", 14),
+    rep("Treasurer", 10)
+  ),
+  yr = c(
+    # Secretary of the State
+    1852,
+    rep(1853, 4),
+    1854, 1855,
+    rep(1854, 3),
+    1855,
+    rep(1856, 3),
+    # Treasurer
+    1852, 1856,
+    rep(1853, 4),
+    rep(1854, 2),
+    1855,
+    1856
+  ),
+  candidate_party = c(
+    # Secretary of the State
+    "Whig_votes",
+    "Democrat_votes",
+    "Free_Soil_votes",
+    "Whig_votes",
+    "Free_Soil_votes",
+    rep("Democrat_votes", 2),
+    "Temperance_votes",
+    "Whig_votes",
+    "Free_Soil_votes",
+    "Know_Nothing_votes",
+    "Republican_votes",
+    rep("Whig_votes", 2),
+    # Treasurer
+    rep("Whig_votes", 2),
+    "Democrat_votes",
+    "Free_Soil_votes",
+    "Whig_votes",
+    "Free_Soil_votes",
+    "Democrat_votes",
+    "Temperance_votes",
+    "Know_Nothing_votes",
+    "Republican_votes"
+  ),
+  stringsAsFactors = FALSE
+)
+imputed_party_assignments$yr <- as.integer(imputed_party_assignments$yr)
+
+party_assignments <- rbind(
+  nominated_party_assignments,
+  imputed_party_assignments
+)
 
 # Define consistent colors for each party;
 # colors are from https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=7

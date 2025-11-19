@@ -1,4 +1,4 @@
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(eiPack)
 library(haven)
 library(ineq)
@@ -11,7 +11,7 @@ source("betas.R")
 source("present.R")
 source("variables.R")
 source("results_utils.R")
-source("ct_demographics.R")
+source("census_utils.R")
 
 # Load the saved voter-inference results and perform statistical analysis
 

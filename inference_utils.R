@@ -1,4 +1,7 @@
 # Utility functions used when creating election inferences
+## - calculate_residuals(ei.model, results, beg_yr, end_yr): Calculate residuals from an ei.MD.bayes model
+## - regression_model(results, ei.model, beg_yr, end_yr, selection_method): Build stepwise regression models for each party
+## - build_ei_model(beg_yr, end_yr, lambda1, lambda2, covariate, results_tibble): Tune and build ei.MD.bayes model for a given pair of years
 
 library(coda)
 library(eiPack)

@@ -49,9 +49,10 @@ Rscript analyze_results.R
 - present.R - Defines functions for presenting betas in various formats
 - inference_utils.R - Defines utility functions that are used by regression scripts
 - voter_regressions.R - This is the script that calculate election inferences. It sources the scripts that need to have been run first.
-- covariate_regression.R - Script that calculates elecvtion inferences using demographic and geographic covariates
+- covariate_regression.R - Script that calculates election inferences using demographic and geographic covariates
 - results.Rda - Tibbles with election-pair results
 - ct_demographics.Rda - Calculated demographic factors by town
+- census_utils.R - Defines utility functions that are used by analyze_results.R and ct_demographics.R
 - results.Rda - Tibbles with election-pair results
 - maps.Rda - Dynamically created maps of Connecticut towns for each of the regressions
 - 1852_inference.Rda - Output from a typical execution of voter_regressions.R, estimating voter shifts between 1851 and 1852
@@ -82,8 +83,8 @@ The Social Statistics schedule includes the number of religious accommodations (
 - 1860_CT_religious_accomodation.csv
 
 ### Elections data
-These data were downloaded from [the Connecticut Secetary of State](https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857/office_id:4/stage:et-id-3).
-- electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_office_id_4_show_granularity_dt_id_1.csv
+These data were downloaded from [the Connecticut Secetary of State](https://electionhistory.ct.gov/eng/contests/search/year_from:1849/year_to:1857).
+- electionhistory_ct_gov_eng_contests_search_year_from_1849_year_to_1857_stage_et_id_3_show_granularity_dt_id_1.csv.gz
 
 ### ESRI shapefiles
 These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-data-website-ctdeep.hub.arcgis.com/maps/82672ae5f3764021b9a4804f524f928b/about). Where towns were created from parts of other towns, I've drawn boundaries that conform as closely as possible to historic maps or town histories.

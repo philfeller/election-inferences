@@ -2,7 +2,15 @@
 # functions are called by prepare_results.R and covariate_regressions.R
 # and are written to apply specifically to a limited range of years
 #   create_results - prepares a tibble with percentage election results
-library(dplyr)
+#                    for each pair of years, combining towns as necessary
+#   read_results   - reads raw election results from CSV and processes them
+#   read_probate_results - reads raw election results for Judge of Probate
+#                           and assigns party affiliations based on Governor's
+#   create_factors - prepares a tibble with demographic factors for each town
+#   combine_results - combines election results and dissolves towns in shapefile
+#                     as necessary based on year range
+
+library(dplyr, warn.conflicts = FALSE)
 library(lubridate, warn.conflicts = FALSE)
 library(magrittr, warn.conflicts = FALSE)
 library(readr)
@@ -147,7 +155,7 @@ remainder <- function(arry) {
 # but do not appear in others for the same year. Having these towns appear causes
 # results for different offices to have different numbers of rows, preventing linear
 # regressions from being run.
-exclude_towns <- c("Plainville","East Granby","Newington","Ansonia","Beacon Falls")
+exclude_towns <- c("Plainville", "East Granby", "Newington", "Ansonia", "Beacon Falls")
 
 # Read and process the downloaded election results file
 read_results <- function(file, alias_map, party_assignments, office, beg_yr, end_yr) {
@@ -179,6 +187,21 @@ read_results <- function(file, alias_map, party_assignments, office, beg_yr, end
       filter(yr >= beg_yr) %>%
       filter(yr <= end_yr) %>%
       filter(office_name == office) %>%
+      # Map candidate names for 1855 Treasurer race for towns
+      # that recorded a large number of votes for "All Other Votes";
+      # transcriptions of the election ledger show that these were votes for
+      # candidates on the right-hand page.
+      # https://electionhistory.ct.gov/eng/contests/get_source_documentation/26870/1
+      mutate(
+        candidate_name = case_when(
+          candidate_name == "All Other Votes" & yr == 1855 & office_name == "Treasurer" & town %in% c("Greenwich", "Sharon") ~ "Daniel W. Camp",
+          candidate_name == "All Other Votes" & yr == 1855 & office_name == "Treasurer" & town %in% c("Darien", "Huntington", "Newtown", "Redding", "Plainsfield", "Harwinton") ~ "Arthur B. Calef",
+          candidate_name == "All Other Votes" & yr == 1855 & office_name == "Treasurer" & town %in% c("Colebrook", "Norfolk") ~ "Amos Townsend, Jr.",
+          candidate_name == "All Other Votes" & yr == 1855 & office_name == "Treasurer" & town %in% c("New Hartford") ~ "Talcott Crosby",
+          candidate_name == "All Other Votes" & yr == 1855 & office_name == "Treasurer" & town %in% c("Tollund", "Bolton") ~ "Nehemiah D. Sperry",
+          TRUE ~ candidate_name
+        )
+      ) %>%
       # Clean candidate names and join with party assignments
       mutate(candidate_name = replace_aliases(candidate_name, alias_map)) %>%
       filter(candidate_name %in% party_assignments$candidate_name) %>%
@@ -205,7 +228,9 @@ read_results <- function(file, alias_map, party_assignments, office, beg_yr, end
 }
 
 # Create results for Judge of Probate, assuming that a candidate's party
-# affiliation is the same as for the Governor's race
+# affiliation is the same as for the Governor's race in the same year; use the
+# top three Governor candidates in each town/year to assign party affiliations.
+# Using the top two or four yielded similar results.
 read_probate_results <- function(file, alias_map, party_assignments, beg_yr, end_yr) {
   # file: path to CSV file with election results
   # alias_map: named vector for replacing candidate name aliases
@@ -267,14 +292,14 @@ read_probate_results <- function(file, alias_map, party_assignments, beg_yr, end
     group_by(yr, town) %>%
     arrange(desc(votes)) %>%
     mutate(gov_rank = row_number()) %>%
-    filter(gov_rank <= 2) %>%
+    filter(gov_rank <= 3) %>%
     select(yr, town, gov_rank, candidate_party)
 
   return(probate_results %>%
     group_by(yr, town) %>%
     arrange(desc(votes)) %>%
     mutate(judge_rank = row_number()) %>%
-    filter(judge_rank <= 2) %>%
+    filter(judge_rank <= 3) %>%
     # Join the top two Governor candidates in same town/year
     left_join(governor_party, by = c("yr", "town", "judge_rank" = "gov_rank")) %>%
     # Remove candidate names after joining
