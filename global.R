@@ -1,6 +1,6 @@
 # Variables used in other scripts are consolidated here
 
-library(ipumsr)
+library(tidyverse, warn.conflicts = FALSE)
 
 # Suppress warnings; the ei.MD.bayes function produces uninformative warnings because the
 # row and column marginals are proportions.
@@ -153,18 +153,19 @@ farmington_poll_change <- (645 - 534) / 9
 new_britain_poll_change <- (1277 - 628) / 9
 bad_birthplace <- c("Avon", "Burlington", "Farmington", "New Britain")
 
-# Locations of data files
 
 # Full-count census data taken using ./download_ipums.R
 # It can also be requested from https://usa.ipums.org/usa-action/variables/group
 # and downloaded from https://usa.ipums.org/usa-action/data_requests/download
 
 api_key <- Sys.getenv("API_KEY")
-set_ipums_api_key(api_key)
+suppressMessages(
+  ipumsr::set_ipums_api_key(api_key)
+)
 
 # Last two extracts will be those requested by download_ipums.R
 # The names of the files with the downloaded data include the extract number
-ipums_extracts <- get_extract_history("usa", how_many = 2)
+ipums_extracts <- ipumsr::get_extract_history("usa", how_many = 2)
 for (ipums_extract in ipums_extracts) {
   if (grepl("1850 CT", ipums_extract$description)) last_1850 <- ipums_extract$number
   if (grepl("1860 CT", ipums_extract$description)) last_1860_ct <- ipums_extract$number

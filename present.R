@@ -2,10 +2,7 @@
 # construct_contingency(), boxplotMD(), ridgelineMD(), densityMD(),
 # create_map(), corr_matrix_by_party()
 
-library(dplyr, warn.conflicts = FALSE)
-library(ggplot2)
-library(ggridges)
-library(knitr)
+source("./global.R")
 
 # Define functions useful for extracting tabular data from betas and for
 # presenting the information
@@ -14,8 +11,8 @@ library(knitr)
 pct_round <- function(x, sig_fig) {
   # x: vector of percentages summing to 1
   # sig_fig: number of significant figures to round to
-  
-  factor <- 100 * 10 ^ sig_fig
+
+  factor <- 100 * 10^sig_fig
   x <- x * factor # multiply by a factor that reflects the desired number of significant digits
   y <- floor(x) # truncate to nearest tenth of a percent
   # allocate the total remainder, beginning with the greatest difference
@@ -30,8 +27,8 @@ beta_round <- function(matrix, beg_round, end_round, sig_fig) {
   # beg_round: vector of rounded row marginals
   # end_round: vector of rounded column marginals
   # sig_fig: number of significant figures to round to
-  
-  factor <- 100 * 10 ^ sig_fig
+
+  factor <- 100 * 10^sig_fig
   # Return TRUE if the beta has an allocatable remainder for both column and row
   remain <- function(floor, x, y) {
     col_remain <- (beg_round - rowSums(floor))[y]
@@ -74,15 +71,15 @@ get_shares <- function(results, yr, townID) {
   # results: tibble with election results
   # yr: year for which to extract shares
   # townID: optional; if provided, extract shares for the specified town only (by row index)
-  
+
   vote_cols <- paste("vote_in_", yr, sep = "")
   elig_col <- paste("G_", yr, sep = "")
   if (missing(townID)) {
     totals <- apply(results %>%
-                      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
+      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
   } else {
     totals <- apply(results[townID, ] %>%
-                      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
+      select(ends_with(vote_cols), ends_with(elig_col)), 2, sum)
   }
   elig <- totals[length(totals)]
   votes <- totals[-1 * length(totals)]
@@ -98,7 +95,7 @@ construct_contingency <- function(results, betas, beg_yr, end_yr, townID, sig_fi
   # end_yr: ending year of the transition
   # townID: optional; if provided, extract shares for the specified town only (by row index)
   # sig_fig: number of significant figures to round to
-  
+
   if (missing(sig_fig)) {
     sig_fig <- 1
   }
@@ -108,8 +105,10 @@ construct_contingency <- function(results, betas, beg_yr, end_yr, townID, sig_fi
   r_names <- rownames(betas)
   r_name <- paste("share in", end_yr, sep = " ")
   end_shares <- as.vector(get_shares(results, end_yr, townID))
-  beta_shares <- beta_round(betas * beg_shares, pct_round(beg_shares, sig_fig),
-                            pct_round(end_shares, sig_fig), sig_fig) * 100
+  beta_shares <- beta_round(
+    betas * beg_shares, pct_round(beg_shares, sig_fig),
+    pct_round(end_shares, sig_fig), sig_fig
+  ) * 100
   beg_shares <- pct_round(beg_shares, sig_fig) * 100
   end_shares <- pct_round(end_shares, sig_fig) * 100
   matrix <- cbind(rbind(beta_shares, end_shares), c(beg_shares, 100))
@@ -121,7 +120,7 @@ construct_contingency <- function(results, betas, beg_yr, end_yr, townID, sig_fi
 # Transform betas tibble for presenting in a single chart
 combine_betas <- function(betas) {
   # betas: matrix of betas from the MD inference
-  
+
   beta_df <- data.frame(matrix(ncol = 4, nrow = 0))
   colnames(beta_df) <- c("party", "value", "from", "to")
   for (op in 1:dim(betas)[1]) {
@@ -144,7 +143,7 @@ boxplotMD <- function(betas, col_yr, row_yr, town) {
   # col_yr: beginning year of the transition
   # row_yr: ending year of the transition
   # town: optional; if provided, include town name in title
-  
+
   x_label <- ifelse(col_yr > row_yr, "Party composition (percent)", "Vote shift (percent)")
   pre_title <- ""
   if (!missing(town)) {
@@ -167,7 +166,7 @@ ridgelineMD <- function(betas, col_yr, row_yr, town) {
   # col_yr: beginning year of the transition
   # row_yr: ending year of the transition
   # town: optional; if provided, include town name in title
-  
+
   x_label <- ifelse(col_yr > row_yr, "Party composition (percent)", "Vote shift (percent)")
   pre_title <- ""
   if (!missing(town)) {
@@ -175,12 +174,14 @@ ridgelineMD <- function(betas, col_yr, row_yr, town) {
   }
   beta_df <- combine_betas(betas)
   title <- paste("Voter transitions between", col_yr, "and", row_yr)
-  print(ggplot(data = beta_df, aes(y = party, x = value, fill = to)) +
-    stat_density_ridges(quantile_lines = FALSE, scale = 4, alpha = 1) +
-    theme_ridges(center_axis_labels = TRUE, font_size = 12) +
-    scale_color_manual(values = party_colors, aesthetics = c("colour", "fill")) +
-    guides(fill = guide_legend(title = paste(row_yr, "party"))) +
-    labs(title = title, x = x_label, y = ""))
+  suppressMessages(
+    print(ggplot(data = beta_df, aes(y = party, x = value, fill = to)) +
+      ggridges::stat_density_ridges(quantile_lines = FALSE, scale = 4, alpha = 1) +
+      ggridges::theme_ridges(center_axis_labels = TRUE, font_size = 12) +
+      scale_color_manual(values = party_colors, aesthetics = c("colour", "fill")) +
+      guides(fill = guide_legend(title = paste(row_yr, "party"))) +
+      labs(title = title, x = x_label, y = ""))
+  )
 }
 
 # Plot the density distributions of the estimated betas
@@ -189,7 +190,7 @@ densityMD <- function(betas, col_yr, row_yr, town) {
   # col_yr: beginning year of the transition
   # row_yr: ending year of the transition
   # town: optional; if provided, include town name in title
-  
+
   pre_title <- ""
   if (!missing(town)) {
     pre_title <- paste(town, ": ", sep = "")
@@ -212,7 +213,7 @@ create_map <- function(yr, map, data) {
   # yr: year for which to create the map
   # map: sf object with the map data
   # data: vector of data values to fill the map
-  
+
   map$data <- data
   ggplot() +
     geom_sf(data = map, aes(fill = data), col = NA) +
@@ -227,7 +228,7 @@ corr_matrix_by_party <- function(governor_results, lt_governor_results, secretar
   office_names <- c("Governor", "Lieutenant Governor", "Secretary of the State", "Treasurer", "Judge of Probate")
   # Get the correct vote column name for the selected party
   vote_col <- paste0(party, "_votes")
-  
+
   # Prepare a named list so we can loop programmatically, ordered for display
   dfs <- list(
     "Governor" = governor_results,
@@ -236,12 +237,12 @@ corr_matrix_by_party <- function(governor_results, lt_governor_results, secretar
     "Treasurer" = treasurer_results,
     "Judge of Probate" = probate_results
   )
-  
+
   # Build empty correlation matrix with readable row/col order
   correlation_table <- matrix(NA, nrow = 5, ncol = 5)
   rownames(correlation_table) <- office_names
   colnames(correlation_table) <- office_names
-  
+
   # Compute pairwise correlations for the given party and fill the matrix symmetrically
   for (i in 1:5) {
     for (j in i:5) {
@@ -254,9 +255,8 @@ corr_matrix_by_party <- function(governor_results, lt_governor_results, secretar
       correlation_table[j, i] <- cor_val
     }
   }
-  
-  # Turn to dataframe for printing with kable
+
+  # Turn to dataframe for printing with knitr::kable
   correlation_df <- as.data.frame(correlation_table)
   return(correlation_df)
 }
-

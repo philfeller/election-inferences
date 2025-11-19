@@ -41,7 +41,7 @@ Rscript analyze_results.R
 - lookup_1860.Rda - Defines the range of IPUMS serial numbers for a particular town in 1860
 - missing_1860_ipums_rows.Rda - Data that is missing from IPUMS digitized transcription
 - download_ipums.R - Download census data from IPUMS; requires an API key and that the key is defined in environment variable API_KEY.
-- variables.R - Defines variables that are used elsewhere, including the paths for the files that were loadloaded from IPUMS.
+- global.R - Loads pacakges and defines variables that are used elsewhere, including the paths for the files that were loadloaded from IPUMS.
 - ct_demographics.R - Creates Tidyverse tibbles from the IPUMS data, summarizing by town and calculating information, such as GINI index.
 - results_utils.R - Defines utility functions that are used by prepare_results.R and regression scripts
 - prepare_results.R - Defines functions that take election results for a pair of years and prepare them for analysis
