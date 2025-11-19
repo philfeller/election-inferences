@@ -5,18 +5,19 @@
 # - estimate_voters(yr, native_1850, foreign_1850, native_change, poll_change):
 #   Estimate the number of eligible voters between census years; assume a linear change for native-born
 
+source("./global.R")
 
 # Return the town name for a given SERIAL number from the 1850 census
 get_1850_town <- function(SERIAL) {
   # SERIAL: IPUMS SERIAL number
-  
+
   as.character(town_1850[SERIAL])
 }
 
 # Return the town name for a given SERIAL number from the 1860 census
 get_1860_town <- function(SERIAL) {
   # SERIAL: IPUMS SERIAL number
-  
+
   as.character(town_1860[SERIAL])
 }
 
@@ -26,7 +27,7 @@ get_1860_town <- function(SERIAL) {
 # on one census
 get_combined <- function(town) {
   # town: name of town
-  
+
   case_when(
     town %in% canaan ~ "Canaan",
     town %in% litchfield ~ "Litchfield",
@@ -57,11 +58,11 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change, poll_c
   # native_change: estimated annual change in native-born, white, adult males
   # poll_change: estimated annual change in taxable polls (used for towns with
   #               incorrect birthplace transcriptions)
-  
+
   # For towns with incorrect birthplace transcriptions estimate the total
   # number of eligible using the increase in taxable polls
   native_voters <- native_1850 + round((yr - 1850) * ifelse(poll_change == 0, native_change, poll_change))
-  
+
   cum_1820_1845 <- 8385 + 9127 + 6911 + 6354 + 7912 + 10199 + 10837 + 18875 +
     27382 + 22520 + 23322 + 22633 + 60482 + 58640 + 65365 + 45374 + 76242 +
     79340 + 38914 + 68069 + 84066 + 80289 + 104565 + 52496 + 78615 + 114371
@@ -90,8 +91,8 @@ estimate_voters <- function(yr, native_1850, foreign_1850, native_change, poll_c
     yr == 1854 ~ round(foreign_1850 * pct_1854),
     yr >= 1855 ~ round(foreign_1850 * pct_1855)
   )
-  
+
   total_voters <- native_voters + foreign_voters
-  
+
   return(total_voters)
 }

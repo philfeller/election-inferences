@@ -4,11 +4,12 @@
 # The eiPack pacakge is used to perform ecological inferences:
 # https://www.rdocumentation.org/packages/eiPack/versions/0.1-7
 
-library(sf)
-source("betas.R")
-source("present.R")
-source("prepare_results.R")
-source("inference_utils.R")
+source("./global.R")
+source("./betas.R", local = TRUE)
+source("./present.R", local = TRUE)
+source("./ct_demographics.R", local = TRUE)
+source("./prepare_results.R", local = TRUE)
+source("./inference_utils.R", local = TRUE)
 
 # Prepare a tibble with percentage election results for each pair of years. A
 # separate tibble is created for each pair of years in order to have the most

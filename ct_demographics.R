@@ -4,22 +4,19 @@
 #   ct_eligible - tibble with estimated number of eligible voters by town and year
 #   factors - tibble with calculated informtion about a town, such as gini
 
-library(dplyr, warn.conflicts = FALSE)
-library(readr)
-library(tibble)
-library(tidyr)
-library(lubridate, warn.conflicts = FALSE)
-library(ipumsr)
-library(ineq)
+source("./global.R")
+source("./census_utils.R", local = TRUE)
 
-source("./variables.R")
-source("./census_utils.R")
+# Load IPUMS data files; suppress messages about the API key
 
-ddi1850 <- read_ipums_ddi(ipums_1850)
-ddi1860 <- read_ipums_ddi(ipums_1860)
-ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
-  select(HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
-         OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME) %>%
+ddi1850 <- ipumsr::read_ipums_ddi(ipums_1850)
+ddi1860 <- ipumsr::read_ipums_ddi(ipums_1860)
+
+ct_1850 <- ipumsr::read_ipums_micro(ddi1850, verbose = FALSE) %>%
+  select(
+    HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
+    OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME
+  ) %>%
   mutate(
     family = SERIAL * 100 + FAMUNIT,
     BIRTH = ifelse(BPL < 100, "native", "immigrant"),
@@ -42,7 +39,7 @@ ct_1850 <- read_ipums_micro(ddi1850, verbose = FALSE) %>%
     town = get_1850_town(SERIAL),
     combined = get_combined(town)
   ) %>%
-  filter(town != "NULL") %>%
+  dplyr::filter(town != "NULL") %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
 # Load file with data that is missing from IPUMS: first pages for Brooklyn and Hebron
@@ -52,10 +49,12 @@ load(file = "missing_1860_ipums_rows.Rda")
 # from IPUMS data vary insignificantly from indices calculated with correct real and
 # personal property values, update transcription errors for Meriden with corrected
 # values.
-ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
+ct_1860 <- ipumsr::read_ipums_micro(ddi1860, verbose = FALSE) %>%
   mutate(RELATE = ifelse(SERIAL == 294445, 1, RELATE)) %>%
-  select(HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
-         OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME, PERSPROP) %>%
+  select(
+    HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
+    OCC1950, REALPROP, SCHOOL, LIT, PAUPER, CRIME, PERSPROP
+  ) %>%
   bind_rows(missing_rows) %>%
   left_join(read_csv("corrected_meriden_wealth.csv", show_col_types = FALSE),
     by = c("SERIAL", "SEX", "AGE", "BPL", "REALPROP", "PERSPROP")
@@ -87,7 +86,7 @@ ct_1860 <- read_ipums_micro(ddi1860, verbose = FALSE) %>%
     town = get_1860_town(SERIAL),
     combined = get_combined(town)
   ) %>%
-  filter(town != "NULL") %>%
+  dplyr::filter(town != "NULL") %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
 # Load 1860 religious-accommodation data, which is used to estimate degree of denominational affiliation.
@@ -119,7 +118,7 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
 # Construct tibbles with data about household wealth and demographics
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
   mutate(family = SERIAL * 100 + FAMUNIT) %>%
   group_by(family) %>%
   summarise(
@@ -135,7 +134,7 @@ ct_1850_hh <- ct_1850 %>%
 
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
   mutate(family = SERIAL * 100 + FAMUNIT) %>%
   group_by(family) %>%
   summarise(
@@ -152,7 +151,7 @@ ct_1860_hh <- ct_1860 %>%
 
 white_male_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
-  filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
     FAMILY_REALPROP = sum(REALPROP),
@@ -167,7 +166,7 @@ white_male_1860_hh <- ct_1860 %>%
     town = first(town),
     combined = first(combined)
   ) %>%
-  filter(SEX == 1 && RACE == 1)
+  dplyr::filter(SEX == 1 && RACE == 1)
 
 ct_pop <- ct_1850 %>%
   group_by(combined) %>%
@@ -180,24 +179,30 @@ ct_pop <- ct_1850 %>%
 # the number of naturalized foreign-born citizens who meet the residency
 # requirement will be estimated in the estimate_voters function.
 ct_eligible <- ct_1850 %>%
-  filter(SEX == 1) %>%
-  filter(BPL < 100) %>%
-  filter(RACE == 1) %>%
-  filter(AGE > 20) %>%
+  dplyr::filter(
+    SEX == 1,
+    BPL < 100,
+    RACE == 1,
+    AGE > 20
+  ) %>%
   group_by(combined) %>%
   summarize(ELIG_1850 = n()) %>%
   inner_join(ct_1850 %>%
-    filter(SEX == 1) %>%
-    filter(BPL >= 100) %>%
-    filter(RACE == 1) %>%
-    filter(AGE > 20) %>%
+    dplyr::filter(
+      SEX == 1,
+      BPL >= 100,
+      RACE == 1,
+      AGE > 20
+    ) %>%
     group_by(combined) %>%
     summarize(FOREIGN_1850 = n()), by = "combined") %>%
   inner_join(ct_1860 %>%
-    filter(SEX == 1) %>%
-    filter(BPL < 100) %>%
-    filter(RACE == 1) %>%
-    filter(AGE > 20) %>%
+    dplyr::filter(
+      SEX == 1,
+      BPL < 100,
+      RACE == 1,
+      AGE > 20
+    ) %>%
     group_by(combined) %>%
     summarize(ELIG_1860 = n()), by = "combined") %>%
   mutate(POP_CHANGE = (ELIG_1860 - ELIG_1850) / 10) %>%
@@ -221,29 +226,29 @@ ct_eligible <- ct_1850 %>%
 # The intent is to capture the age of the person who initiated the move, either
 # as a family member or a independent adult
 ct_hik_1850 <- ct_1850 %>%
-  filter(HIK != "") %>%
+  dplyr::filter(HIK != "") %>%
   left_join(ct_1850_hh %>% select(family, FAMILY_HEAD_AGE), by = c("family"))
 
 ct_hik_1860 <- ct_1860 %>%
-  filter(HIK != "")
+  dplyr::filter(HIK != "")
 
 intrastate_moved_1860 <- ct_hik_1850 %>%
   inner_join(ct_hik_1860, by = c("HIK"), suffix = c("_1850", "_1860")) %>%
-  filter(combined_1850 != combined_1860) %>%
+  dplyr::filter(combined_1850 != combined_1860) %>%
   mutate(migrate_age = ifelse(RELATE_1860 == 1, AGE_1850, FAMILY_HEAD_AGE))
 
 factors <- ungroup(ct_1860_hh %>%
   group_by(town, combined) %>%
-  summarise(gini = ineq(FAMILY_WEALTH, type = "Gini")) %>%
+  summarise(gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")) %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
-    summarise(comb_gini = ineq(FAMILY_WEALTH, type = "Gini")), by = c("combined")) %>%
+    summarise(comb_gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")), by = c("combined")) %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
-    summarise(real_1860_gini = ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
+    summarise(real_1860_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
   left_join(ct_1850_hh %>%
     group_by(combined) %>%
-    summarise(real_1850_gini = ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
+    summarise(real_1850_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
   left_join(ct_1860 %>%
     group_by(town) %>%
     summarise(
@@ -262,7 +267,7 @@ factors <- ungroup(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(num_1850_hh = n()), by = "combined") %>%
   left_join(ct_1850_hh %>%
-    filter(JOB == "farm") %>%
+    dplyr::filter(JOB == "farm") %>%
     group_by(combined) %>%
     summarize(farm_1850_hh = n()), by = "combined") %>%
   left_join(ct_1850 %>%
@@ -271,18 +276,18 @@ factors <- ungroup(ct_1860_hh %>%
       age_1850 = mean(AGE)
     ), by = c("combined")) %>%
   left_join(ct_1850 %>%
-    filter(BPL == 414) %>%
+    dplyr::filter(BPL == 414) %>%
     group_by(combined) %>%
     summarize(irish_1850 = n()), by = "combined") %>%
   left_join(ct_1850 %>%
-    filter(AGE >= 20 & AGE <= 30 & SEX == 1 & BIRTH == "native" & REALPROP <= 2000) %>%
+    dplyr::filter(AGE >= 20 & AGE <= 30 & SEX == 1 & BIRTH == "native" & REALPROP <= 2000) %>%
     group_by(combined) %>%
     summarize(ya_male_1850 = n()), by = "combined") %>%
   left_join(ct_1860_hh %>%
     group_by(combined) %>%
     summarize(num_1860_hh = n()), by = "combined") %>%
   left_join(ct_1860_hh %>%
-    filter(JOB == "farm") %>%
+    dplyr::filter(JOB == "farm") %>%
     group_by(combined) %>%
     summarize(farm_1860_hh = n()), by = "combined") %>%
   left_join(ct_pop, by = "combined") %>%
@@ -295,7 +300,7 @@ factors <- ungroup(ct_1860_hh %>%
     pct_farm_1850 = farm_1850_hh / num_1850_hh,
     pct_farm_1860 = farm_1860_hh / num_1860_hh
   ) %>%
-  filter(combined != "UNKNOWN")) %>%
+  dplyr::filter(combined != "UNKNOWN")) %>%
   select(
     town, combined, ends_with("gini"), ends_with("wealth"),
     ends_with("age_1850"), ends_with("age_1860"),

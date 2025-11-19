@@ -1,17 +1,8 @@
-library(dplyr, warn.conflicts = FALSE)
-library(eiPack)
-library(haven)
-library(ineq)
-library(knitr)
-library(lsr)
-library(purrr, warn.conflicts = FALSE)
-library(tidyr)
-
-source("betas.R")
-source("present.R")
-source("variables.R")
-source("results_utils.R")
-source("census_utils.R")
+source("./global.R")
+source("./betas.R", local = TRUE)
+source("./present.R", local = TRUE)
+source("./results_utils.R", local = TRUE)
+source("./census_utils.R", local = TRUE)
 
 # Load the saved voter-inference results and perform statistical analysis
 
@@ -39,22 +30,22 @@ table_1849_1851[3, 1] <- nrow(vote_share.1851)
 table_1849_1851[3, 2] <- which((vote_share.1851 %>% arrange(desc(Whig)))$town == "Meriden")
 table_1849_1851[3, 3] <- which((vote_share.1851 %>% arrange(desc(Free_Soil)))$town == "Meriden")
 table_1849_1851[1, 4:9] <- vote_share.1849 %>%
-  filter(town == "Meriden") %>%
+  dplyr::filter(town == "Meriden") %>%
   select(Whig_votes, Democrat_votes, Free_Soil_votes, Whig, Democrat, Free_Soil)
 table_1849_1851[2, 4:9] <- vote_share.1850 %>%
-  filter(town == "Meriden") %>%
+  dplyr::filter(town == "Meriden") %>%
   select(Whig_votes, Democrat_votes, Free_Soil_votes, Whig, Democrat, Free_Soil)
 table_1849_1851[3, 4:9] <- vote_share.1851 %>%
-  filter(town == "Meriden") %>%
+  dplyr::filter(town == "Meriden") %>%
   select(Whig_votes, Democrat_votes, Free_Soil_votes, Whig, Democrat, Free_Soil)
-print(kable(table_1849_1851, caption = "Meriden election results and statewide rank, 1849-1851"))
+print(knitr::kable(table_1849_1851, caption = "Meriden election results and statewide rank, 1849-1851"))
 
 # Calculate weighted means and standard deviations for results
 
 tag_yr <- function(results, yr, type) {
   results %>%
-    filter(town == type) %>%
-    mutate(weight = NULL) %>%
+    dplyr::filter(town == type) %>%
+    select(-weight) %>%
     rename(year = town) %>%
     mutate(year = yr)
 }
@@ -83,14 +74,14 @@ result_sd <- results.1849 %>%
 
 single_stat <- function(stats, yr, party) {
   stats %>%
-    filter(year == yr) %>%
+    dplyr::filter(year == yr) %>%
     select(party)
 }
 
 # Calculate the Z-score for a town's party share in a given year
 z_score <- function(results, mus, sds, yr, party, town) {
   town_result <- results %>%
-    filter(town == "Meriden") %>%
+    dplyr::filter(town == "Meriden") %>%
     select(party)
   mu <- single_stat(mus, yr, party)
   sd <- single_stat(sds, yr, party)
@@ -149,7 +140,7 @@ for (t in 1:nrow(results.55)) {
     (results.55$Know_Nothing_in_1855[t] - kn.mu.55) / kn.sd.55 > 0.6 &&
     (results.55$Free_Soil_in_1854[t] - fs.mu.54) / fs.sd.54 > 0.6) {
     betas <- betas.MD(beta.sims.MD(ei.55, p55, t))
-    print(kable(construct_contingency(results.55, betas, 1854, 1855, t, 1),
+    print(knitr::kable(construct_contingency(results.55, betas, 1854, 1855, t, 1),
       caption = paste(t, results.55$town[t], sep = ": ")
     ))
   }
@@ -178,9 +169,9 @@ find_peaks <- function(x, m = 10) {
 }
 
 ct_native_male_1850 <- ct_1850 %>%
-  filter(BIRTH == "native" & SEX == 1)
+  dplyr::filter(BIRTH == "native" & SEX == 1)
 ct_native_male_1860 <- ct_1860 %>%
-  filter(BIRTH == "native" & SEX == 1)
+  dplyr::filter(BIRTH == "native" & SEX == 1)
 ct_age_distribution <- ct_native_male_1850 %>%
   select(AGE) %>%
   arrange(AGE) %>%
@@ -192,14 +183,14 @@ lines(ct_native_male.ss)
 title("Connecticut Native-born Male Age Distribution")
 for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
   native_male_1850 <- ct_native_male_1850 %>%
-    filter(town == t) %>%
+    dplyr::filter(town == t) %>%
     select(AGE) %>%
     arrange(AGE) %>%
     group_by(AGE) %>%
     summarize(n = n())
   native_male_1850.ss <- smooth.spline(native_male_1850)
   native_male_1860 <- ct_native_male_1860 %>%
-    filter(town == t) %>%
+    dplyr::filter(town == t) %>%
     select(AGE) %>%
     arrange(AGE) %>%
     group_by(AGE) %>%
@@ -239,8 +230,8 @@ avg_ages <- c()
 age_cats <- c("20 - 29", "30 - 39", "40 - 49", "50 - 59", "60 and over")
 for (age in age_cats) {
   avg_ages <- c(avg_ages, as.numeric(white_male_1860_hh %>%
-    filter(AGE_CAT == age) %>%
-    filter(BIRTH == "native") %>%
+    dplyr::filter(AGE_CAT == age) %>%
+    dplyr::filter(BIRTH == "native") %>%
     summarise(avg_age = mean(AGE)) %>%
     select(avg_age)))
 }
@@ -250,11 +241,11 @@ for (age in age_cats) {
   avg_age <- avg_ages[1]
   avg_ages <- avg_ages[2:length(avg_ages)]
   g <- white_male_1860_hh %>%
-    filter(AGE_CAT == age) %>%
-    filter(BIRTH == "native") %>%
+    dplyr::filter(AGE_CAT == age) %>%
+    dplyr::filter(BIRTH == "native") %>%
     group_by(town) %>%
     summarise(
-      gini = ineq(FAMILY_WEALTH, type = "Gini"),
+      gini = ineq::ineq(FAMILY_WEALTH, type = "Gini"),
       avg_wealth = mean(FAMILY_WEALTH)
     ) %>%
     select(town, gini, avg_wealth)
@@ -272,7 +263,7 @@ wealth_age <- gini_by_town %>%
   pivot_longer(cols = !town, names_to = "age", values_to = "wealth") %>%
   mutate(age = as.double(substring(age, 1, nchar(age) - 7)))
 
-etaSquared(lm(gini ~ wealth + age, gini_age %>% left_join(wealth_age, by = join_by(town, age))))
+lsr::etaSquared(lm(gini ~ wealth + age, gini_age %>% left_join(wealth_age, by = join_by(town, age))))
 
 # The greatest uncertainty in the 1855 inference is in determining what became of
 # 1854 Free Soil voters, followed by doubt about Temperance and Whig voters.
@@ -284,8 +275,10 @@ combined_betas <- combine_betas(beta.sims.MD(ei.55, p55))
 for (from_party in pull(distinct(combined_betas %>% select(from)))) {
   for (to_party in pull(distinct(combined_betas %>% select(to)))) {
     transition <- combined_betas %>%
-      filter(from == from_party) %>%
-      filter(to == to_party) %>%
+      dplyr::filter(
+        from == from_party,
+        to == to_party
+      ) %>%
       select(value)
     beta_sd <- sd(pull(transition))
     if (beta_sd > 2.5) {
@@ -302,33 +295,39 @@ gini_by_birth <- data.frame(row.names = c("native", "immigrant"))
 gini_by_job <- data.frame(row.names = c("farm", "nonfarm"))
 for (age in age_cats) {
   g <- ct_1860_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
-    summarise(gini = ineq(FAMILY_WEALTH, type = "Gini")) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
+    summarise(gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")) %>%
     select(gini)
   gini_all <- bind_cols(gini_all, g, .name_repair = "unique_quiet")
 }
 for (age in age_cats) {
   g <- ct_1860_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
     group_by(BIRTH) %>%
-    summarise(gini = ineq(FAMILY_WEALTH, type = "Gini")) %>%
+    summarise(gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")) %>%
     select(gini)
   gini_by_birth <- bind_cols(gini_by_birth, g, .name_repair = "unique_quiet")
 }
 for (age in age_cats) {
   g <- ct_1860_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
     group_by(JOB) %>%
-    summarise(gini = ineq(FAMILY_WEALTH, type = "Gini")) %>%
+    summarise(gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")) %>%
     select(gini)
   gini_by_job <- bind_cols(gini_by_job, g, .name_repair = "unique_quiet")
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
-kable(gini_grid, label = "1860 Meriden Wealth GINI Index by Age Range")
+knitr::kable(gini_grid, label = "1860 Meriden Wealth GINI Index by Age Range")
 
 # Calculate real-property-only GINI indices for 1850 and 1860
 gini_all <- data.frame(row.names = c("all"))
@@ -336,76 +335,88 @@ gini_by_birth <- data.frame(row.names = c("native", "immigrant"))
 gini_by_job <- data.frame(row.names = c("farm", "nonfarm"))
 for (age in age_cats) {
   g <- ct_1850_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
-    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
+    summarise(gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")) %>%
     select(gini)
   gini_all <- bind_cols(gini_all, g, .name_repair = "unique_quiet")
 }
 for (age in age_cats) {
   g <- ct_1850_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
     group_by(BIRTH) %>%
-    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    summarise(gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")) %>%
     select(gini)
   gini_by_birth <- bind_cols(gini_by_birth, g, .name_repair = "unique_quiet")
 }
 for (age in age_cats) {
   g <- ct_1850_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
     group_by(JOB) %>%
-    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    summarise(gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")) %>%
     select(gini)
   gini_by_job <- bind_cols(gini_by_job, g, .name_repair = "unique_quiet")
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
-kable(gini_grid, label = "1850 Meriden Real Property GINI Index by Age Range")
+knitr::kable(gini_grid, label = "1850 Meriden Real Property GINI Index by Age Range")
 
 gini_all <- data.frame(row.names = c("all"))
 gini_by_birth <- data.frame(row.names = c("native", "immigrant"))
 gini_by_job <- data.frame(row.names = c("farm", "nonfarm"))
 for (age in age_cats) {
   g <- ct_1860_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
-    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
+    summarise(gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")) %>%
     select(gini)
   gini_all <- bind_cols(gini_all, g, .name_repair = "unique_quiet")
 }
 for (age in age_cats) {
   g <- ct_1860_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
     group_by(BIRTH) %>%
-    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    summarise(gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")) %>%
     select(gini)
   gini_by_birth <- bind_cols(gini_by_birth, g, .name_repair = "unique_quiet")
 }
 for (age in age_cats) {
   g <- ct_1860_hh %>%
-    filter(town == "Meriden") %>%
-    filter(AGE_CAT == age) %>%
+    dplyr::filter(
+      town == "Meriden",
+      AGE_CAT == age
+    ) %>%
     group_by(JOB) %>%
-    summarise(gini = ineq(FAMILY_REALPROP, type = "Gini")) %>%
+    summarise(gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")) %>%
     select(gini)
   gini_by_job <- bind_cols(gini_by_job, g, .name_repair = "unique_quiet")
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
-kable(gini_grid, label = "1860 Meriden Real Property GINI Index by Age Range")
+knitr::kable(gini_grid, label = "1860 Meriden Real Property GINI Index by Age Range")
 
 # Demonstrate the extent to which results for statewide offices are correlated
 # This is to be expected because voters are given a single ballot with all offices
 # listed on it, so their choices for different offices are not independent
 
-governor_results <- read_results(results_file,alias_map,party_assignments,"Governor",1849,1857)
-lt_governor_results <- read_results(results_file,alias_map,party_assignments,"Lieutenant Governor",1849,1857)
-secretary_results <- read_results(results_file,alias_map,party_assignments,"Secretary of the State",1849,1857)
-treasurer_results <- read_results(results_file,alias_map,party_assignments,"Treasurer",1849,1857)
-probate_results <- read_probate_results(results_file,alias_map,party_assignments,1849,1857)
+governor_results <- read_results(results_file, alias_map, party_assignments, "Governor", 1849, 1857)
+lt_governor_results <- read_results(results_file, alias_map, party_assignments, "Lieutenant Governor", 1849, 1857)
+secretary_results <- read_results(results_file, alias_map, party_assignments, "Secretary of the State", 1849, 1857)
+treasurer_results <- read_results(results_file, alias_map, party_assignments, "Treasurer", 1849, 1857)
+probate_results <- read_probate_results(results_file, alias_map, party_assignments, 1849, 1857)
 
 # Keep only those rows that have results for all five offices
 governor_results <- semi_join(governor_results, probate_results, by = c("town", "yr")) %>%
@@ -432,5 +443,5 @@ probate_results <- semi_join(probate_results, governor_results, by = c("town", "
 parties <- c("Democrat", "Whig", "Free_Soil", "Temperance", "Know_Nothing", "Republican")
 for (party in parties) {
   corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, party)
-  print(kable(corr_df, caption = paste("Correlation of", party, "vote tallies for statewide offices, 1849-1857")))
+  print(knitr::kable(corr_df, caption = paste("Correlation of", party, "vote tallies for statewide offices, 1849-1857")))
 }

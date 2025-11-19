@@ -10,20 +10,12 @@
 #   combine_results - combines election results and dissolves towns in shapefile
 #                     as necessary based on year range
 
-library(dplyr, warn.conflicts = FALSE)
-library(lubridate, warn.conflicts = FALSE)
-library(magrittr, warn.conflicts = FALSE)
-library(readr)
-library(sf)
-library(spdep)
-library(tidyr)
-
 # Define constants
-source("./variables.R")
+source("./global.R")
 
 # Either the 1855 or 1857 map will be used as the base shapefile
-map.1855 <- read_sf("./maps/1855_CT_towns.shp")
-map.1857 <- read_sf("./maps/1857_CT_towns.shp")
+map.1855 <- sf::read_sf("./maps/1855_CT_towns.shp")
+map.1857 <- sf::read_sf("./maps/1857_CT_towns.shp")
 
 # Define functions to use when combining election results from multiple towns
 combine_towns <- function(input_tibble, towns, combined_name) {
@@ -32,7 +24,7 @@ combine_towns <- function(input_tibble, towns, combined_name) {
   # combined_name: name for the combined towns
 
   return(input_tibble %>%
-    filter(town %in% towns) %>%
+    dplyr::filter(town %in% towns) %>%
     group_by(yr) %>%
     summarize(across(where(is.double), sum)) %>%
     add_column(town = combined_name, .after = "yr"))
@@ -45,9 +37,9 @@ dissolve_towns <- function(map, town_vector, new_name, name_col = "town") {
   # new_name: name for the combined towns
   # name_col: column with town names in the sf object
 
-  geom <- st_union(map %>% filter(.data[[name_col]] %in% town_vector))
-  comb_poly <- st_sf(setNames(data.frame(new_name), name_col), geometry = geom)
-  rest <- map %>% filter(!(.data[[name_col]] %in% town_vector))
+  geom <- sf::st_union(map %>% dplyr::filter(.data[[name_col]] %in% town_vector))
+  comb_poly <- sf::st_sf(setNames(data.frame(new_name), name_col), geometry = geom)
+  rest <- map %>% dplyr::filter(!(.data[[name_col]] %in% town_vector))
   bind_rows(rest, comb_poly)
 }
 
@@ -100,7 +92,7 @@ combine_results <- function(results, shp, result_grp, map_grp, name_col = "town"
 
   # Save towns not to be combined
   rest <- results %>%
-    filter(!(town %in% unlist(lapply(result_grp, function(x) x$towns))))
+    dplyr::filter(!(town %in% unlist(lapply(result_grp, function(x) x$towns))))
 
   # Combine towns in results and dissolve polygons in shp for each grouping
   for (grp in result_grp) {
@@ -177,16 +169,19 @@ read_results <- function(file, alias_map, party_assignments, office, beg_yr, end
       ) %>%
       rename(town = granular_division_name) %>%
       mutate(
-        yr = as.integer(year(election_date)),
-        election_date = NULL, .before = candidate_name
+        yr = as.integer(lubridate::year(election_date)), .before = candidate_name
       ) %>%
+      select(-election_date) %>%
       # Remove total rows and filter by year and office
-      filter(!candidate_name == "Total Ballots Cast") %>%
-      filter(!candidate_name == "Total Votes Cast") %>%
-      filter(!town %in% exclude_towns) %>%
-      filter(yr >= beg_yr) %>%
-      filter(yr <= end_yr) %>%
-      filter(office_name == office) %>%
+      dplyr::filter(
+        candidate_name != "Total Ballots Cast",
+        candidate_name != "Total Votes Cast",
+        votes != 0,
+        !town %in% exclude_towns,
+        yr >= beg_yr,
+        yr <= end_yr,
+        office_name == office
+      ) %>%
       # Map candidate names for 1855 Treasurer race for towns
       # that recorded a large number of votes for "All Other Votes";
       # transcriptions of the election ledger show that these were votes for
@@ -204,14 +199,14 @@ read_results <- function(file, alias_map, party_assignments, office, beg_yr, end
       ) %>%
       # Clean candidate names and join with party assignments
       mutate(candidate_name = replace_aliases(candidate_name, alias_map)) %>%
-      filter(candidate_name %in% party_assignments$candidate_name) %>%
+      dplyr::filter(candidate_name %in% party_assignments$candidate_name) %>%
       left_join(party_assignments, by = c("candidate_name", "office_name", "yr")) %>%
       # Remove rows with candidates not assigned to a party
-      filter(!is.na(candidate_party)) %>%
+      dplyr::filter(!is.na(candidate_party)) %>%
       # Change blank votes to zero
       replace(is.na(.), 0) %>%
       # Remove candidate names after joining
-      mutate(candidate_name = NULL) %>%
+      select(-candidate_name) %>%
       # Create tibble that combines all town results into one row
       pivot_wider(
         names_from = candidate_party,
@@ -250,17 +245,19 @@ read_probate_results <- function(file, alias_map, party_assignments, beg_yr, end
     ) %>%
     rename(town = granular_division_name) %>%
     mutate(
-      yr = as.integer(year(election_date)),
-      election_date = NULL, .before = candidate_name
+      yr = as.integer(lubridate::year(election_date)), .before = candidate_name
     ) %>%
+    select(-election_date) %>%
     # Remove total rows and filter by year and office
-    filter(!candidate_name == "Total Ballots Cast") %>%
-    filter(!candidate_name == "Total Votes Cast") %>%
-    filter(votes != 0) %>%
-    filter(!town %in% exclude_towns) %>%
-    filter(yr >= beg_yr) %>%
-    filter(yr <= end_yr) %>%
-    filter(office_name == "Judge of Probate") %>%
+    dplyr::filter(
+      candidate_name != "Total Ballots Cast",
+      candidate_name != "Total Votes Cast",
+      votes != 0,
+      !town %in% exclude_towns,
+      yr >= beg_yr,
+      yr <= end_yr,
+      office_name == "Judge of Probate"
+    ) %>%
     # Change blank votes to zero
     replace(is.na(.), 0)
 
@@ -274,37 +271,38 @@ read_probate_results <- function(file, alias_map, party_assignments, beg_yr, end
     ) %>%
     rename(town = granular_division_name) %>%
     mutate(
-      yr = as.integer(year(election_date)),
-      election_date = NULL, .before = candidate_name
+      yr = as.integer(lubridate::year(election_date)), .before = candidate_name
     ) %>%
+    select(-election_date) %>%
     # Remove total rows and filter by year and office
-    filter(!candidate_name == "Total Ballots Cast") %>%
-    filter(!candidate_name == "Total Votes Cast") %>%
-    filter(votes != 0) %>%
-    filter(!town %in% exclude_towns) %>%
-    filter(yr >= beg_yr) %>%
-    filter(yr <= end_yr) %>%
-    filter(office_name == "Governor") %>%
+    dplyr::filter(
+      candidate_name != "Total Ballots Cast",
+      candidate_name != "Total Votes Cast",
+      votes != 0,
+      !town %in% exclude_towns,
+      yr >= beg_yr,
+      yr <= end_yr,
+      office_name == "Governor"
+    ) %>%
     # Clean candidate names and join with party assignments
     mutate(candidate_name = replace_aliases(candidate_name, alias_map)) %>%
-    filter(candidate_name %in% party_assignments$candidate_name) %>%
+    dplyr::filter(candidate_name %in% party_assignments$candidate_name) %>%
     left_join(party_assignments, by = c("candidate_name", "office_name", "yr")) %>%
     group_by(yr, town) %>%
     arrange(desc(votes)) %>%
     mutate(gov_rank = row_number()) %>%
-    filter(gov_rank <= 3) %>%
+    dplyr::filter(gov_rank <= 3) %>%
     select(yr, town, gov_rank, candidate_party)
 
   return(probate_results %>%
     group_by(yr, town) %>%
     arrange(desc(votes)) %>%
     mutate(judge_rank = row_number()) %>%
-    filter(judge_rank <= 3) %>%
+    dplyr::filter(judge_rank <= 3) %>%
     # Join the top two Governor candidates in same town/year
     left_join(governor_party, by = c("yr", "town", "judge_rank" = "gov_rank")) %>%
     # Remove candidate names after joining
-    mutate(candidate_name = NULL) %>%
-    mutate(judge_rank = NULL) %>%
+    select(-c(candidate_name, judge_rank)) %>%
     # Create tibble that combines all town results into one row
     pivot_wider(
       names_from = candidate_party,
@@ -343,13 +341,9 @@ create_factors <- function(tibble, beg_yr, end_yr) {
       combined = ifelse(combined == "Old Lyme", "South Lyme", combined),
       gini = ifelse(town %in% towns, gini, comb_gini),
       wealth = ifelse(town %in% towns, wealth, comb_wealth),
-      age_1860 = ifelse(town %in% towns, age_1860, comb_age_1860),
-      town = NULL,
-      comb_gini = NULL,
-      comb_wealth = NULL,
-      comb_age_1850 = NULL,
-      comb_age_1860 = NULL
+      age_1860 = ifelse(town %in% towns, age_1860, comb_age_1860)
     ) %>%
+    select(-c(town, starts_with("comb_"))) %>%
     distinct(.keep_all = TRUE)
 }
 
@@ -374,16 +368,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
   map_grp <- year_groupings(beg_yr, max(1855, end_yr))
   # Create separate tibbles for each year
   e51 <- results %>%
-    filter(yr == 1851) %>%
+    dplyr::filter(yr == 1851) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Temperance_votes = NULL,
-      Know_Nothing_votes = NULL,
-      Republican_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Temperance_votes, Know_Nothing_votes, Republican_votes)) %>%
     rename(
       Democrat_vote_in_1851 = Democrat_votes,
       Whig_vote_in_1851 = Whig_votes,
@@ -391,16 +380,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
       total_1851 = total
     )
   e52 <- results %>%
-    filter(yr == 1852) %>%
+    dplyr::filter(yr == 1852) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Temperance_votes = NULL,
-      Know_Nothing_votes = NULL,
-      Republican_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Temperance_votes, Know_Nothing_votes, Republican_votes)) %>%
     rename(
       Democrat_vote_in_1852 = Democrat_votes,
       Whig_vote_in_1852 = Whig_votes,
@@ -409,16 +393,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
     )
 
   e53 <- results %>%
-    filter(yr == 1853) %>%
+    dplyr::filter(yr == 1853) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Temperance_votes = NULL,
-      Know_Nothing_votes = NULL,
-      Republican_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Temperance_votes, Know_Nothing_votes, Republican_votes)) %>%
     rename(
       Democrat_vote_in_1853 = Democrat_votes,
       Whig_vote_in_1853 = Whig_votes,
@@ -426,15 +405,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
       total_1853 = total
     )
   e54 <- results %>%
-    filter(yr == 1854) %>%
+    dplyr::filter(yr == 1854) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Know_Nothing_votes = NULL,
-      Republican_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Know_Nothing_votes, Republican_votes)) %>%
     rename(
       Democrat_vote_in_1854 = Democrat_votes,
       Whig_vote_in_1854 = Whig_votes,
@@ -443,16 +418,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
       total_1854 = total
     )
   e55 <- results %>%
-    filter(yr == 1855) %>%
+    dplyr::filter(yr == 1855) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Temperance_votes = NULL,
-      Free_Soil_votes = NULL,
-      Republican_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Temperance_votes, Free_Soil_votes, Republican_votes)) %>%
     rename(
       Democrat_vote_in_1855 = Democrat_votes,
       Whig_vote_in_1855 = Whig_votes,
@@ -460,15 +430,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
       total_1855 = total
     )
   e56 <- results %>%
-    filter(yr == 1856) %>%
+    dplyr::filter(yr == 1856) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Temperance_votes = NULL,
-      Free_Soil_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Temperance_votes, Free_Soil_votes)) %>%
     rename(
       Democrat_vote_in_1856 = Democrat_votes,
       Whig_vote_in_1856 = Whig_votes,
@@ -477,17 +443,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
       total_1856 = total
     )
   e57 <- results %>%
-    filter(yr == 1857) %>%
+    dplyr::filter(yr == 1857) %>%
     combine_results(., shp, result_grp, map_grp) %>%
-    extract2("results") %>%
-    filter(yr >= beg_yr & yr <= end_yr) %>%
-    mutate(
-      yr = NULL,
-      Whig_votes = NULL,
-      Temperance_votes = NULL,
-      Free_Soil_votes = NULL,
-      Know_Nothing_votes = NULL
-    ) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(-c(yr, Whig_votes, Temperance_votes, Free_Soil_votes, Know_Nothing_votes)) %>%
     rename(
       Democrat_vote_in_1857 = Democrat_votes,
       Republican_vote_in_1857 = Republican_votes,
@@ -496,18 +456,18 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
 
   # Choose the appropriate shapefile from which to get geographic data
   shp <- combine_results(results, shp, result_grp, map_grp) %>%
-    extract2("shp") %>%
+    magrittr::extract2("shp") %>%
     arrange(town)
 
   # Create spatial weights for the towns
-  nb <- poly2nb(shp)
-  listw <- nb2listw(nb, style = "W")
+  nb <- spdep::poly2nb(shp)
+  listw <- spdep::nb2listw(nb, style = "W")
 
   # Get geographic centroids for each town
-  geo <- as.data.frame(st_coordinates(st_centroid(shp))) %>%
+  geo <- as.data.frame(sf::st_coordinates(sf::st_centroid(shp))) %>%
     rename(lon = X) %>%
     rename(lat = Y) %>%
-    bind_cols(shp %>% st_set_geometry(NULL) %>% select(town))
+    bind_cols(shp %>% sf::st_set_geometry(NULL) %>% select(town))
 
   # Generate the demographic factors appropriate for the range of years
   demo_factors <- factors %>%
@@ -522,7 +482,7 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
     full_join(e55, by = "town") %>%
     full_join(e56, by = "town") %>%
     full_join(e57, by = "town") %>%
-    filter(!if_all(everything(), is.na)) %>%
+    dplyr::filter(!if_all(everything(), is.na)) %>%
     left_join(geo, by = "town") %>%
     mutate(combined = get_combined(town)) %>%
     left_join(eligible_pct, by = "combined") %>%
@@ -581,7 +541,7 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
 
   for (v in vars) {
     lag_name <- paste0("lag_", v)
-    lag_var <- lag.listw(listw, full_results[[v]])
+    lag_var <- spdep::lag.listw(listw, full_results[[v]])
     full_results[[lag_name]] <- lag_var
   }
 
@@ -591,12 +551,12 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
 weighted.sd <- function(results) {
   # results: tibble with election results, including weighted mean row
 
-  returns <- as.matrix(results %>% filter(town != "Weighted mean") %>% select(Democrat:Abstaining))
+  returns <- as.matrix(results %>% dplyr::filter(town != "Weighted mean") %>% select(Democrat:Abstaining))
   num_rows <- nrow(returns)
-  mu <- unlist(rep((results %>% filter(town == "Weighted mean") %>% select(Democrat:Abstaining)), num_rows, byrow = TRUE))
+  mu <- unlist(rep((results %>% dplyr::filter(town == "Weighted mean") %>% select(Democrat:Abstaining)), num_rows, byrow = TRUE))
   num_cols <- length(mu) / num_rows
   mu <- t(matrix(mu, nrow = num_cols))
-  weights <- unlist(results %>% filter(town != "Weighted mean") %>% select(weight))
+  weights <- unlist(results %>% dplyr::filter(town != "Weighted mean") %>% select(weight))
   sd <- as.data.frame(t(sqrt(colSums((returns - mu)^2 * weights))))
   cbind(data.frame(town = "Weighted SD", weight = NA), sd)
 }
@@ -607,9 +567,9 @@ yr_results <- function(raw, filter_yr) {
   # filter_yr: year for which results are to be extracted
 
   raw %>%
-    filter(yr == filter_yr) %>%
+    dplyr::filter(yr == filter_yr) %>%
     select_if(function(x) any(x > 0)) %>%
-    mutate(yr = NULL) %>%
+    select(-yr) %>%
     left_join(eligible_pct, by = "combined")
 }
 

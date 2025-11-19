@@ -1,17 +1,9 @@
 # Create and save election results for Connecticut towns from 1849 to 1857
 
-library(magrittr)
+source("./global.R")
+source("./results_utils.R", local = TRUE)
 
-# Define constants
-source("./variables.R")
-
-# Load utility functions
-source("./results_utils.R")
-
-# Estimate nonvoters and calculate potential covariates
-source("./ct_demographics.R")
-
-raw_results <- read_results(results_file,alias_map,party_assignments,"Governor",1849,1857)
+raw_results <- read_results(results_file, alias_map, party_assignments, "Governor", 1849, 1857)
 
 # Because estimates of eligible voters depend on both 1850 and 1860 census data,
 # they must be calculated for town combinations that will be less granular than
