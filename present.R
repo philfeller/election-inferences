@@ -1,3 +1,7 @@
+# Functions for presenting the results of the MD inference
+# construct_contingency(), boxplotMD(), ridgelineMD(), densityMD(),
+# create_map(), corr_matrix_by_party()
+
 library(dplyr, warn.conflicts = FALSE)
 library(ggplot2)
 library(ggridges)
