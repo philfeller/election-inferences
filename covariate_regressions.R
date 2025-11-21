@@ -52,51 +52,37 @@ save(
 # Set parameters for gamma-distribution based on observed alpha results
 # when ei.MD.bayes is run with default lambda1 and lambda2 values
 
-lambda2 <- 5 / 32.5
-lambda1 <- 5 * lambda2
-cov.ei.52 <- build_ei_model(1851, 1852, lambda1, lambda2, covariate = TRUE)
+cov.ei.52 <- build_ei_model(1851, 1852, covariate = TRUE)
 table.52 <- construct_contingency(results.52, betas.MD(beta.sims.MD(cov.ei.52, p52)), 1851, 1852)
 print(table.52)
 save(cov.ei.52, file = "1852_covariate_inference.Rda")
 
-lambda2 <- 4.55 / 56
-lambda1 <- 5 * lambda2
-cov.ei.53 <- build_ei_model(1852, 1853, lambda1, lambda2, covariate = TRUE)
+cov.ei.53 <- build_ei_model(1852, 1853, covariate = TRUE)
 table.53 <- construct_contingency(results.53, betas.MD(beta.sims.MD(cov.ei.53, p53)), 1852, 1853)
 print(table.53)
 save(cov.ei.53, file = "1853_covariate_inference.Rda")
 
-lambda2 <- 1.75 / 13.5
-lambda1 <- 1.75 * lambda2
-cov.ei.54 <- build_ei_model(1853, 1854, lambda1, lambda2, covariate = TRUE)
+cov.ei.54 <- build_ei_model(1853, 1854, covariate = TRUE)
 table.54 <- construct_contingency(results.54, betas.MD(beta.sims.MD(cov.ei.54, p54)), 1853, 1854)
 print(table.54)
 save(cov.ei.54, file = "1854_covariate_inference.Rda")
 
-lambda2 <- 2.5 / 16
-lambda1 <- 2.5 * lambda2
-cov.ei.55 <- build_ei_model(1854, 1855, lambda1, lambda2, covariate = TRUE)
+cov.ei.55 <- build_ei_model(1854, 1855, covariate = TRUE)
 table.55 <- construct_contingency(results.55, betas.MD(beta.sims.MD(cov.ei.55, p55)), 1854, 1855)
 print(table.55)
 save(cov.ei.55, file = "1855_covariate_inference.Rda")
 
-lambda2 <- 2 / 16
-lambda1 <- 2 * lambda2
-cov.ei.56 <- build_ei_model(1855, 1856, lambda1, lambda2, covariate = TRUE)
+cov.ei.56 <- build_ei_model(1855, 1856, covariate = TRUE)
 table.56 <- construct_contingency(results.56, betas.MD(beta.sims.MD(cov.ei.56, p56)), 1855, 1856)
 print(table.56)
 save(cov.ei.56, file = "1856_covariate_inference.Rda")
 
-lambda2 <- 2 / 4
-lambda1 <- 2 * lambda2
-cov.ei.57 <- build_ei_model(1856, 1857, lambda1, lambda2, covariate = TRUE)
+cov.ei.57 <- build_ei_model(1856, 1857, covariate = TRUE)
 table.57 <- construct_contingency(results.57, betas.MD(beta.sims.MD(cov.ei.57, p57)), 1856, 1857)
 print(table.57)
 save(cov.ei.57, file = "1857_covariate_inference.Rda")
 
-lambda2 <- 2 / 5.5
-lambda1 <- 2 * lambda2
-cov.ei.51_57 <- build_ei_model(1851, 1857, lambda1, lambda2, results_tibble = results.51_57, covariate = TRUE)
+cov.ei.51_57 <- build_ei_model(1851, 1857, results_tibble = results.51_57, covariate = TRUE)
 table.51_57 <- construct_contingency(results.51_57, betas.MD(beta.sims.MD(cov.ei.51_57, p57)), 1851, 1857)
 print(table.51_57)
 save(cov.ei.51_57, file = "1851_1857_covariate_inference.Rda")
