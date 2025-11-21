@@ -83,6 +83,10 @@ get_shares <- function(results, yr, townID) {
   }
   elig <- totals[length(totals)]
   votes <- totals[-1 * length(totals)]
+  # Rearrange votes to match order of parties in betas
+  party_order <- str_replace(gsub("vote_in_", "", names(votes)), "non18", "Abstaining_18")
+  betas_parties <- str_replace(get(paste("p", substring(as.character(yr), 3, 4), sep = "")), "_in_", "_")
+  votes <- votes[match(betas_parties, party_order)]
   return(votes / elig)
 }
 

@@ -12,9 +12,7 @@ data.52 <- create_results(raw_results, map.1855, 1851, 1852, eligible_pct, facto
 results.52 <- data.52$results
 map.52 <- data.52$shp
 
-lambda2 <- 5 / 32.5
-lambda1 <- 5 * lambda2
-ei.52 <- build_ei_model(1851, 1852, lambda1, lambda2)
+ei.52 <- build_ei_model(1851, 1852)
 table.52 <- construct_contingency(results.52, betas.MD(beta.sims.MD(ei.52, p52)), 1851, 1852)
 print(table.52)
 
