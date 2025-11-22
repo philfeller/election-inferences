@@ -107,7 +107,7 @@ for (party in parties) {
   }
 }
 
-print("         Z-scores for Meriden results")
+cat("\n\n         Z-scores for Meriden results")
 print(z_scores)
 
 # Meriden is the town that best demonstrates a rough statistical proxy
@@ -119,6 +119,7 @@ print(z_scores)
 # 0.6 standard deviations above the 1854 Free Soil share and more
 # than 0.6 standard deviations above the 1855 mean Know Nothing share.
 
+cat("\n\n1855 transitions for towns with representative 1853 and 1854 Whig and Democratic votes but high 1854 Free Soil and 1855 Know Nothing votes")
 whig.mu.53 <- result_mu %>% single_stat(1853, "Whig")
 whig.sd.53 <- result_sd %>% single_stat(1853, "Whig")
 dem.mu.53 <- result_mu %>% single_stat(1853, "Democrat")
@@ -145,6 +146,32 @@ for (t in 1:nrow(results.55)) {
     ))
   }
 }
+
+# The greatest uncertainty in the 1855 inference is in determining what became of
+# 1854 Free Soil voters, followed by doubt about Temperance and Whig voters.
+# Similar results are obtained when standard deviations are calculated for the
+# models alphas.
+
+combined_betas <- combine_betas(beta.sims.MD(cov.ei.55, p55))
+z_scores <- data.frame(beta_sd = numeric(), transition = character())
+for (from_party in pull(distinct(combined_betas %>% select(from)))) {
+  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
+    transition <- combined_betas %>%
+      dplyr::filter(
+        from == from_party,
+        to == to_party
+      ) %>%
+      select(value)
+    beta_sd <- sd(pull(transition))
+    if (beta_sd > 2.5) {
+      transition <- paste(from_party, " to ", to_party, sep = "")
+      z_scores <- rbind(z_scores, data.frame(beta_sd = beta_sd, transition = transition))
+    }
+  }
+}
+cat("\n\n1855 transitions with high standard deviations in covariate model\n")
+print(z_scores %>%
+        arrange(desc(beta_sd)))
 
 # Meriden has a disproportionate number of native-born, young-adult males.
 # Stonington and New London, other Know Nothing hotbeds, show the same pattern,
@@ -219,6 +246,7 @@ for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
 # is inversely correlated to the average age of households heads, and is
 # correlated to average household wealth.
 
+cat("\n\nRegression analysis of GINI index against demographic factors\n")
 summary(lm(gini ~ pct_farm_1860 + age_1860 + wealth, factors))
 
 # GINI index for native white males is strongly correlated to age, and age
@@ -263,29 +291,9 @@ wealth_age <- gini_by_town %>%
   pivot_longer(cols = !town, names_to = "age", values_to = "wealth") %>%
   mutate(age = as.double(substring(age, 1, nchar(age) - 7)))
 
+# Print out the proportion of variance in GINI index accounted for by age and wealth
+cat("\n\nProportion of variance in GINI index accounted for by age and wealth\n")
 lsr::etaSquared(lm(gini ~ wealth + age, gini_age %>% left_join(wealth_age, by = join_by(town, age))))
-
-# The greatest uncertainty in the 1855 inference is in determining what became of
-# 1854 Free Soil voters, followed by doubt about Temperance and Whig voters.
-# Similar results are obtained when standard deviations are calculated for the
-# models alphas.
-
-combined_betas <- combine_betas(beta.sims.MD(ei.55, p55))
-
-for (from_party in pull(distinct(combined_betas %>% select(from)))) {
-  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
-    transition <- combined_betas %>%
-      dplyr::filter(
-        from == from_party,
-        to == to_party
-      ) %>%
-      select(value)
-    beta_sd <- sd(pull(transition))
-    if (beta_sd > 2.5) {
-      print(paste(from_party, " to ", to_party, ": ", as.character(beta_sd)))
-    }
-  }
-}
 
 # Show GINI indices for Meriden subgroups
 
@@ -327,6 +335,7 @@ for (age in age_cats) {
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
+cat("\n\n1860 Meriden Wealth GINI Index by Age Range")
 knitr::kable(gini_grid, label = "1860 Meriden Wealth GINI Index by Age Range")
 
 # Calculate real-property-only GINI indices for 1850 and 1860
@@ -367,6 +376,7 @@ for (age in age_cats) {
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
+cat("\n\n1850 Meriden Real Property GINI Index by Age Range")
 knitr::kable(gini_grid, label = "1850 Meriden Real Property GINI Index by Age Range")
 
 gini_all <- data.frame(row.names = c("all"))
@@ -406,6 +416,7 @@ for (age in age_cats) {
 }
 gini_grid <- bind_rows(gini_all, gini_by_birth, gini_by_job)
 colnames(gini_grid) <- age_cats
+cat("\n\n1860 Meriden Real Property GINI Index by Age Range")
 knitr::kable(gini_grid, label = "1860 Meriden Real Property GINI Index by Age Range")
 
 # Demonstrate the extent to which results for statewide offices are correlated

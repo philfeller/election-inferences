@@ -106,6 +106,7 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
   mu <- mean(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
   sigma2 <- var(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
   desired_max_ratio <- 4  # Posterior variance should not be more than 4 times prior variance
+  sigma2_ratios <- data.frame(sigma2 = numeric(), ratio = numeric())
 
   # Re-tune and re-build model until variance of posterior exceeds
   # one-fourth of the prior variance; too restrictive a prior can
@@ -137,7 +138,6 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
     sigma2.post <- var(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
     # Create an empty data frame to hold sigma2 values that have been tried and their associated ratios
     # Test whether the posterior variance is at most four times the prior variance
-    sigma2_ratios <- data.frame(sigma2 = numeric(), ratio = numeric())
     if (sigma2.post >= desired_max_ratio * sigma2 & nrow(sigma2_ratios) < 4) {
       # Add the current sigma2 and ratio to the data frame
       ratio <- sigma2.post / sigma2
