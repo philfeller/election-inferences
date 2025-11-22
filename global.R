@@ -230,7 +230,8 @@ nominated_party_assignments <- data.frame(
     # Governor
     rep("Thomas H. Seymour", 5),
     rep("Samuel Ingham", 4),
-    rep("Lafayette S. Foster", 3),
+    "Joseph Trumbull",
+    rep("Lafayette S. Foster", 2),
     "Green Kendrick",
     rep("Henry Dutton", 3),
     "John A. Rockwell",
@@ -307,7 +308,8 @@ nominated_party_assignments <- data.frame(
     # Governor
     1849:1853,
     1854:1857,
-    1849:1851,
+    1849,
+    1850:1851,
     1852,
     1853:1855,
     1856,
