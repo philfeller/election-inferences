@@ -50,6 +50,7 @@ Rscript analyze_results.R
 - inference_utils.R - Defines utility functions that are used by regression scripts
 - voter_regressions.R - This is the script that calculate election inferences. It sources the scripts that need to have been run first.
 - covariate_regression.R - Script that calculates election inferences using demographic and geographic covariates
+- model_evaluation.R - Defines functions that evaluate the MCMC model fit
 - results.Rda - Tibbles with election-pair results
 - ct_demographics.Rda - Calculated demographic factors by town
 - census_utils.R - Defines utility functions that are used by analyze_results.R and ct_demographics.R

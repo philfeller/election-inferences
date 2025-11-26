@@ -535,9 +535,11 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
     ) %>%
     select_if(function(x) !any(is.na(x)))
 
-  # Calculate spatial lag variables for party strength in beginning year
-  p_name <- paste0("p", substr(beg_yr, 3, 4))
-  vars <- get(p_name) # e.g., c("Democrat_in_1854", ...)
+  # Calculate spatial lag variables for party strength in beginning and ending years
+  b_name <- paste0("p", substr(beg_yr, 3, 4))
+  e_name <- paste0("p", substr(end_yr, 3, 4))
+  vars <- get(b_name) # e.g., c("Democrat_in_1854", ...)
+  vars <- c(vars, get(e_name))
 
   for (v in vars) {
     lag_name <- paste0("lag_", v)

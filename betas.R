@@ -119,7 +119,7 @@ get_share_names <- function(results, yr) {
 
   vote_cols <- paste("vote_in_", yr, sep = "")
   in_cols <- paste("in_", yr, sep = "")
-  return(colnames(results %>% select(ends_with(in_cols) & !ends_with(vote_cols))))
+  return(colnames(results %>% select(ends_with(in_cols) & ! starts_with("lag_") & !ends_with(vote_cols))))
 }
 
 # Calculate residuals for the model

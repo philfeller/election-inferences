@@ -5,6 +5,7 @@
 
 library(eiPack)
 source("./global.R")
+source("./model_evaluation.R", local = TRUE)
 
 # Build stepwise regression models for each party's residuals; return the covariates
 regression_model <- function(results, ei.model, beg_yr, end_yr, selection_method = "all") {
@@ -49,6 +50,32 @@ regression_model <- function(results, ei.model, beg_yr, end_yr, selection_method
   return(covars)
 }
 
+estimate_alpha_params <- function(formula_eimd, data, total) {
+  # formula_eimd: formula for ei.MD.bayes model
+  # data: tibble with election results
+  # total: vector with total eligible voters for each unit
+
+  # Run tuning and model building with default hyperparameters; mean and
+  # variance of the gamma posteriors will be used to set model factors
+  tune <- tuneMD(
+    formula_eimd,
+    data = data, total = total, totaldraws = 10000, ntunes = 10
+  )
+
+  ei.model <- ei.MD.bayes(
+    formula_eimd,
+    data = data, total = total,
+    sample = 2000, burnin = 1000, thin = 10,
+    tune.list = tune
+  )
+
+  # Calculate mean and variance of Alpha posteriors from default model;
+  # these will be used to set hyperparameters
+  mu <- mean(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
+  sigma2 <- var(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
+  list(mu = mu, sigma2 = sigma2)
+}
+
 # Although the model factors for each pair of years have been chosen to produce MCMC results
 # that converge fairly reliably, individual runs sometimes fail to converge. The calls to
 # the ei.MD.bayes function are wrapped in a loop that tests for convergence to ensure that
@@ -87,25 +114,12 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
   thin <- 10
   burnin <- 1000
 
-  # Run tuning and model building with default hyperparameters; mean and
-  # variance of the gamma posteriors will be used to set model factors
-  tune.default <- tuneMD(
-    formula_eimd,
-    data = data, total = total, totaldraws = tune_size, ntunes = 10
-  )
+  # Estimate alpha parameters from default model run
+  estimated_alpha_params <- estimate_alpha_params(formula_eimd, data, total)
+  mu <- estimated_alpha_params$mu
+  sigma2 <- estimated_alpha_params$sigma2
 
-  ei.model <- ei.MD.bayes(
-    formula_eimd,
-    data = data, total = total,
-    sample = sample, burnin = burnin, thin = thin,
-    tune.list = tune.default
-  )
-
-  # Calculate mean and variance of Alpha posteriors from default model;
-  # these will be used to set hyperparameters
-  mu <- mean(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
-  sigma2 <- var(unlist(list(ei.model$draws$Alpha)), na.rm = TRUE)
-  desired_max_ratio <- 4  # Posterior variance should not be more than 4 times prior variance
+  desired_max_ratio <- 4 # Posterior variance should not be more than 4 times prior variance
   sigma2_ratios <- data.frame(sigma2 = numeric(), ratio = numeric())
 
   # Re-tune and re-build model until variance of posterior exceeds
@@ -113,7 +127,6 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
   # force the model into a restrictive region, missing the full
   # range of possible values
   while (TRUE) {
-    
     # Calculate hyperparameters
     lambda2 <- mu / sigma2
     lambda1 <- mu * lambda2
@@ -158,6 +171,9 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
 
   cols <- regression_model(data, ei.model, beg_yr, end_yr, "majority")
   if (covariate == TRUE && length(cols) > 0) {
+    # Save the current model as the base model before adding covariates
+    base.ei.model <- ei.model
+    # Create covariate formula
     covariate_string <- paste("~", paste(cols, collapse = " + "))
     print(paste("Using covariates for", beg_yr, "to", end_yr, ":", covariate_string))
     save(covariate_string, file = paste(end_yr, "_", beg_yr, "_covariates.Rda", sep = ""))
@@ -169,17 +185,33 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
       lambda1 = lambda1, lambda2 = lambda2, covariate = covariate_formula
     )
 
-    h <- c(0, 1)
-    while (sum(h) != length(h)) {
-      ei.model <- ei.MD.bayes(
-        formula_eimd,
-        data = data, total = total,
-        sample = sample, burnin = burnin, thin = thin,
-        tune.list = tune_cov, lambda1 = lambda1, lambda2 = lambda2,
-        covariate = covariate_formula
-      )
-      # Check for convergence
-      h <- coda::heidel.diag(lambda.MD(ei.model, end_party))[, 1]
+    with_95 <- 1
+    while (with_95 > .1) {
+      h <- c(0, 1)
+      while (sum(h) != length(h)) {
+        ei.model <- ei.MD.bayes(
+          formula_eimd,
+          data = data, total = total,
+          sample = sample, burnin = burnin, thin = thin,
+          tune.list = tune_cov, lambda1 = lambda1, lambda2 = lambda2,
+          covariate = covariate_formula
+        )
+        # Check for convergence
+        h <- coda::heidel.diag(lambda.MD(ei.model, end_party))[, 1]
+      }
+
+      # Compare model standard deviations with and without covariates
+      if (covariate == TRUE && exists("base.ei.model")) {
+        sd_comparison <- model_sds(ei.model, base.ei.model, end_party)
+        summary_df <- model_summary(sd_comparison)
+        with_95 <- summary_df$With_Covariates[4]
+        # Testing shows that a model ought to have standard deviations no worse than .1
+        if (with_95 < .1) {
+          print("Standard Deviation Summary (No Covariates vs With Covariates):")
+          print(summary_df)
+          save(summary_df, file = paste(beg_yr, "_", end_yr, "_covariate_sd_summary.Rda", sep = ""))
+        }
+      }
     }
   }
   return(ei.model)
