@@ -347,6 +347,37 @@ create_factors <- function(tibble, beg_yr, end_yr) {
     distinct(.keep_all = TRUE)
 }
 
+prepare_election_year <- function(results, shp, result_grp, map_grp, yr, beg_yr, end_yr) {
+  # results: tibble with raw election results
+  # shp: sf object with town polygons
+  # result_grp: list of list(towns=..., new=...) for each combination
+  # map_grp: list of list(towns=..., new=...) for each combination in the map
+  # yr: year for which to prepare results
+  # beg_yr: beginning year of election transition
+  # end_yr: ending year of election transition
+
+  # Get the parties for the year
+  p_var <- get(paste("p", yr, sep = ""))
+
+  # Extract party names, removing the "_in_185x" suffix, and dropping "Abstaining"
+  parties_to_keep <- str_remove_all(p_var, "_in_185[0-9]")[-1 * length(p_var)]
+
+  party_vote_cols <- paste0(parties_to_keep, "_votes")
+  year <- paste("18", yr, sep = "")
+
+  results %>%
+    dplyr::filter(yr == year) %>%
+    combine_results(., shp, result_grp, map_grp) %>%
+    magrittr::extract2("results") %>%
+    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
+    select(any_of(c("town", party_vote_cols, "total")), -yr) %>%
+    rename_with(
+      ~ str_replace(.x, "_votes$", paste0("_vote_in_18", yr)),
+      ends_with("_votes")
+    ) %>%
+    rename(!!paste0("total_18", yr) := total)
+}
+
 # Create a results tibble that is appropriate for the years to be compared;
 # don't combine election results for towns unless necessary.
 # This is particularly important in Windham County, where Killingly, Pomfret,
@@ -366,93 +397,6 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
   # Because of Putnam's formation in 1856, the base map will be that of 1855
   # or 1857, depending on the end year
   map_grp <- year_groupings(beg_yr, max(1855, end_yr))
-  # Create separate tibbles for each year
-  e51 <- results %>%
-    dplyr::filter(yr == 1851) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Temperance_votes, Know_Nothing_votes, Republican_votes)) %>%
-    rename(
-      Democrat_vote_in_1851 = Democrat_votes,
-      Whig_vote_in_1851 = Whig_votes,
-      Free_Soil_vote_in_1851 = Free_Soil_votes,
-      total_1851 = total
-    )
-  e52 <- results %>%
-    dplyr::filter(yr == 1852) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Temperance_votes, Know_Nothing_votes, Republican_votes)) %>%
-    rename(
-      Democrat_vote_in_1852 = Democrat_votes,
-      Whig_vote_in_1852 = Whig_votes,
-      Free_Soil_vote_in_1852 = Free_Soil_votes,
-      total_1852 = total
-    )
-
-  e53 <- results %>%
-    dplyr::filter(yr == 1853) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Temperance_votes, Know_Nothing_votes, Republican_votes)) %>%
-    rename(
-      Democrat_vote_in_1853 = Democrat_votes,
-      Whig_vote_in_1853 = Whig_votes,
-      Free_Soil_vote_in_1853 = Free_Soil_votes,
-      total_1853 = total
-    )
-  e54 <- results %>%
-    dplyr::filter(yr == 1854) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Know_Nothing_votes, Republican_votes)) %>%
-    rename(
-      Democrat_vote_in_1854 = Democrat_votes,
-      Whig_vote_in_1854 = Whig_votes,
-      Free_Soil_vote_in_1854 = Free_Soil_votes,
-      Temperance_vote_in_1854 = Temperance_votes,
-      total_1854 = total
-    )
-  e55 <- results %>%
-    dplyr::filter(yr == 1855) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Temperance_votes, Free_Soil_votes, Republican_votes)) %>%
-    rename(
-      Democrat_vote_in_1855 = Democrat_votes,
-      Whig_vote_in_1855 = Whig_votes,
-      Know_Nothing_vote_in_1855 = Know_Nothing_votes,
-      total_1855 = total
-    )
-  e56 <- results %>%
-    dplyr::filter(yr == 1856) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Temperance_votes, Free_Soil_votes)) %>%
-    rename(
-      Democrat_vote_in_1856 = Democrat_votes,
-      Whig_vote_in_1856 = Whig_votes,
-      Know_Nothing_vote_in_1856 = Know_Nothing_votes,
-      Republican_vote_in_1856 = Republican_votes,
-      total_1856 = total
-    )
-  e57 <- results %>%
-    dplyr::filter(yr == 1857) %>%
-    combine_results(., shp, result_grp, map_grp) %>%
-    magrittr::extract2("results") %>%
-    dplyr::filter(yr >= beg_yr & yr <= end_yr) %>%
-    select(-c(yr, Whig_votes, Temperance_votes, Free_Soil_votes, Know_Nothing_votes)) %>%
-    rename(
-      Democrat_vote_in_1857 = Democrat_votes,
-      Republican_vote_in_1857 = Republican_votes,
-      total_1857 = total
-    )
 
   # Choose the appropriate shapefile from which to get geographic data
   shp <- combine_results(results, shp, result_grp, map_grp) %>%
@@ -474,61 +418,57 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
     create_factors(beg_yr, end_yr) %>%
     rename(town = combined)
 
+  yrs <- 51:57
+  combined <- yrs %>%
+    map(~ prepare_election_year(raw_results, shp, result_grp, map_grp, .x, beg_yr, end_yr)) %>%
+    reduce(left_join, by = "town")
+
   # Combine the year-by-year tibbles to have one record for each town
-  full_results <- e51 %>%
-    full_join(e52, by = "town") %>%
-    full_join(e53, by = "town") %>%
-    full_join(e54, by = "town") %>%
-    full_join(e55, by = "town") %>%
-    full_join(e56, by = "town") %>%
-    full_join(e57, by = "town") %>%
+  full_results <- combined %>%
     dplyr::filter(!if_all(everything(), is.na)) %>%
     left_join(geo, by = "town") %>%
     mutate(combined = get_combined(town)) %>%
     left_join(eligible_pct, by = "combined") %>%
     left_join(demo_factors, by = "town") %>%
     arrange(town) %>%
+    # Create columns for estimated eligible voters and non-voting eligible voters
+    mutate(across(
+      starts_with("total_18"),
+      ~ round(.x / get(paste0("ELIG_", str_sub(cur_column(), -4), "_PCT"))),
+      .names = "ELIG_{str_extract(.col, '(\\\\d{4})')}"
+    )) %>%
+    mutate(across(
+      starts_with("ELIG_18") & ! ends_with("_PCT"),
+      ~ .x - get(paste0("total_", str_sub(cur_column(), -4))),
+      .names = "nonvote_in_{str_extract(.col, '(\\\\d{4})')}"
+    )) %>%
     mutate(
-      ELIG_1851 = round(total_1851 / ELIG_1851_PCT),
-      nonvote_in_1851 = ELIG_1851 - total_1851,
       Democrat_in_1851 = Democrat_vote_in_1851 / ELIG_1851,
       Whig_in_1851 = Whig_vote_in_1851 / ELIG_1851,
       Free_Soil_in_1851 = Free_Soil_vote_in_1851 / ELIG_1851,
       Abstaining_in_1851 = remainder(Democrat_in_1851 + Whig_in_1851 + Free_Soil_in_1851),
-      ELIG_1852 = round(total_1852 / ELIG_1852_PCT),
-      nonvote_in_1852 = ELIG_1852 - total_1852,
       Democrat_in_1852 = Democrat_vote_in_1852 / ELIG_1852,
       Whig_in_1852 = Whig_vote_in_1852 / ELIG_1852,
       Free_Soil_in_1852 = Free_Soil_vote_in_1852 / ELIG_1852,
       Abstaining_in_1852 = remainder(Democrat_in_1852 + Whig_in_1852 + Free_Soil_in_1852),
-      ELIG_1853 = round(total_1853 / ELIG_1853_PCT),
-      nonvote_in_1853 = ELIG_1853 - total_1853,
       Democrat_in_1853 = Democrat_vote_in_1853 / ELIG_1853,
       Whig_in_1853 = Whig_vote_in_1853 / ELIG_1853,
       Free_Soil_in_1853 = Free_Soil_vote_in_1853 / ELIG_1853,
       Abstaining_in_1853 = remainder(Democrat_in_1853 + Whig_in_1853 + Free_Soil_in_1853),
-      ELIG_1854 = round(total_1854 / ELIG_1854_PCT),
-      nonvote_in_1854 = ELIG_1854 - total_1854,
       Democrat_in_1854 = Democrat_vote_in_1854 / ELIG_1854,
       Whig_in_1854 = Whig_vote_in_1854 / ELIG_1854,
       Free_Soil_in_1854 = Free_Soil_vote_in_1854 / ELIG_1854,
       Temperance_in_1854 = Temperance_vote_in_1854 / ELIG_1854,
       Abstaining_in_1854 = remainder(Democrat_in_1854 + Whig_in_1854 + Free_Soil_in_1854 + Temperance_in_1854),
-      ELIG_1855 = round(total_1855 / ELIG_1855_PCT),
-      nonvote_in_1855 = ELIG_1855 - total_1855,
       Democrat_in_1855 = Democrat_vote_in_1855 / ELIG_1855,
       Whig_in_1855 = Whig_vote_in_1855 / ELIG_1855,
       Know_Nothing_in_1855 = Know_Nothing_vote_in_1855 / ELIG_1855,
       Abstaining_in_1855 = remainder(Democrat_in_1855 + Whig_in_1855 + Know_Nothing_in_1855),
-      ELIG_1856 = round(total_1856 / ELIG_1856_PCT),
-      nonvote_in_1856 = ELIG_1856 - total_1856,
       Democrat_in_1856 = Democrat_vote_in_1856 / ELIG_1856,
       Republican_in_1856 = Republican_vote_in_1856 / ELIG_1856,
       Know_Nothing_in_1856 = Know_Nothing_vote_in_1856 / ELIG_1856,
       Whig_in_1856 = Whig_vote_in_1856 / ELIG_1856,
       Abstaining_in_1856 = remainder(Democrat_in_1856 + Republican_in_1856 + Know_Nothing_in_1856 + Whig_in_1856),
-      ELIG_1857 = round(total_1857 / ELIG_1857_PCT),
-      nonvote_in_1857 = ELIG_1857 - total_1857,
       Democrat_in_1857 = Democrat_vote_in_1857 / ELIG_1857,
       Republican_in_1857 = Republican_vote_in_1857 / ELIG_1857,
       Abstaining_in_1857 = remainder(Democrat_in_1857 + Republican_in_1857)

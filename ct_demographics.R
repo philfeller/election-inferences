@@ -42,6 +42,15 @@ ct_1850 <- ipumsr::read_ipums_micro(ddi1850, verbose = FALSE) %>%
   dplyr::filter(town != "NULL") %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
+ct_1850_combined <- ct_1850 %>%
+  group_by(combined) %>%
+  summarise(
+    POP_1850 = n(),
+    age_1850 = mean(AGE),
+    irish_1850 = sum(BPL == 414),
+    ya_male_1850 = sum(AGE >= 20 & AGE <= 30 & SEX == 1 & BIRTH == "native" & REALPROP <= 2000)
+  )
+
 # Load file with data that is missing from IPUMS: first pages for Brooklyn and Hebron
 load(file = "missing_1860_ipums_rows.Rda")
 
@@ -132,6 +141,16 @@ ct_1850_hh <- ct_1850 %>%
     combined = first(combined)
   )
 
+ct_1850_hh_combined <- ct_1850_hh %>%
+  group_by(combined) %>%
+  summarise(
+    num_1850_hh = n(),
+    farm_1850_hh = sum(JOB == "farm"),
+    real_1850_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")
+  )
+
+ct_1850_summary <- left_join(ct_1850_combined, ct_1850_hh_combined, by = "combined")
+
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
   dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
@@ -147,6 +166,16 @@ ct_1860_hh <- ct_1860 %>%
     CLASS = first(CLASS),
     town = first(town),
     combined = first(combined)
+  )
+
+ct_1860_hh_combined <- ct_1860_hh %>%
+  group_by(combined) %>%
+  summarise(
+    num_1860_hh = n(),
+    farm_1860_hh = sum(JOB == "farm"),
+    real_1860_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini"),
+    comb_gini = ineq::ineq(FAMILY_WEALTH, type = "Gini"),
+    POP_1860 = n()
   )
 
 white_male_1860_hh <- ct_1860 %>%
@@ -167,13 +196,6 @@ white_male_1860_hh <- ct_1860 %>%
     combined = first(combined)
   ) %>%
   dplyr::filter(SEX == 1 && RACE == 1)
-
-ct_pop <- ct_1850 %>%
-  group_by(combined) %>%
-  summarize(POP_1850 = n()) %>%
-  inner_join(ct_1860 %>%
-    group_by(combined) %>%
-    summarize(POP_1860 = n()), by = "combined")
 
 # Count number of native-born, white, adult males to estimate eligible voters;
 # the number of naturalized foreign-born citizens who meet the residency
@@ -240,15 +262,7 @@ intrastate_moved_1860 <- ct_hik_1850 %>%
 factors <- ungroup(ct_1860_hh %>%
   group_by(town, combined) %>%
   summarise(gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")) %>%
-  left_join(ct_1860_hh %>%
-    group_by(combined) %>%
-    summarise(comb_gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")), by = c("combined")) %>%
-  left_join(ct_1860_hh %>%
-    group_by(combined) %>%
-    summarise(real_1860_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
-  left_join(ct_1850_hh %>%
-    group_by(combined) %>%
-    summarise(real_1850_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")), by = c("combined")) %>%
+  left_join(ct_1860_hh_combined, by = "combined") %>%
   left_join(ct_1860 %>%
     group_by(town) %>%
     summarise(
@@ -263,34 +277,7 @@ factors <- ungroup(ct_1860_hh %>%
       comb_age_1860 = mean(AGE),
       comb_pop = n()
     ), by = c("combined")) %>%
-  left_join(ct_1850_hh %>%
-    group_by(combined) %>%
-    summarize(num_1850_hh = n()), by = "combined") %>%
-  left_join(ct_1850_hh %>%
-    dplyr::filter(JOB == "farm") %>%
-    group_by(combined) %>%
-    summarize(farm_1850_hh = n()), by = "combined") %>%
-  left_join(ct_1850 %>%
-    group_by(combined) %>%
-    summarise(
-      age_1850 = mean(AGE)
-    ), by = c("combined")) %>%
-  left_join(ct_1850 %>%
-    dplyr::filter(BPL == 414) %>%
-    group_by(combined) %>%
-    summarize(irish_1850 = n()), by = "combined") %>%
-  left_join(ct_1850 %>%
-    dplyr::filter(AGE >= 20 & AGE <= 30 & SEX == 1 & BIRTH == "native" & REALPROP <= 2000) %>%
-    group_by(combined) %>%
-    summarize(ya_male_1850 = n()), by = "combined") %>%
-  left_join(ct_1860_hh %>%
-    group_by(combined) %>%
-    summarize(num_1860_hh = n()), by = "combined") %>%
-  left_join(ct_1860_hh %>%
-    dplyr::filter(JOB == "farm") %>%
-    group_by(combined) %>%
-    summarize(farm_1860_hh = n()), by = "combined") %>%
-  left_join(ct_pop, by = "combined") %>%
+  left_join(ct_1850_summary, by = "combined") %>%
   left_join(religion_1860, by = "combined") %>%
   mutate(
     wealth = wealth / pop,
