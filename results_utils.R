@@ -421,7 +421,7 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
   yrs <- 51:57
   combined <- yrs %>%
     map(~ prepare_election_year(raw_results, shp, result_grp, map_grp, .x, beg_yr, end_yr)) %>%
-    reduce(left_join, by = "town")
+    reduce(full_join, by = "town")
 
   # Combine the year-by-year tibbles to have one record for each town
   full_results <- combined %>%
