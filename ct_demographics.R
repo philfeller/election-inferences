@@ -12,6 +12,7 @@ source("./census_utils.R", local = TRUE)
 ddi1850 <- ipumsr::read_ipums_ddi(ipums_1850)
 ddi1860 <- ipumsr::read_ipums_ddi(ipums_1860)
 
+# Create a tibble with individual 1850 census data
 ct_1850 <- ipumsr::read_ipums_micro(ddi1850, verbose = FALSE) %>%
   select(
     HIK, SERIAL, GQ, FAMUNIT, RELATE, SEX, AGE, RACE, BPL,
@@ -42,6 +43,9 @@ ct_1850 <- ipumsr::read_ipums_micro(ddi1850, verbose = FALSE) %>%
   dplyr::filter(town != "NULL") %>%
   arrange(SERIAL, FAMUNIT, RELATE)
 
+# Create an intermediate tibble with 1850 individual data summarized by combined,
+# a town name that is consistent for 1850 and 1860, taking boundary changes into
+# account.
 ct_1850_combined <- ct_1850 %>%
   group_by(combined) %>%
   summarise(
@@ -124,7 +128,7 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
   ) %>%
   select(combined, starts_with("pct_"))
 
-# Construct tibbles with data about household wealth and demographics
+# Construct tibble with 1850 household wealth and demographics data
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
   dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
@@ -141,6 +145,9 @@ ct_1850_hh <- ct_1850 %>%
     combined = first(combined)
   )
 
+# Create an intermediate tibble with 1850 household data summarized by combined,
+# a town name that is consistent for 1850 and 1860, taking boundary changes into
+# account.
 ct_1850_hh_combined <- ct_1850_hh %>%
   group_by(combined) %>%
   summarise(
@@ -149,8 +156,10 @@ ct_1850_hh_combined <- ct_1850_hh %>%
     real_1850_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")
   )
 
+# Create an intermediate tibble with summarized individual and household data
 ct_1850_summary <- left_join(ct_1850_combined, ct_1850_hh_combined, by = "combined")
 
+# Construct tibble with 1860 household wealth and demographics data
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
   dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
@@ -168,6 +177,9 @@ ct_1860_hh <- ct_1860 %>%
     combined = first(combined)
   )
 
+# Create an intermediate tibble with 1860 household data summarized by combined,
+# a town name that is consistent for 1850 and 1860, taking boundary changes into
+# account.
 ct_1860_hh_combined <- ct_1860_hh %>%
   group_by(combined) %>%
   summarise(
@@ -177,25 +189,6 @@ ct_1860_hh_combined <- ct_1860_hh %>%
     comb_gini = ineq::ineq(FAMILY_WEALTH, type = "Gini"),
     POP_1860 = n()
   )
-
-white_male_1860_hh <- ct_1860 %>%
-  # Exclude servants and institutional housing
-  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
-  group_by(SERIAL * 100 + FAMUNIT) %>%
-  summarise(
-    FAMILY_REALPROP = sum(REALPROP),
-    FAMILY_WEALTH = sum(WEALTH),
-    AGE = first(AGE),
-    AGE_CAT = first(AGE_CAT),
-    BIRTH = first(BIRTH),
-    SEX = first(SEX),
-    RACE = first(RACE),
-    JOB = first(JOB),
-    CLASS = first(CLASS),
-    town = first(town),
-    combined = first(combined)
-  ) %>%
-  dplyr::filter(SEX == 1 && RACE == 1)
 
 # Count number of native-born, white, adult males to estimate eligible voters;
 # the number of naturalized foreign-born citizens who meet the residency
@@ -243,22 +236,42 @@ ct_eligible <- ct_1850 %>%
   mutate(ELIG_1856 = estimate_voters(1856, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE)) %>%
   mutate(ELIG_1857 = estimate_voters(1857, ELIG_1850, FOREIGN_1850, POP_CHANGE, POLL_CHANGE))
 
-# Find information about people who moved out of state between 1850 and 1860.
-# The 1860 records need to have an HIK variable in both censuses.
-# The intent is to capture the age of the person who initiated the move, either
-# as a family member or a independent adult
-ct_hik_1850 <- ct_1850 %>%
-  dplyr::filter(HIK != "") %>%
-  left_join(ct_1850_hh %>% select(family, FAMILY_HEAD_AGE), by = c("family"))
+# IPUMS has a field that shows individuals who have been algorithmically matched
+# across censuses. Because matching is partial, this is not currently being
+# used (compute_migration is set to FALSE in global.R), and these tibbles aren't
+# created in order to speed execution.
+if (compute_migration == TRUE) {
+  # Find information about people who moved out of state between 1850 and 1860.
+  # The 1860 records need to have an HIK variable in both censuses.
+  # The intent is to capture the age of the person who initiated the move, either
+  # as a family member or a independent adult
+  ct_hik_1850 <- ct_1850 %>%
+    dplyr::filter(HIK != "") %>%
+    left_join(ct_1850_hh %>% select(family, FAMILY_HEAD_AGE), by = c("family"))
 
-ct_hik_1860 <- ct_1860 %>%
-  dplyr::filter(HIK != "")
+  ct_hik_1860 <- ct_1860 %>%
+    dplyr::filter(HIK != "")
 
-intrastate_moved_1860 <- ct_hik_1850 %>%
-  inner_join(ct_hik_1860, by = c("HIK"), suffix = c("_1850", "_1860")) %>%
-  dplyr::filter(combined_1850 != combined_1860) %>%
-  mutate(migrate_age = ifelse(RELATE_1860 == 1, AGE_1850, FAMILY_HEAD_AGE))
+  intrastate_moved_1860 <- ct_hik_1850 %>%
+    inner_join(ct_hik_1860, by = c("HIK"), suffix = c("_1850", "_1860")) %>%
+    dplyr::filter(combined_1850 != combined_1860) %>%
+    mutate(migrate_age = ifelse(RELATE_1860 == 1, AGE_1850, FAMILY_HEAD_AGE))
 
+  net_intrastate_migration <- intrastate_moved_1860 %>%
+    group_by(combined_1850) %>%
+    summarise(number = n()) %>%
+    select(combined_1850, number) %>%
+    full_join(intrastate_moved_1860 %>%
+      group_by(combined_1860) %>%
+      summarise(number = n()) %>%
+      select(combined_1860, number), join_by(combined_1850 == combined_1860)) %>%
+    mutate(net_migration = number.y - number.x) %>%
+    rename(combined = combined_1850) %>%
+    select(combined, net_migration)
+}
+
+# Create a tibble with economic and demographic data by town, to be used as
+# inference covariates and in other analysis.
 factors <- ungroup(ct_1860_hh %>%
   group_by(town, combined) %>%
   summarise(gini = ineq::ineq(FAMILY_WEALTH, type = "Gini")) %>%
@@ -294,4 +307,4 @@ factors <- ungroup(ct_1860_hh %>%
     starts_with("pct"), ends_with("change")
   )
 
-save(factors, ct_1850, ct_1860, ct_1860_hh, ct_1850_hh, white_male_1860_hh, file = "ct_demographics.Rda")
+save(factors, ct_1850, ct_1860, ct_1860_hh, ct_1850_hh, file = "ct_demographics.Rda")
