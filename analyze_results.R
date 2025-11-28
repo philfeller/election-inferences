@@ -253,6 +253,25 @@ summary(lm(gini ~ pct_farm_1860 + age_1860 + wealth, factors))
 # accounts for about 25% to the variance. Wealth is also correlated to age,
 # and to GINI index, but it only accounts for about 5% of the variance in GINI
 
+white_male_1860_hh <- ct_1860 %>%
+  # Exclude servants and institutional housing
+  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  group_by(SERIAL * 100 + FAMUNIT) %>%
+  summarise(
+    FAMILY_REALPROP = sum(REALPROP),
+    FAMILY_WEALTH = sum(WEALTH),
+    AGE = first(AGE),
+    AGE_CAT = first(AGE_CAT),
+    BIRTH = first(BIRTH),
+    SEX = first(SEX),
+    RACE = first(RACE),
+    JOB = first(JOB),
+    CLASS = first(CLASS),
+    town = first(town),
+    combined = first(combined)
+  ) %>%
+  dplyr::filter(SEX == 1 && RACE == 1)
+
 # Use the average age for each of the age categories when doing regression
 avg_ages <- c()
 age_cats <- c("20 - 29", "30 - 39", "40 - 49", "50 - 59", "60 and over")

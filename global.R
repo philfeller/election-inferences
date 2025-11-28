@@ -503,6 +503,5 @@ party_colors <- c(
   "Republican" = "#66a61e"
 )
 
-# Right-hand side of formula when evaluating residuals for covariates;
-# y will be updated with appropriate dependent variable
-formula_template <- as.formula("y ~ LON + gini + wealth + age_1850 + pct_farm_1850 + pct_irish_1850 + age_1860 + pct_farm_1860 + pct_irish_1860")
+# Don't create tibble calculating net intrastate migration
+compute_migration <- FALSE

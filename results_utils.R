@@ -391,9 +391,9 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
   # eligible_pct: tibble with percentage of eligible voters who voted in each town combination
   # factors: tibble with demographic factors for each town
 
-  # Create list of towns to be combined based on year range
+  # Create list of towns to be combined, based on year range
   result_grp <- year_groupings(beg_yr, end_yr)
-  # Create list of towns to be combined in shapefile based on year range
+  # Create list of towns to be combined in a shapefile, based on year range
   # Because of Putnam's formation in 1856, the base map will be that of 1855
   # or 1857, depending on the end year
   map_grp <- year_groupings(beg_yr, max(1855, end_yr))
@@ -418,12 +418,14 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
     create_factors(beg_yr, end_yr) %>%
     rename(town = combined)
 
+  # Create a tibble that combines the election data for each year in the period,
+  # keeping only the data for the beginning and end years.
   yrs <- 51:57
   combined <- yrs %>%
     map(~ prepare_election_year(raw_results, shp, result_grp, map_grp, .x, beg_yr, end_yr)) %>%
     reduce(left_join, by = "town")
 
-  # Combine the year-by-year tibbles to have one record for each town
+  # Create a tibble with percentage results, including estimated nonvoters.
   full_results <- combined %>%
     dplyr::filter(!if_all(everything(), is.na)) %>%
     left_join(geo, by = "town") %>%
@@ -475,7 +477,9 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
     ) %>%
     select_if(function(x) !any(is.na(x)))
 
-  # Calculate spatial lag variables for party strength in beginning and ending years
+  # Calculate spatial lag variables for party strength in beginning and ending years;
+  # spatial lag captures the extent to which results are affected by those in
+  # nearby towns, weighted by adjacency.
   b_name <- paste0("p", substr(beg_yr, 3, 4))
   e_name <- paste0("p", substr(end_yr, 3, 4))
   vars <- get(b_name) # e.g., c("Democrat_in_1854", ...)
@@ -490,6 +494,7 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
   return(list(results = full_results, shp = shp))
 }
 
+# Define function to calculate the weighted standard deviation
 weighted.sd <- function(results) {
   # results: tibble with election results, including weighted mean row
 
