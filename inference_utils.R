@@ -185,8 +185,9 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
       lambda1 = lambda1, lambda2 = lambda2, covariate = covariate_formula
     )
     
-    # Testing shows that a model ought to have outlier standard deviations no worse than .08
-    threshhold_95 <- .08
+    # Testing shows that a model ought to have 95th percentile standard deviations
+    # no worse than .04, although it takes several tries to achieve this for 1855.
+    threshhold_95 <- .04
     with_95 <- 1 # Initiate loop variable
     while (with_95 > threshhold_95) {
       h <- c(0, 1)
