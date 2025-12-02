@@ -187,9 +187,14 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
     
     # Testing shows that a model ought to have 95th percentile standard deviations
     # no worse than .04, although it takes several tries to achieve this for 1855.
-    threshhold_95 <- .04
+    threshold_95 <- .04
+    # Without a threshold for the 5th percentile standard deviations, the 95th
+    # percentile threshold can cause some cells to become overly constrained and
+    # lose information that is present in the data
+    threshold_05 <- .005
     with_95 <- 1 # Initiate loop variable
-    while (with_95 > threshhold_95) {
+    with_05 <- 0
+    while (with_95 > threshold_95 & with_05 < threshold_05) {
       h <- c(0, 1)
       while (sum(h) != length(h)) {
         ei.model <- ei.MD.bayes(
@@ -207,8 +212,9 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
       if (covariate == TRUE && exists("base.ei.model")) {
         sd_comparison <- model_sds(ei.model, base.ei.model, end_party)
         summary_df <- model_summary(sd_comparison)
+        with_05 <- summary_df$With_Covariates[1]
         with_95 <- summary_df$With_Covariates[4]
-        if (with_95 < threshhold_95) {
+        if (with_95 <= threshold_95 & with_05 >= threshold_05) {
           print("Standard Deviation Summary (No Covariates vs With Covariates):")
           print(summary_df)
           save(summary_df, file = paste(beg_yr, "_", end_yr, "_covariate_sd_summary.Rda", sep = ""))
