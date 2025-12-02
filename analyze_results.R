@@ -147,13 +147,11 @@ for (t in 1:nrow(results.55)) {
   }
 }
 
-# The greatest uncertainty in the 1855 inference is in determining what became of
-# 1854 Free Soil voters, followed by doubt about Temperance and Whig voters.
-# Similar results are obtained when standard deviations are calculated for the
-# models alphas.
+# The 1855 model without covariates has a large amount of uncertainty about what
+# happened to Free Soil voters; the model with covariates greatly reduces that.
 
-combined_betas <- combine_betas(beta.sims.MD(cov.ei.55, p55))
-z_scores <- data.frame(beta_sd = numeric(), transition = character())
+combined_betas <- combine_betas(beta.sims.MD(ei.55, p55))
+sd_without <- data.frame(beta_sd = numeric(), transition = character())
 for (from_party in pull(distinct(combined_betas %>% select(from)))) {
   for (to_party in pull(distinct(combined_betas %>% select(to)))) {
     transition <- combined_betas %>%
@@ -163,14 +161,35 @@ for (from_party in pull(distinct(combined_betas %>% select(from)))) {
       ) %>%
       select(value)
     beta_sd <- sd(pull(transition))
-    if (beta_sd > 2.5) {
+    if (beta_sd > 3) {
       transition <- paste(from_party, " to ", to_party, sep = "")
-      z_scores <- rbind(z_scores, data.frame(beta_sd = beta_sd, transition = transition))
+      sd_without <- rbind(sd_without, data.frame(beta_sd = beta_sd, transition = transition))
+    }
+  }
+}
+cat("\n\n1855 transitions with high standard deviations in model without covariates\n")
+print(sd_without %>%
+        arrange(desc(beta_sd)))
+
+combined_betas <- combine_betas(beta.sims.MD(cov.ei.55, p55))
+sd_with <- data.frame(beta_sd = numeric(), transition = character())
+for (from_party in pull(distinct(combined_betas %>% select(from)))) {
+  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
+    transition <- combined_betas %>%
+      dplyr::filter(
+        from == from_party,
+        to == to_party
+      ) %>%
+      select(value)
+    beta_sd <- sd(pull(transition))
+    if (beta_sd > 3) {
+      transition <- paste(from_party, " to ", to_party, sep = "")
+      sd_with <- rbind(sd_with, data.frame(beta_sd = beta_sd, transition = transition))
     }
   }
 }
 cat("\n\n1855 transitions with high standard deviations in covariate model\n")
-print(z_scores %>%
+print(sd_with %>%
         arrange(desc(beta_sd)))
 
 # Meriden has a disproportionate number of native-born, young-adult males.
