@@ -1,0 +1,90 @@
+---
+title: "Connecticut Party Transitions: 1851-1857"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(sankeyD3plus)
+source("global.R", local = TRUE)
+source("betas.R", local = TRUE)
+source("present.R", local = TRUE)
+load("./sankey.Rda")
+load("./results.Rda")
+load("1852_covariate_inference.Rda")
+load("1853_covariate_inference.Rda")
+load("1854_covariate_inference.Rda")
+load("1855_covariate_inference.Rda")
+load("1856_covariate_inference.Rda")
+load("1857_covariate_inference.Rda")
+
+```{r sankey, echo=FALSE}
+sankey_widget
+```
+
+Transitions less than 0.5% are not shown. Hover over the flows to see exact percentages and 95% condfidence intervals; hover over the nodes to see total percentages for each party in a given year
+and to highlight the flows into and out of that party from the previous year and into the following
+year.
+
+Percentages may differ slightly from those in the transition tables below due to rounding.
+
+```{r tables, echo = FALSE}
+kable.52 <- construct_contingency(
+  results.52,
+  betas.MD(beta.sims.MD(cov.ei.52, p52)),
+  1851,
+  1852
+)
+kable.53 <- construct_contingency(
+  results.53,
+  betas.MD(beta.sims.MD(cov.ei.53, p53)),
+  1852,
+  1853
+)
+kable.54 <- construct_contingency(
+  results.54,
+  betas.MD(beta.sims.MD(cov.ei.54, p54)),
+  1853,
+  1854
+)
+kable.55 <- construct_contingency(
+  results.55,
+  betas.MD(beta.sims.MD(cov.ei.55, p55)),
+  1854,
+  1855
+)
+kable.56 <- construct_contingency(
+  results.56,
+  betas.MD(beta.sims.MD(cov.ei.56, p56)),
+  1855,
+  1856
+)
+kable.57 <- construct_contingency(
+  results.57,
+  betas.MD(beta.sims.MD(cov.ei.57, p57)),
+  1856,
+  1857
+)
+knitr::kable(kable.52,
+  format = "html", caption = "Table 1: Estimated Voter Transitions from 1851 to 1852") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(kable.53,
+  format = "html", caption = "Table 2: Estimated Voter Transitions from 1852 to 1853") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(kable.54,
+  format = "html", caption = "Table 3: Estimated Voter Transitions from 1853 to 1854") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(kable.55,
+  format = "html", caption = "Table 4: Estimated Voter Transitions from 1854 to 1855") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(kable.56,
+  format = "html", caption = "Table 5: Estimated Voter Transitions from 1855 to 1856") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(kable.57,
+  format = "html", caption = "Table 6: Estimated Voter Transitions from 1856 to 1857") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
