@@ -494,13 +494,13 @@ party_assignments <- rbind(
 # Define consistent colors for each party;
 # colors are from https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=7
 party_colors <- c(
-  "Democrat" = "#e7298a",
-  "Whig" = "#1b9e77",
-  "Free Soil" = "#a6761d",
-  "Temperance" = "#7570b3",
-  "Know Nothing" = "#d95f02",
-  "Abstaining" = "#e6ab02",
-  "Republican" = "#66a61e"
+  "Democrat" = "#D73027",
+  "Whig" = "#1A9850",
+  "Free Soil" = "#8C510A",
+  "Temperance" = "#7B3294",
+  "Know Nothing" = "#2E2E2E",
+  "Abstaining" = "#E6AB02",
+  "Republican" = "#4575B4"
 )
 
 # Don't create tibble calculating net intrastate migration
