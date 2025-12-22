@@ -3,7 +3,7 @@ name: Deploy GitHub Pages
 on:
   push:
     paths:
-      - 'docs/**'
+      - 'html/**'
   workflow_dispatch:
 
 jobs:
