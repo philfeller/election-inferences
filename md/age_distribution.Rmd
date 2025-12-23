@@ -1,0 +1,80 @@
+---
+title: "Connecticut Towns with Large Numbers of Native-Born Young Adult Males"
+output: html_document
+params:
+  directory: "../html"
+---
+  
+```{r setup, include=FALSE}
+library(dplyr)
+library(magrittr)
+load(file = "../ct_demographics.Rda")
+```
+
+The typical age pyramid for Connecticut during the 1850s shows the number of people declining as age increases. However, some towns deviate from this pattern by having unusually high numbers of young adults aged 20 to 29.
+
+```{r plots, echo = FALSE}
+# Define a function to identify maxima
+find_peaks <- function(x, m = 10) {
+  shape <- diff(sign(diff(x, na.pad = FALSE)))
+  pks <- sapply(which(shape < 0), FUN = function(i) {
+    z <- i - m + 1
+    z <- ifelse(z > 0, z, 1)
+    w <- i + m + 1
+    w <- ifelse(w < length(x), w, length(x))
+    if (all(x[c(z:i, (i + 2):w)] <= x[i + 1])) {
+      return(i + 1)
+    } else {
+      return(numeric(0))
+    }
+  })
+  pks <- unlist(pks)
+  pks
+}
+
+ct_native_male_1850 <- ct_1850 %>%
+  dplyr::filter(BIRTH == "native" & haven::zap_label(SEX) == 1)
+ct_native_male_1860 <- ct_1860 %>%
+  dplyr::filter(BIRTH == "native" & haven::zap_label(SEX) == 1)
+ct_age_distribution <- ct_native_male_1850 %>%
+  select(AGE) %>%
+  arrange(AGE) %>%
+  group_by(AGE) %>%
+  summarize(n = n())
+ct_native_male.ss <- smooth.spline(ct_age_distribution)
+plot(ct_age_distribution)
+lines(ct_native_male.ss)
+title("Connecticut Native-born Male Age Distribution")
+for (t in (distinct(ct_1850 %>% select(town))[[1]])) {
+  native_male_1850 <- ct_native_male_1850 %>%
+    dplyr::filter(town == t) %>%
+    select(AGE) %>%
+    arrange(AGE) %>%
+    group_by(AGE) %>%
+    summarize(n = n())
+  native_male_1850.ss <- smooth.spline(native_male_1850)
+  native_male_1860 <- ct_native_male_1860 %>%
+    dplyr::filter(town == t) %>%
+    select(AGE) %>%
+    arrange(AGE) %>%
+    group_by(AGE) %>%
+    summarize(n = n())
+  native_male_1860.ss <- smooth.spline(native_male_1860)
+  # Find the maxima in the smoothed age-distribution data
+  peaks <- find_peaks(native_male_1850.ss$y, m = 5)
+  if (length(peaks) < 3) {
+    for (peak in peaks) {
+      # Plot age distributions for towns that have a well-defined peak
+      if (native_male_1850.ss$y[peak] - native_male_1850.ss$y[10] > 10) {
+        max_age <- max(max(native_male_1850$n), max(native_male_1850.ss$y), max(native_male_1860.ss$y))
+        plot(native_male_1850, ylim = c(0, max_age))
+        lines(native_male_1850.ss)
+        lines(native_male_1860.ss, lty = "dashed")
+        legend("topright", legend = c("1850 ages", "1850 smoothed ages", "1860 smoothed ages"), pch = c(1, NA, NA), lty = c(NA, 1, 2))
+        title(paste(t, "Native-born Male Age Distribution"))
+        break
+      }
+    }
+  }
+}
+```
