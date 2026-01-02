@@ -1,8 +1,6 @@
 ---
 title: "Connecticut Towns with Large Numbers of Native-Born Young Adult Males"
 output: html_document
-params:
-  directory: "../html"
 ---
   
 ```{r setup, include=FALSE}

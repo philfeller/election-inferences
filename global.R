@@ -499,7 +499,7 @@ party_colors <- c(
   "Free Soil" = "#8C510A",
   "Temperance" = "#7B3294",
   "Know Nothing" = "#2E2E2E",
-  "Abstaining" = "#E6AB02",
+  "Non-voting" = "#E6AB02",
   "Republican" = "#4575B4"
 )
 

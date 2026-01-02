@@ -54,6 +54,8 @@ beta.sims.MD <- function(ei.model, cols, town.id) {
       simulations = 1:nrow(x)
     )
   }
+  # Change "Abstaining" to "Non-voting" in dimension names
+  x_dim_names <- lapply(x_dim_names, function(n) gsub("Abstaining", "Non-voting", n))
   if (missing(town.id)) {
     x <- array(t(x), dim = x_dim, dimnames = x_dim_names)
   } else {
@@ -71,6 +73,46 @@ betas.MD <- function(beta_sims) {
   # Function to calculate rounded mean
   rmed <- function(x) round(mean(x), 3)
 
+  r_names <- rownames(beta_sims)
+  c_names <- colnames(beta_sims)
+  vote_trans <- array(dim = c(length(r_names), length(c_names)), dimnames = list(r_names, c_names))
+  # Iterate through the parties in the columns
+  for (op in 1:dim(beta_sims)[1]) {
+    p <- t(beta_sims[op, , ])
+    value <- apply(p, 2, rmed)
+    vote_trans[op, ] <- value
+  }
+  return(vote_trans)
+}
+
+# Combine the output of beta.sims.MD() into a matrix, by the rows and columns
+# from which marginals were taken, of the 2.5 percentile beta values.
+betas_lo.MD <- function(beta_sims) {
+  # beta_sims: output of beta.sims.MD()
+  
+  # Function to calculate rounded mean
+  rmed <- function(x) round(quantile(x, 0.025), 3)
+  
+  r_names <- rownames(beta_sims)
+  c_names <- colnames(beta_sims)
+  vote_trans <- array(dim = c(length(r_names), length(c_names)), dimnames = list(r_names, c_names))
+  # Iterate through the parties in the columns
+  for (op in 1:dim(beta_sims)[1]) {
+    p <- t(beta_sims[op, , ])
+    value <- apply(p, 2, rmed)
+    vote_trans[op, ] <- value
+  }
+  return(vote_trans)
+}
+
+# Combine the output of beta.sims.MD() into a matrix, by the rows and columns
+# from which marginals were taken, of the .5 percentile beta values.
+betas_lo.MD <- function(beta_sims) {
+  # beta_sims: output of beta.sims.MD()
+  
+  # Function to calculate rounded mean
+  rmed <- function(x) round(quantile(x, 0.025), 3)
+  
   r_names <- rownames(beta_sims)
   c_names <- colnames(beta_sims)
   vote_trans <- array(dim = c(length(r_names), length(c_names)), dimnames = list(r_names, c_names))

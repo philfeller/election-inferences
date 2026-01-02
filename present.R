@@ -142,7 +142,7 @@ combine_betas <- function(betas) {
 }
 
 # Plot the distributions of the estimated betas
-boxplotMD <- function(betas, col_yr, row_yr, town) {
+boxplotMD <- function(betas, col_yr, row_yr, town, covariate = FALSE) {
   # betas: matrix of betas from the MD inference
   # col_yr: beginning year of the transition
   # row_yr: ending year of the transition
@@ -154,7 +154,7 @@ boxplotMD <- function(betas, col_yr, row_yr, town) {
     pre_title <- paste(town, ": ", sep = "")
   }
   beta_df <- combine_betas(betas)
-  title <- paste("Voter transitions between", col_yr, "and", row_yr)
+  title <- paste("Voter transitions between", col_yr, "and", row_yr, ifelse(covariate, "with covariates", "without covariates"))
   print(ggplot(data = beta_df, aes(y = from, x = value, fill = to)) +
     stat_boxplot(geom = "errorbar") +
     geom_boxplot(outlier.shape = NA) +
@@ -165,7 +165,7 @@ boxplotMD <- function(betas, col_yr, row_yr, town) {
 }
 
 # Plot the ridgeline distributions of the estimated betas
-ridgelineMD <- function(betas, col_yr, row_yr, town) {
+ridgelineMD <- function(betas, col_yr, row_yr, town, covariate = FALSE) {
   # betas: matrix of betas from the MD inference
   # col_yr: beginning year of the transition
   # row_yr: ending year of the transition
@@ -177,7 +177,7 @@ ridgelineMD <- function(betas, col_yr, row_yr, town) {
     pre_title <- paste(town, ": ", sep = "")
   }
   beta_df <- combine_betas(betas)
-  title <- paste("Voter transitions between", col_yr, "and", row_yr)
+  title <- paste("Voter transitions between", col_yr, "and", row_yr, ifelse(covariate, "with covariates", "without covariates"))
   suppressMessages(
     print(ggplot(data = beta_df, aes(y = party, x = value, fill = to)) +
       ggridges::stat_density_ridges(quantile_lines = FALSE, scale = 4, alpha = 1) +
