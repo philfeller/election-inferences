@@ -34,6 +34,7 @@ if (any(is.na(models))) stop("One or more model names not found in global env. C
 clean_party_label <- function(full_label) {
   lbl <- sub("_in_\\d{4}$", "", full_label)
   lbl <- gsub("_", " ", lbl)
+  lbl <- sub("^Abstaining$", "Non-voting", lbl)
   trimws(lbl)
 }
 
@@ -338,6 +339,5 @@ sankey_widget <- htmlwidgets::onRender(sankey_widget, htmlwidgets::JS(js))
 #   # tags$footer("Generated on ", Sys.Date())
 # )
 
-# Save HTML file
+# Save HTML widget
 save(sankey_widget, file = "sankey.Rda")
-rmarkdown::render("sankey.Rmd", output_file = "sankey.html", output_dir = "./html")

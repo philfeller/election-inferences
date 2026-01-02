@@ -1,0 +1,75 @@
+---
+title: "Comparison to Lex Renda's 1991 Ecological Regression"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+wd <- getwd()
+setwd("../")
+source("./global.R", local = TRUE)
+source("./betas.R", local = TRUE)
+source("./present.R", local = TRUE)
+load("./results.Rda")
+load("./1854_covariate_inference.Rda")
+load("./1855_covariate_inference.Rda")
+setwd(dirname(wd))
+
+renda.54 <- structure(c(31.1, -1, 0.1, -0.8, 29.4, -0.5, 19.4, 1.2, 0.1, 
+20.2, -1.6, 2.1, 2.9, -0.7, 2.7, 2.7, 0.8, 4.1, 3.4, 11.1, 0.3, 
+0.2, 0.9, 35.2, 36.6, 32, 21.5, 9.3, 37.2, 100), dim = 5:6, dimnames = list(
+    c("Democrat", "Whig", "Free Soil", "Non-voting", "share in 1854"
+    ), c("Democrat", "Whig", "Free Soil", "Temperance", "Non-voting", 
+    "share in 1853")))
+    
+renda.55 <- structure(c(19.1, 5.6, -2.3, 2.5, 2.7, 27.6, -2.2, 7.8, 1, 2.9, 
+-0.2, 9.3, 10.5, 6.6, 2.5, 6.2, 2.6, 28.5, 1.2, -0.3, 1.4, -0.8, 
+33.1, 34.6, 28.7, 19.7, 2.6, 10.8, 38.2, 100), dim = 6:5, dimnames = list(
+    c("Democrat", "Whig", "Free Soil", "Temperance", "Non-voting", 
+    "share in 1855"), c("Democrat", "Whig", "Know Nothing", "Non-voting", 
+    "share in 1854")))
+```
+
+Lex Renda, in his 1991 dissertation, <i>The Polity and the Party Sytem: Connecticut and New Hampshire, 1840–1876</i>, estimated voter transitions in Connecticut elections using Leo Goodman's 1953 method of ecological regression. Below I compare my estimates to his for the elections from 1853 to 1854 and from 1854 to 1855.
+
+```{r tables, echo = FALSE}
+kable.54 <- construct_contingency(
+  results.54,
+  betas.MD(beta.sims.MD(cov.ei.54, p54)),
+  1853,
+  1854
+)
+kable.55 <- construct_contingency(
+  results.55,
+  betas.MD(beta.sims.MD(cov.ei.55, p55)),
+  1854,
+  1855
+)
+knitr::kable(kable.54,
+  format = "html") %>%
+  kableExtra::add_header_above(c("Voter Transitions from 1853 to 1854, estimated using Multinomial Dirichlet" = 7),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(renda.54,
+  format = "html") %>%
+  kableExtra::add_header_above(c("Voter Transitions from 1853 to 1854, estimated by Lex Renda using Goodman" = 7),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(kable.55,
+  format = "html") %>%
+  kableExtra::add_header_above(c("Voter Transitions from 1854 to 1855, estimated using Multinomial Dirichlet" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+knitr::kable(renda.55,
+  format = "html") %>%
+  kableExtra::add_header_above(c("Voter Transitions from 1854 to 1855, estimated by Lex Renda using Goodman" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```

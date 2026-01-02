@@ -1,0 +1,38 @@
+---
+title: "Uncertainly in Voter Transitions between 1854 and 1855"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+wd <- getwd()
+setwd("../")
+source("./global.R", local = TRUE)
+source("./betas.R", local = TRUE)
+source("./present.R", local = TRUE)
+load("./results.Rda")
+load("./1855_inference.Rda")
+load("./1855_covariate_inference.Rda")
+setwd(dirname(wd))
+```
+Between the 1854 and 1855 Connecticut gubernatorial elections, there was significant uncertainty regarding voter transitions among political parties. The ridgeline plots below illustrate the distributions of estimated transition probabilities from one party to another, both with and without covariate adjustments.
+
+```{r plots, echo=FALSE}
+ridgelineMD(beta.sims.MD(ei.55, p55), 1854, 1855, covariate = FALSE)
+ridgelineMD(beta.sims.MD(cov.ei.55, p55), 1854, 1855, covariate = TRUE)
+```
+
+The covariate-adjusted model (bottom) shows narrower distributions for many transitions, indicating reduced uncertainty compared to the unadjusted model (top). This suggests that incorporation of covariates helps to better explain voter behavior during this period.
+
+The covariates used in the adjusted model are:
+
+- Town's longitude
+- Influence of neighboring towns on 1854 vote for Democrats, Whigs, Free Soil, and Temperance parties (spatial lag)
+- Percentage of Baptists
+- Percentage of Congregationalists
+- Percentage of Pietistic denominations (Methodist, Baptist, and others without formal clerical training)
+- Average age in 1850
+- Percentage of Irish-born residents in 1850
+- GINI index of 1850 real-property values
+- GINI index of 1860 real-property values
+
+Covariates were chosen by performing a stepwise regression on the residuals from an initial ecological inference model without covariates, selecting those that significantly improved model fit for a majority of transitions.

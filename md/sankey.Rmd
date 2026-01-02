@@ -1,21 +1,25 @@
 ---
-title: "Connecticut Party Transitions: 1851-1857"
+title: "Connecticut Gubernatorial Party Transitions: 1851-1857"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 library(sankeyD3plus)
-source("global.R", local = TRUE)
-source("betas.R", local = TRUE)
-source("present.R", local = TRUE)
+wd <- getwd()
+setwd("../")
+source("./global.R", local = TRUE)
+source("./betas.R", local = TRUE)
+source("./present.R", local = TRUE)
 load("./sankey.Rda")
 load("./results.Rda")
-load("1852_covariate_inference.Rda")
-load("1853_covariate_inference.Rda")
-load("1854_covariate_inference.Rda")
-load("1855_covariate_inference.Rda")
-load("1856_covariate_inference.Rda")
-load("1857_covariate_inference.Rda")
+load("./1852_covariate_inference.Rda")
+load("./1853_covariate_inference.Rda")
+load("./1854_covariate_inference.Rda")
+load("./1855_covariate_inference.Rda")
+load("./1856_covariate_inference.Rda")
+load("./1857_covariate_inference.Rda")
+setwd(dirname(wd))
+```
 
 ```{r sankey, echo=FALSE}
 sankey_widget
@@ -65,26 +69,45 @@ kable.57 <- construct_contingency(
   1857
 )
 knitr::kable(kable.52,
-  format = "html", caption = "Table 1: Estimated Voter Transitions from 1851 to 1852") %>%
+  format = "html") %>%
+  kableExtra::add_header_above(c("Estimated Voter Transitions from 1851 to 1852" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 knitr::kable(kable.53,
-  format = "html", caption = "Table 2: Estimated Voter Transitions from 1852 to 1853") %>%
+  format = "html") %>%
+  kableExtra::add_header_above(c("Estimated Voter Transitions from 1852 to 1853" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 knitr::kable(kable.54,
-  format = "html", caption = "Table 3: Estimated Voter Transitions from 1853 to 1854") %>%
+  format = "html") %>%
+  kableExtra::add_header_above(c("Estimated Voter Transitions from 1853 to 1854" = 7),
+                               align = "left",
+                               font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 knitr::kable(kable.55,
-  format = "html", caption = "Table 4: Estimated Voter Transitions from 1854 to 1855") %>%
+  format = "html") %>%
+  kableExtra::add_header_above(c("Estimated Voter Transitions from 1854 to 1855" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 knitr::kable(kable.56,
-  format = "html", caption = "Table 5: Estimated Voter Transitions from 1855 to 1856") %>%
+  format = "html") %>%
+  kableExtra::add_header_above(c("Estimated Voter Transitions from 1855 to 1856" = 7),
+                               align = "left",
+                               font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 knitr::kable(kable.57,
-  format = "html", caption = "Table 6: Estimated Voter Transitions from 1856 to 1857") %>%
+  format = "html") %>%
+  kableExtra::add_header_above(c("Estimated Voter Transitions from 1856 to 1857" = 5),
+                               align = "left",
+                               font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
+```

@@ -1,0 +1,108 @@
+---
+title: "Correlation between votes for different offices"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+library(dplyr)
+library(magrittr)
+wd <- getwd()
+setwd("../")
+source("./global.R", local = TRUE)
+
+source("./results_utils.R", local = TRUE)
+source("./census_utils.R", local = TRUE)
+source("./present.R", local = TRUE)
+governor_results <- read_results(results_file, alias_map, party_assignments, "Governor", 1849, 1857)
+lt_governor_results <- read_results(results_file, alias_map, party_assignments, "Lieutenant Governor", 1849, 1857)
+secretary_results <- read_results(results_file, alias_map, party_assignments, "Secretary of the State", 1849, 1857)
+treasurer_results <- read_results(results_file, alias_map, party_assignments, "Treasurer", 1849, 1857)
+probate_results <- read_probate_results(results_file, alias_map, party_assignments, 1849, 1857)
+setwd(dirname(wd))
+```
+
+By Connecticut law, voters deposited ballots for probate judge in a separate ballot box from the one into which they deposited ballots for statewide offices. Political operatives would hand these ballots to voters. The close correlation of the votes for statewide offices, compared to the weaker correlation of probate judge votes with those for statewide offices, suggests either that operatives looked for a combination of ballots that voters would be most likely accept or that voters accepted ballots from different operatives for different offices. In either case, the weaker correlation for probate judge votes suggests that voters were less consistent in their party preferences than the "party period" model would suggest.
+
+```{r table, echo = FALSE}
+# Keep only those rows that have results for all five offices
+governor_results <- semi_join(governor_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+lt_governor_results <- semi_join(lt_governor_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+secretary_results <- semi_join(secretary_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(governor_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+treasurer_results <- semi_join(treasurer_results, probate_results, by = c("town", "yr")) %>%
+  semi_join(governor_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr"))
+probate_results <- semi_join(probate_results, governor_results, by = c("town", "yr")) %>%
+  semi_join(lt_governor_results, by = c("town", "yr")) %>%
+  semi_join(secretary_results, by = c("town", "yr")) %>%
+  semi_join(treasurer_results, by = c("town", "yr"))
+
+corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, "Democrat")
+knitr::kable(corr_df,
+  format = "html"
+) %>%
+  kableExtra::add_header_above(c("Correlation of Democratic vote tallies for statewide offices, 1849-1857" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, "Whig")
+knitr::kable(corr_df,
+  format = "html"
+) %>%
+  kableExtra::add_header_above(c("Correlation of Whig vote tallies for statewide offices, 1849-1857" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, "Free_Soil")
+knitr::kable(corr_df,
+  format = "html"
+) %>%
+  kableExtra::add_header_above(c("Correlation of Free Soil vote tallies for statewide offices, 1849-1857" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, "Temperance")
+knitr::kable(corr_df,
+  format = "html"
+) %>%
+  kableExtra::add_header_above(c("Correlation of Temperance vote tallies for statewide offices, 1849-1857" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, "Know_Nothing")
+knitr::kable(corr_df,
+  format = "html"
+) %>%
+  kableExtra::add_header_above(c("Correlation of Know Nothing vote tallies for statewide offices, 1849-1857" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+corr_df <- corr_matrix_by_party(governor_results, lt_governor_results, secretary_results, treasurer_results, probate_results, "Republican")
+knitr::kable(corr_df,
+  format = "html"
+) %>%
+  kableExtra::add_header_above(c("Correlation of Republican vote tallies for statewide offices, 1849-1857" = 6),
+                               align = "left",
+                               font_size = "larger") %>%
+  kableExtra::column_spec(1, bold = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
