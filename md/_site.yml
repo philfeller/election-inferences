@@ -1,0 +1,17 @@
+name: "Connecticut Voter Transitions, 1851-1857"
+output_dir: ../html
+navbar:
+  title: "Connecticut Voter Transitions, 1851-1857"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Gubernatorial Transitions"
+      href: sankey.html
+    - text: "Uncertainty in 1854-1855 Transitions"
+      href: uncertainty.html
+    - text: "Comparison to Goodman Regressions"
+      href: renda.html
+    - text: "Ballot Correlations"
+      href: office_correlation.html
+    - text: "Age Distributions"
+      href: age_distribution.html
