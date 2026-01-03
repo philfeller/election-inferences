@@ -11,7 +11,7 @@
 
 
 
-<title>Connecticut Voter Transitions, 1851-1857</title>
+<title>Ecological Inference Model</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -275,76 +275,116 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Connecticut Voter Transitions,
-1851-1857</h1>
+<h1 class="title toc-ignore">Ecological Inference Model</h1>
 
 </div>
 
 
-<p>The elections of the 1850s were marked by dramatic shifts in party
-affiliation. The “new” political history introduced the use of
-ecological regression to estimate the transitions of voters between
-parties from one election to the next. Combined with regressions of vote
-shares by demographic data, the intent was to describe possible reasons
-for why voters shifted their party allegiances. Historians used the
-regression method that Leo Goodman first outlined in 1953.</p>
-<p>In recent years, more sophisticated ecological inference models have
-been developed that improve on Goodman’s original method, including the
-multinomial-Dirichlet method developed by Gary King and others.
-<a href="https://www.r-project.org/doc/Rnews/Rnews_2007-2.pdf#page=43">Olivia
-Lau, Ryan T. Moore, and Michael Kellerman created eiPack</a>, an R
-package that implements these methods.</p>
-<p><a href="https://github.com/philfeller/election-inferences">I have
-used eiPack to estimate voter transitions in Connecticut gubernatorial
-elections from 1851 to 1857</a>, a period of significant political
-realignment. The results are <a href="sankey.html">presented as a Sankey
-diagram</a> showing the estimated transitions of voters between parties
-from one election to the next, along with tables showing the estimated
-transition percentages.</p>
-<p>Transitions that involve parties with smaller vote shares have wider
-confidence intervals, reflecting the greater uncertainty in estimating
-transitions for smaller groups of voters, and the volatile transition
-between 1854 and 1855 is particularly fraught. To address this, My voter
-transition estimations use using geographical, demographic, and economic
-covariates selected via stepwise regression. I present the degree of
-uncertainty before and after including covariates in
-<a href="uncertainty.html">two ridgeline plots</a>.</p>
-<p>This analysis forms part of a paper on Connecticut political
-realignment in the 1850s that I am preparing for a conference
-presentation and possible publication. Part of my analysis considers the
-effect that ballot-box mechanics played in shaping voter behavior, and a
-chart of <a href="office_correlation.html">vote correlations</a> between
-statewide and local offices provides evidence of voter interactions with
-political operatives.</p>
-<p>The need to provide economic opportunities to young men may also have
-influenced voter behavior, and I present
-<a href="age_distribution.html">charts showing the age distributions</a>
-statewide and in towns with unusually large native-born, young adult
-male cohorts.</p>
-<p>Finally, I <a href="renda.html">compare my results to those of Lex
-Renda</a>, whose 1991 dissertation on Connecticut politics in the 19th
-century included estimates of voter transitions using Goodman’s
-ecological regression method.</p>
-<p>For the mathematically curious, I provide a non-technical
-<a href="model.html">explanation of the ecological inference method</a>
-that I used and how I implemented it.</p>
-<div id="references" class="section level2">
-<h2>References</h2>
-<p>Goodman, Leo A. 1953. “Ecological Regressions and Behavior of
-Individuals.” American Sociological Review 18 (6): 663–64. <a
-href="https://doi.org/10.2307/2088121"
-class="uri">https://doi.org/10.2307/2088121</a>.</p>
-<p>Rosen, Ori, Wenxin Jiang, Gary King, and Martin A. Tanner. 2001.
-“Bayesian and Frequentist Inference for Ecological Inference: The R × C
-Case.” Statistica Neerlandica 55 (2): 134. <a
-href="https://doi.org/10.1111/1467-9574.00162"
-class="uri">https://doi.org/10.1111/1467-9574.00162</a>.</p>
-<p>Bensel, Richard Franklin. 2004. <i>The American Ballot Box in the
-Mid-Nineteenth Century</i>. Cambridge University Press.</p>
-<p>Renda, Lex. 1991. “The Polity and the Party System: Connecticut and
-New Hampshire, 1840–1876.” Ph.D. Dissertation, University of
-Virginia.</p>
-</div>
+<p>The ecological problem involves inferring individual-level behavior,
+such as decisions to switch voting allegiance, from aggregate data, such
+as vote tallies by town. There are many ways that vote shares could have
+shifted between elections, and ecological inference methods attempt to
+estimate the most probable transitions.</p>
+<p>The Leo Goodman method was among the earliest attempts to use
+regression techniques to estimate voter transition proportions from
+aggregate election data, identifying parameter values that minimized
+unexplained variance in observed vote shares. It was widely adopted by
+historians but had important limitations. Because the method imposed no
+probabilistic constraints on parameter estimates, it could yield
+logically impossible results—for example, Renda’s application produces
+an estimate implying that –1.6 percent of 1853 Democratic voters shifted
+to Free Soil in 1854. The approach also assumed homogeneous transition
+probabilities across all towns and offered no straightforward way to
+model how measurable local conditions might systematically shape
+different patterns of voter movement.</p>
+<p>More recent methods, such as the multinomial-Dirichlet model,
+building on work by Gary King and others, use statistical techniques to
+estimate transition proportions while incorporating prior knowledge and
+uncertainty. Rather than returning point estimates for the proportion of
+voters that shift between elections, they produce probability
+distributions over those proportions, like the familiar bell curve.</p>
+<p>The multinomial-Dirichlet model is a hierarchical Bayesian model.
+This sounds complex and technical, but each part of that description can
+be unpacked. The word “hierarchical” means that the model allows
+transition proportions to vary across towns with this variation
+potentially explained by measurable town characteristics (covariates).
+The model uses a Dirichlet distribution, which models multiple
+proportions simultaneously while ensuring they sum to 100% and cannot be
+negative. The word “Bayesian” means that the model begins with an
+informed opinion about the likely shape of these distributions that is
+updated as the model is tested against the available data. The model’s
+framework allows covariates to be included, so that measurable
+characteristics of towns can help explain variations in voter behavior.
+The initial opinions about the likely shape of the distributions are
+called “priors,” and the updated distributions that result from testing
+against the data are called “posteriors.”</p>
+<p>To implement this Bayesian approach, the model makes use of a
+technique called Markov Chain Monte Carlo (MCMC) simulation to generate
+samples from the posterior distributions of transition proportions. MCMC
+works by creating a chain of samples where each new sample depends on
+the previous one (the “Markov Chain” part), designed so that over many
+iterations, the samples converge to properly represent the posterior
+distribution. By running many iterations of the model (the “Monte Carlo”
+part), it builds up a picture of the likely values for each transition
+proportion, along with measures of uncertainty.</p>
+<p>In building my model, I needed a way to select priors that enabled
+the MCMC simulations to converge reliably. I accomplished this by first
+running the model with non-informative priors, then analyzing the
+resulting posterior distributions to identify reasonable prior
+parameters for subsequent runs. I needed to be careful, though, that I
+didn’t inadvertently bias the model by choosing priors that were too
+tightly focused. Once I’d calculated reasonable prior parameters, I ran
+the model multiple times for each pair of elections, checking for
+convergence with a widely-used diagnostic (Gelman-Rubin).</p>
+<p>Once I’d obtained converged models, I examined the results to see how
+closely the town-by-town results from the model matched the actual
+results (what statisticians call “residuals”). I had calculated
+geographical, demographic, and economic data for each town that might
+help explain variations in voter behavior, so I performed stepwise
+regression (a method for systematically testing which variables best
+explain the data) on these residuals to identify those that
+significantly improved model fit for a majority of transitions. I then
+built new models that included these covariates.</p>
+<p>For the data that I used in my models, I needed to estimate the
+number of eligible voters in each town for each election year. Voters
+weren’t required to register, so there are no official records of
+eligible voters by town. Instead, I estimated the number of eligible
+voters based on the total native-born, adult male population of each
+town from the 1850 and 1860 censuses. To this I added estimates of the
+number of naturalized male citizens, based on the number of foreign-born
+adult males in each town and the average naturalization rates for
+Connecticut during the 1840s and 1850s. Previous historians have used
+techniques such as the number of taxable polls to estimate eligible
+voters, and I needed to do the same for a handful of towns having
+incorrect birthplace coding in their digitized census records. Finally,
+I assumed a linear growth in eligible voters between 1850 and 1860 to
+estimate the number of eligible voters for each town in each election
+year.</p>
+<p>The candidate covariates that I considered included:</p>
+<ul>
+<li>Longitude of the town center (previous historians have noted an
+east-west divide in Connecticut politics)</li>
+<li>Influence of neighboring towns on vote shares for each party
+(spatial lag)</li>
+<li>Percentage of various religious denominations, as approximated by
+the accommodation data in the 1860 Census Social Statistics
+schedule</li>
+<li>Grouping religious denominations into “Pietistic” (Methodist,
+Baptist, and others without formal clerical training) and “Liturgical”
+(Congregationalist, Episcopalian, Catholic, and others with formal
+clerical training)</li>
+<li>Average age in 1850</li>
+<li>Percentage of Irish-born residents in 1850</li>
+<li>Percentage of Irish-born residents in 1860</li>
+<li>Percentage of residents employed in farm jobs in 1850</li>
+<li>Percentage of residents employed in farm jobs in 1860</li>
+<li>Percentage of non-wealthy young adult males (ages 20-30, real
+property no greater than $2000) in 1850</li>
+<li>GINI index of 1850 real-property values</li>
+<li>GINI index of 1860 real-property values</li>
+<li>GINI index of 1860 total property values</li>
+<li>Average total property value in 1860</li>
+</ul>
 
 
 

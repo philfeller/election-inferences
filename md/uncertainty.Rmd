@@ -14,7 +14,7 @@ load("./1855_inference.Rda")
 load("./1855_covariate_inference.Rda")
 setwd(dirname(wd))
 ```
-Between the 1854 and 1855 Connecticut gubernatorial elections, there was significant uncertainty regarding voter transitions among political parties. The ridgeline plots below illustrate the distributions of estimated transition probabilities from one party to another, both with and without covariate adjustments.
+There was significant uncertainty regarding voter transitions among political parties between the 1854 and 1855 Connecticut gubernatorial elections. The ridgeline plots below illustrate the estimated distributions of transition probabilities from one party to another, both with and without covariate adjustments.
 
 ```{r plots, echo=FALSE}
 ridgelineMD(beta.sims.MD(ei.55, p55), 1854, 1855, covariate = FALSE)

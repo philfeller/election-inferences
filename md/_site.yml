@@ -15,3 +15,5 @@ navbar:
       href: office_correlation.html
     - text: "Age Distributions"
       href: age_distribution.html
+    - text: "Model Used"
+      href: model.html

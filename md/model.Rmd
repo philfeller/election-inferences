@@ -1,0 +1,39 @@
+---
+title: "Ecological Inference Model"
+output: html_document
+---
+
+The ecological problem involves inferring individual-level behavior, such as decisions to switch voting allegiance, from aggregate data, such as vote tallies by town. There are many ways that vote shares could have shifted between elections, and ecological inference methods attempt to estimate the most probable transitions.
+
+The Leo Goodman method was among the earliest attempts to use regression techniques to estimate voter transition proportions from aggregate election data, identifying parameter values that minimized unexplained variance in observed vote shares. It was widely adopted by historians but had important limitations. Because the method imposed no probabilistic constraints on parameter estimates, it could yield logically impossible results—for example, Renda’s application produces an estimate implying that –1.6 percent of 1853 Democratic voters shifted to Free Soil in 1854. The approach also assumed homogeneous transition probabilities across all towns and offered no straightforward way to model how measurable local conditions might systematically shape different patterns of voter movement.
+
+More recent methods, such as the multinomial-Dirichlet model, building on work by Gary King and others, use statistical techniques to estimate transition proportions while incorporating prior knowledge and uncertainty. Rather than returning point estimates for the proportion of voters that shift between elections, they produce probability distributions over those proportions, like the familiar bell curve.
+
+The multinomial-Dirichlet model is a hierarchical Bayesian model. This sounds complex and technical, but each part of that description can be unpacked. The word "hierarchical" means that the model allows transition proportions to vary across towns with this variation potentially explained by measurable town characteristics (covariates). The model uses a Dirichlet distribution, which models multiple proportions simultaneously while ensuring they sum to 100% and cannot be negative. The word "Bayesian" means that the model begins with an informed opinion about the likely shape of these distributions that is updated as the model is tested against the available data. The model's framework allows covariates to be included, so that measurable characteristics of towns can help explain variations in voter behavior. The initial opinions about the likely shape of the distributions are called "priors," and the updated distributions that result from testing against the data are called "posteriors."
+
+To implement this Bayesian approach, the model makes use of a technique called Markov Chain Monte Carlo (MCMC) simulation to generate samples from the posterior distributions of transition proportions. MCMC works by creating a chain of samples where each new sample depends on the previous one (the "Markov Chain" part), designed so that over many iterations, the samples converge to properly represent the posterior distribution. By running many iterations of the model (the "Monte Carlo" part), it builds up a picture of the likely values for each transition proportion, along with measures of uncertainty.
+
+In building my model, I needed a way to select priors that enabled the MCMC simulations to converge reliably. I accomplished this by first running the model with non-informative priors, then analyzing the resulting posterior distributions to identify reasonable prior parameters for subsequent runs. I needed to be careful, though, that I didn't inadvertently bias the model by choosing priors that were too tightly focused. Once I'd calculated reasonable prior parameters, I ran the model multiple times for each pair of elections, checking for convergence with a widely-used diagnostic (Gelman-Rubin).
+
+Once I'd obtained converged models, I examined the results to see how closely the town-by-town results from the model matched the actual results (what statisticians call "residuals"). I had calculated geographical, demographic, and economic data for each town that might help explain variations in voter behavior, so I performed stepwise regression (a method for systematically testing which variables best explain the data) on these residuals to identify those that significantly improved model fit for a majority of transitions. I then built new models that included these covariates.
+
+For the data that I used in my models, I needed to estimate the number of eligible voters in each town for each election year. Voters weren't required to register, so there are no official records of eligible voters by town. Instead, I estimated the number of eligible voters based on the total native-born, adult male population of each town from the 1850 and 1860 censuses. To this I added estimates of the number of naturalized male citizens, based on the number of foreign-born adult males in each town and the average naturalization rates for Connecticut during the 1840s and 1850s. Previous historians have used techniques such as the number of taxable polls to estimate eligible voters, and I needed to do the same for a handful of towns having incorrect birthplace coding in their digitized census records. Finally, I assumed a linear growth in eligible voters between 1850 and 1860 to estimate the number of eligible voters for each town in each election year.
+
+The candidate covariates that I considered included:
+
+- Longitude of the town center (previous historians have noted an east-west divide in Connecticut politics)
+- Influence of neighboring towns on vote shares for each party (spatial lag)
+- Percentage of various religious denominations, as approximated by the accommodation data in the 1860 Census Social Statistics schedule
+- Grouping religious denominations into "Pietistic" (Methodist, Baptist, and others without formal clerical training) and "Liturgical" (Congregationalist, Episcopalian, Catholic, and others with formal clerical training)
+- Average age in 1850
+- Percentage of Irish-born residents in 1850
+- Percentage of Irish-born residents in 1860
+- Percentage of residents employed in farm jobs in 1850
+- Percentage of residents employed in farm jobs in 1860
+- Percentage of non-wealthy young adult males (ages 20-30, real property no greater than $2000) in 1850
+- GINI index of 1850 real-property values
+- GINI index of 1860 real-property values
+- GINI index of 1860 total property values
+- Average total property value in 1860
+
+
