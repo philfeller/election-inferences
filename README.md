@@ -53,7 +53,6 @@ Rscript analyze_results.R
 - model_evaluation.R - Defines functions that evaluate the MCMC model fit
 - create_sankey.R - Creates a sankey diagram from the election inferences; renders it into HTML
 - sankey.Rda - A sample sankey diagram created by create_sankey.R
-- sankey.Rmd - RMarkdown file that creates a sankey diagram from the election inferences
 - ct_demographics.Rda - Calculated demographic factors by town
 - census_utils.R - Defines utility functions that are used by analyze_results.R and ct_demographics.R
 - results.Rda - Tibbles with election-pair results
@@ -100,6 +99,22 @@ These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-
 - 1857_CT_towns.dbf
 - 1857_CT_towns.prj
 
+### Rmarkdown files
+md/age_distribution.Rmd - Native-born male age distribution plots
+md/index.Rmd - Main page for GitHub Pages site
+md/office_correlation.Rmd - Correlation between voting for different offices
+md/renda.Rmd - Comparison to Lex Renda's 1991 ecological regression
+md/sankey.Rmd - Sankey diagram and transition tables for election inferences
+md/uncertainty.Rmd - Uncertainty analysis of election inference for 1854-1855
+
+### HTML files
+html/age_distribution.html - Native-born male age distribution plots
+html/index.html - Main page for GitHub Pages site
+html/office_correlation.html - Correlation between voting for different offices
+html/renda.html - Comparison to Lex Renda's 1991 ecological regression
+html/sankey.html - Sankey diagram and transition tables for election inferences
+html/uncertainty.html - Uncertainty analysis of election inference for 1854-1855
+
 ### Docker files
 - docker/Dockerfile - Docker file used to build the ghcr.io/philfeller/election-inferences image
 - docker/renv.lock - File that defines the R packages to be installed in the image
@@ -110,4 +125,5 @@ These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-
 - .github/workflows/deploy-image.yml - Builds and deploys the main Docker image
 - .github/workflows/deploy-runner-image.yml - Builds and deploys the Docker image used for runners
 - .github/workflows/test-code.yml - Tests the integrity of the code on a self-hosted runner using the ghcr.io/philfeller/election-inferences image.
+- .github/workflows/pages-deploy.yml - Deploys the GitHub Pages site
 - .gitattributes - Defines the files that are stored using LFS

@@ -1,0 +1,28 @@
+---
+title: "Connecticut Voter Transitions, 1851-1857"
+output: html_document
+---
+
+The elections of the 1850s were marked by dramatic shifts in party affiliation. The "new" political history introduced the use of ecological regression to estimate the transitions of voters between parties from one election to the next. Combined with regressions of vote shares by demographic data, the intent was to describe possible reasons for why voters shifted their party allegiances. Historians used the regression method that Leo Goodman first outlined in 1953.
+
+In more recent years, more sophisticated methods of ecological inference have been developed that improve on Goodman's original method, including the multinomial-Dirichlet method developed by Gary King and others. <a href="https://www.r-project.org/doc/Rnews/Rnews_2007-2.pdf#page=43">Olivia Lau, Ryan T. Moore, and Michael Kellerman created eiPack</a>, an R package that implements these methods.
+
+<a href="https://github.com/philfeller/election-inferences">I have used eiPack to estimate voter transitions in Connecticut gubernatorial elections from 1851 to 1857</a>, a period of significant political realignment. The results are <a href="sankey.html">presented as a Sankey diagram</a> showing the estimated transitions of voters between parties from one election to the next, along with tables showing the estimated transition percentages.
+
+Transitions that involve parties with smaller vote shares have wider confidence intervals, reflecting the greater uncertainty in estimating transitions for smaller groups of voters, and the volatile transition between 1854 and 1855 is particularly fraught. To address this, I my voter transition etimations use geographical, demographic, and economic covariates that I determine using stepwise regression. I present the degree of uncertainty before and after including covariates in <a href="uncertainty.html">two ridgeline plots</a>.
+
+This analysis forms part of a paper on Connecticut political realignment in the 1850s that I am preparing for a conference presentation and possible publication. Part of my analysis considers the effect that ballot-box mechanics played in shaping voter behavior, and a chart of <a href="office_correlation.html">vote correlations</a> between statewide and local offices provides evidence of voter interactions with political operatives.
+
+The need to provide economic opportunities to young men may also have influenced voter behavior, and I present <a href="age_distribution.html">charts showing the age distributions</a> statewide and in towns with unusually large native-born, young adult male cohorts.
+
+Finally, I <a href="renda.html">compare my results to those of Lex Renda</a>, whose 1991 dissertation on Connecticut politics in the 19th century included estimates of voter transitions using Goodman's ecological regression method.
+
+## References
+
+Goodman, Leo A. 1953. “Ecological Regressions and Behavior of Individuals.” American Sociological Review 18 (6): 663–64. https://doi.org/10.2307/2088121.
+
+Rosen, Ori, Wenxin Jiang, Gary King, and Martin A. Tanner. 2001. “Bayesian and Frequentist Inference for Ecological Inference: The R × C Case.” Statistica Neerlandica 55 (2): 134. https://doi.org/10.1111/1467-9574.00162.
+
+Bensel, Richard Franklin. 2004. <i>The American Ballot Box in the Mid-Nineteenth Century</i>. Cambridge University Press.
+
+Renda, Lex. 1991. “The Polity and the Party System: Connecticut and New Hampshire, 1840–1876.” Ph.D. Dissertation, University of Virginia.
