@@ -102,6 +102,7 @@ These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-
 ### Rmarkdown files
 md/age_distribution.Rmd - Native-born male age distribution plots
 md/index.Rmd - Main page for GitHub Pages site
+md/model.Rmd - Description of multinomial-Dirichlet model and my implementation
 md/office_correlation.Rmd - Correlation between voting for different offices
 md/renda.Rmd - Comparison to Lex Renda's 1991 ecological regression
 md/sankey.Rmd - Sankey diagram and transition tables for election inferences
@@ -111,9 +112,13 @@ md/uncertainty.Rmd - Uncertainty analysis of election inference for 1854-1855
 html/age_distribution.html - Native-born male age distribution plots
 html/index.html - Main page for GitHub Pages site
 html/office_correlation.html - Correlation between voting for different offices
+html/model.html - Description of multinomial-Dirichlet model and my implementation
 html/renda.html - Comparison to Lex Renda's 1991 ecological regression
 html/sankey.html - Sankey diagram and transition tables for election inferences
 html/uncertainty.html - Uncertainty analysis of election inference for 1854-1855
+html/age_distribution_files/figure-html/ - PNG chart images for age_distribution.html
+html/uncertainty_files/figure-html/ - PNG plot images for uncertainty.html
+html/site_libs/ - CSS and JavaScript files used by GitHub Pages site
 
 ### Docker files
 - docker/Dockerfile - Docker file used to build the ghcr.io/philfeller/election-inferences image

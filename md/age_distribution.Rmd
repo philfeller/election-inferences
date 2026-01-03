@@ -9,7 +9,7 @@ library(magrittr)
 load(file = "../ct_demographics.Rda")
 ```
 
-The typical age pyramid for Connecticut during the 1850s shows the number of people declining as age increases. However, some towns deviate from this pattern by having unusually high numbers of young adults aged 20 to 29.
+The typical population age structure for Connecticut during the 1850s shows a steadily declining population with increasing age. However, some towns deviate from this pattern by having unusually high numbers of young adults aged 20 to 29.
 
 ```{r plots, echo = FALSE}
 # Define a function to identify maxima
