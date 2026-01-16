@@ -1,5 +1,5 @@
 ---
-title: "Uncertainly in Voter Transition Estimates"
+title: "Uncertainty in Voter Transition Estimates"
 output: html_document
 ---
 
@@ -16,7 +16,7 @@ load("./1856_covariate_inference.Rda")
 load("./1857_covariate_inference.Rda")
 setwd(dirname(wd))
 ```
-There are three different ways to look at the amount of uncertainty in a model. One, illustrated in the leftmost heatmaps below, looks at the percentage of the variation in the model's estimates that is due to different runs beginning with a different random starting point. This is known as "between-run" variability. A second way, shown in the middle heatmaps below, looks at the percentage of pairwise run comparisons that have non-overlapping 95% credible intervals. The third way, shown in the rightmost heatmaps, looks at the coefficient of variation (CV) for each transition, which is the standard deviation of the estimates divided by the mean estimate.
+I examine uncertainty in the model using three complementary approaches. One, illustrated in the leftmost heatmaps below, looks at the percentage of the variation in the model's estimates that is due to runs beginning with a different random starting point. This is known as "between-run" variability. A second way, shown in the middle heatmaps below, looks at the percentage of pairwise run comparisons that have non-overlapping 95% credible intervals. The third way, shown in the rightmost heatmaps, looks at the coefficient of variation (CV) for each transition, which is the standard deviation of the estimates divided by the mean estimate.
 
 ```{r plots, echo=FALSE}
 combined_uncertainty.52 <- create_combined_uncertainty_heatmap(variability_results.52, 1851, 1852)

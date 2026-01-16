@@ -26,7 +26,7 @@ setwd(dirname(wd))
 sankey_widget
 ```
 
-Transitions less than 0.5% are not shown. Hover over the flows to see exact percentages and 95% confidence intervals; hover over the nodes to see total percentages for each party in a given year and to highlight the flows into and out of that party from the previous year and into the following year.
+Transitions less than 0.5% are not shown. Hover over the flows to see exact percentages and the degree of uncertainty, represented by 95% credible intervals; hover over the nodes to see total percentages for each party in a given year and to highlight the flows into and out of that party from the previous year and into the following year.
 
 Percentages may differ slightly from those in the transition tables below due to rounding.
 

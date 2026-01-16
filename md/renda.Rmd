@@ -30,8 +30,7 @@ renda.55 <- structure(c(19.1, 5.6, -2.3, 2.5, 2.7, 27.6, -2.2, 7.8, 1, 2.9,
     "share in 1854")))
 ```
 
-Lex Renda, in his 1991 dissertation, <i>The Polity and the Party System: Connecticut and New Hampshire, 1840–1876</i>, estimated voter transitions in Connecticut elections using Leo Goodman's 1953 method of ecological regression. Below I compare my estimates to his for the transitions between the 1853 to 1854 elections and between the 1854 to 1855 elections.
-
+Lex Renda, in his 1991 dissertation, <i>The Polity and the Party System: Connecticut and New Hampshire, 1840–1876</i>, estimated voter transitions in Connecticut elections using Leo Goodman's 1953 method of ecological regression. Below I compare my estimates to his for the transitions from the 1853 to 1854 elections and from the 1854 to 1855 elections.
 ```{r tables, echo = FALSE}
 estimate <- choose_final_estimate(variability_results.54)
 betas.54 <- estimate$estimates
@@ -51,7 +50,7 @@ kable.55 <- construct_contingency(
 )
 knitr::kable(kable.54,
   format = "html") %>%
-  kableExtra::add_header_above(c("Voter Transitions from 1853 to 1854, estimated using Multinomial Dirichlet" = 7),
+  kableExtra::add_header_above(c("Voter Transitions from 1853 to 1854, estimated using multinomial–Dirichlet" = 7),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
@@ -65,7 +64,7 @@ knitr::kable(renda.54,
   kableExtra::kable_styling(full_width = FALSE)
 knitr::kable(kable.55,
   format = "html") %>%
-  kableExtra::add_header_above(c("Voter Transitions from 1854 to 1855, estimated using Multinomial Dirichlet" = 6),
+  kableExtra::add_header_above(c("Voter Transitions from 1854 to 1855, estimated using multinomial–Dirichlet" = 6),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
