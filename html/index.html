@@ -249,16 +249,16 @@ $(document).ready(function () {
   <a href="sankey.html">Gubernatorial Transitions</a>
 </li>
 <li>
-  <a href="uncertainty.html">Uncertainty in 1854-1855 Transitions</a>
-</li>
-<li>
-  <a href="renda.html">Comparison to Goodman Regressions</a>
+  <a href="uncertainty.html">Transition Uncertainty</a>
 </li>
 <li>
   <a href="office_correlation.html">Ballot Correlations</a>
 </li>
 <li>
   <a href="age_distribution.html">Age Distributions</a>
+</li>
+<li>
+  <a href="renda.html">Comparison to Goodman Regressions</a>
 </li>
 <li>
   <a href="model.html">Model Used</a>
@@ -282,15 +282,15 @@ $(document).ready(function () {
 
 
 <p>The elections of the 1850s were marked by dramatic shifts in party
-affiliation. The “new” political history introduced the use of
-ecological regression to estimate the transitions of voters between
-parties from one election to the next. Combined with regressions of vote
-shares by demographic data, the intent was to describe possible reasons
-for why voters shifted their party allegiances. Historians used the
-regression method that Leo Goodman first outlined in 1953.</p>
+affiliation. Practitioners of the new political history introduced the
+use of ecological regression to estimate the transitions of voters
+between parties from one election to the next. Combined with regressions
+of vote shares by demographic data, the intent was to describe possible
+reasons for why voters shifted their party allegiances. Historians used
+the regression method that Leo Goodman first outlined in 1953.</p>
 <p>In recent years, more sophisticated ecological inference models have
 been developed that improve on Goodman’s original method, including the
-multinomial-Dirichlet method developed by Gary King and others.
+multinomial–Dirichlet method developed by Gary King and others.
 <a href="https://www.r-project.org/doc/Rnews/Rnews_2007-2.pdf#page=43">Olivia
 Lau, Ryan T. Moore, and Michael Kellerman created eiPack</a>, an R
 package that implements these methods.</p>
@@ -304,10 +304,11 @@ transition percentages.</p>
 <p>Behind these transition estimates lies significant uncertainty. To
 assess model robustness, I ran each transition model ten times with
 identical parameters but different random starting points. The resulting
-variation—presented in <a href="uncertainty.html">heatmaps</a>—reveals
-both the inherent difficulty of inferring individual behavior from
-aggregate data and the specific challenges posed by the chaotic party
-realignment of the 1850s.</p>
+variation in estimated transitions—presented in
+<a href="uncertainty.html">heatmaps</a>—reveals both the inherent
+difficulty of inferring individual behavior from aggregate data and the
+specific challenges posed by the chaotic party realignment of the
+1850s.</p>
 <p>This analysis forms part of a paper on Connecticut political
 realignment in the 1850s that I am preparing for a conference
 presentation and possible publication. Part of my analysis considers the
