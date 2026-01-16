@@ -10,6 +10,7 @@ setwd("../")
 source("./global.R", local = TRUE)
 source("./betas.R", local = TRUE)
 source("./present.R", local = TRUE)
+source("./inference_utils.R", local = TRUE)
 load("./sankey.Rda")
 load("./results.Rda")
 load("./1852_covariate_inference.Rda")
@@ -25,46 +26,56 @@ setwd(dirname(wd))
 sankey_widget
 ```
 
-Transitions less than 0.5% are not shown. Hover over the flows to see exact percentages and 95% confidence intervals; hover over the nodes to see total percentages for each party in a given year
-and to highlight the flows into and out of that party from the previous year and into the following
-year.
+Transitions less than 0.5% are not shown. Hover over the flows to see exact percentages and 95% confidence intervals; hover over the nodes to see total percentages for each party in a given year and to highlight the flows into and out of that party from the previous year and into the following year.
 
 Percentages may differ slightly from those in the transition tables below due to rounding.
 
 ```{r tables, echo = FALSE}
+estimate <- choose_final_estimate(variability_results.52)
+betas.52 <- estimate$estimates
 kable.52 <- construct_contingency(
   results.52,
-  betas.MD(beta.sims.MD(cov.ei.52, p52)),
+  betas.52,
   1851,
   1852
 )
+estimate <- choose_final_estimate(variability_results.53)
+betas.53 <- estimate$estimates
 kable.53 <- construct_contingency(
   results.53,
-  betas.MD(beta.sims.MD(cov.ei.53, p53)),
+  betas.53,
   1852,
   1853
 )
+estimate <- choose_final_estimate(variability_results.54)
+betas.54 <- estimate$estimates
 kable.54 <- construct_contingency(
   results.54,
-  betas.MD(beta.sims.MD(cov.ei.54, p54)),
+  betas.54,
   1853,
   1854
 )
+estimate <- choose_final_estimate(variability_results.55)
+betas.55 <- estimate$estimates
 kable.55 <- construct_contingency(
   results.55,
-  betas.MD(beta.sims.MD(cov.ei.55, p55)),
+  betas.55,
   1854,
   1855
 )
+estimate <- choose_final_estimate(variability_results.56)
+betas.56 <- estimate$estimates
 kable.56 <- construct_contingency(
   results.56,
-  betas.MD(beta.sims.MD(cov.ei.56, p56)),
+  betas.56,
   1855,
   1856
 )
+estimate <- choose_final_estimate(variability_results.57)
+betas.57 <- estimate$estimates
 kable.57 <- construct_contingency(
   results.57,
-  betas.MD(beta.sims.MD(cov.ei.57, p57)),
+  betas.57,
   1856,
   1857
 )

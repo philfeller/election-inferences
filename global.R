@@ -491,8 +491,10 @@ party_assignments <- rbind(
   imputed_party_assignments
 )
 
-# Define consistent colors for each party;
-# colors are from https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=7
+# Read railroad shapefile for mapping
+railroads <- sf::read_sf("./maps/1850_railroads.shp")
+
+# Define consistent colors for each party
 party_colors <- c(
   "Democrat" = "#D73027",
   "Whig" = "#1A9850",

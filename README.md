@@ -98,6 +98,11 @@ These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-
 - 1857_CT_towns.shx
 - 1857_CT_towns.dbf
 - 1857_CT_towns.prj
+- 1850_railroads.cpg
+- 1850_railroads.shp
+- 1850_railroads.shx
+- 1850_railroads.dbf
+- 1850_railroads.prj
 
 ### Rmarkdown files
 md/age_distribution.Rmd - Native-born male age distribution plots

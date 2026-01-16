@@ -301,14 +301,13 @@ realignment. The results are <a href="sankey.html">presented as a Sankey
 diagram</a> showing the estimated transitions of voters between parties
 from one election to the next, along with tables showing the estimated
 transition percentages.</p>
-<p>Transitions that involve parties with smaller vote shares have wider
-confidence intervals, reflecting the greater uncertainty in estimating
-transitions for smaller groups of voters, and the volatile transition
-between 1854 and 1855 is particularly fraught. To address this, My voter
-transition estimations use using geographical, demographic, and economic
-covariates selected via stepwise regression. I present the degree of
-uncertainty before and after including covariates in
-<a href="uncertainty.html">two ridgeline plots</a>.</p>
+<p>Behind these transition estimates lies significant uncertainty. To
+assess model robustness, I ran each transition model ten times with
+identical parameters but different random starting points. The resulting
+variation—presented in <a href="uncertainty.html">heatmaps</a>—reveals
+both the inherent difficulty of inferring individual behavior from
+aggregate data and the specific challenges posed by the chaotic party
+realignment of the 1850s.</p>
 <p>This analysis forms part of a paper on Connecticut political
 realignment in the 1850s that I am preparing for a conference
 presentation and possible publication. Part of my analysis considers the
@@ -328,6 +327,8 @@ ecological regression method.</p>
 <p>For the mathematically curious, I provide a non-technical
 <a href="model.html">explanation of the ecological inference method</a>
 that I used and how I implemented it.</p>
+<p>Census data comes from the IPUMS project at the University of
+Minnesota.</p>
 <div id="references" class="section level2">
 <h2>References</h2>
 <p>Goodman, Leo A. 1953. “Ecological Regressions and Behavior of
@@ -344,6 +345,11 @@ Mid-Nineteenth Century</i>. Cambridge University Press.</p>
 <p>Renda, Lex. 1991. “The Polity and the Party System: Connecticut and
 New Hampshire, 1840–1876.” Ph.D. Dissertation, University of
 Virginia.</p>
+<p>Steven Ruggles, Matt A. Nelson, Matthew Sobek, Catherine A. Fitch,
+Ronald Goeken, J. David Hacker, Evan Roberts, and J. Robert Warren.
+IPUMS Ancestry Full Count Data: Version 4.0 [dataset]. Minneapolis, MN:
+IPUMS, 2024. <a href="https://doi.org/10.18128/D014.V4.0"
+class="uri">https://doi.org/10.18128/D014.V4.0</a></p>
 </div>
 
 

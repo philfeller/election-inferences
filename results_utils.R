@@ -408,10 +408,23 @@ create_results <- function(results, shp, beg_yr, end_yr, eligible_pct, factors) 
   listw <- spdep::nb2listw(nb, style = "W")
 
   # Get geographic centroids for each town
-  geo <- as.data.frame(sf::st_coordinates(sf::st_centroid(shp))) %>%
+  centroids <- sf::st_centroid(shp)
+  geo <- as.data.frame(sf::st_coordinates(centroids)) %>%
     rename(lon = X) %>%
     rename(lat = Y) %>%
     bind_cols(shp %>% sf::st_set_geometry(NULL) %>% select(town))
+  
+  # Transform centroids to use same the CRS as the railroads shapefile
+  centroids <- sf::st_transform(centroids, sf::st_crs(railroads))
+  
+  # Calculate distance to nearest railroad for each town centroid
+  rr_dist <- as.data.frame(sf::st_distance(centroids, railroads)[,2:9] %>%
+    apply(1, min) %>%
+    as.numeric()
+  )
+  
+  colnames(rr_dist) <- c("rr_dist")
+  geo <- bind_cols(geo, rr_dist)
 
   # Generate the demographic factors appropriate for the range of years
   demo_factors <- factors %>%
