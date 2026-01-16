@@ -264,3 +264,344 @@ corr_matrix_by_party <- function(governor_results, lt_governor_results, secretar
   correlation_df <- as.data.frame(correlation_table)
   return(correlation_df)
 }
+
+create_uncertainty_decomposition_heatmap <- function(var_results) {
+  # Extract party names from row/column names
+  source_parties <- rownames(var_results$individual_runs[[1]]$posterior_mean)
+  target_parties <- colnames(var_results$individual_runs[[1]]$posterior_mean)
+  
+  n_runs <- length(var_results$individual_runs)
+  n_source <- length(source_parties)
+  n_target <- length(target_parties)
+  
+  # Calculate within-run and between-run variance for each transition
+  within_run_var <- matrix(0, n_source, n_target)
+  between_run_var <- matrix(0, n_source, n_target)
+  pct_between <- matrix(0, n_source, n_target)
+  
+  rownames(within_run_var) <- rownames(between_run_var) <- rownames(pct_between) <- source_parties
+  colnames(within_run_var) <- colnames(between_run_var) <- colnames(pct_between) <- target_parties
+  
+  for (i in 1:n_source) {
+    for (j in 1:n_target) {
+      within_var <- mean(sapply(var_results$individual_runs, function(run) {
+        run$posterior_sd[i, j]^2
+      }))
+      
+      means <- sapply(var_results$individual_runs, function(run) {
+        run$posterior_mean[i, j]
+      })
+      between_var <- var(means)
+      
+      within_run_var[i, j] <- within_var
+      between_run_var[i, j] <- between_var
+      
+      total_var <- within_var + between_var
+      pct_between[i, j] <- if (total_var > 0) {
+        100 * between_var / total_var
+      } else {
+        0
+      }
+    }
+  }
+  
+  # Create plot data
+  plot_df <- as.data.frame(pct_between) %>%
+    rownames_to_column("Source") %>%
+    pivot_longer(-Source, names_to = "Target", values_to = "PctBetween") %>%
+    mutate(
+      Source = factor(Source, levels = source_parties),
+      Target = factor(Target, levels = target_parties)
+    )
+  
+  # Create heatmap with granular scale
+  ggplot(plot_df, aes(x = Target, y = Source, fill = PctBetween)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    geom_text(aes(label = sprintf("%.0f%%", PctBetween)), 
+              size = 3, color = "white", fontface = "bold") +
+    scale_fill_gradientn(
+      colors = c(
+        "#1a9850",  # Dark green: 0-20% (excellent)
+        "#91cf60",  # Light green: 20-30% (good)
+        "#d9ef8b",  # Yellow-green: 30-40% (acceptable)
+        "#ffffbf",  # Yellow: 40-50% (borderline)
+        "#fee08b",  # Light orange: 50-60% (concerning)
+        "#fc8d59",  # Orange: 60-70% (problematic)
+        "#d73027",  # Red: 70-80% (severe)
+        "#a50026",  # Dark red: 80-90% (extreme)
+        "#67001f"   # Very dark red: 90-100% (critical)
+      ),
+      values = scales::rescale(c(0, 20, 30, 40, 50, 60, 70, 80, 90, 100)),
+      name = "Between-Run\nUncertainty\n(%)",
+      limits = c(0, 100),
+      breaks = c(0, 25, 50, 75, 100),
+      labels = c("0%", "25%", "50%", "75%", "100%")
+    ) +
+    labs(
+      title = "Model Specification Uncertainty by Transition",
+      subtitle = "Percentage of total variance due to model specification (vs. MCMC sampling)",
+      x = "Target Party",
+      y = "Source Party",
+      caption = "Higher values indicate greater sensitivity to model specification"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 14, face = "bold"),
+      panel.grid = element_blank()
+    )
+}
+
+# Updated overlap heatmap (with your inverted scale)
+create_overlap_heatmap <- function(var_results) {
+  source_parties <- rownames(var_results$individual_runs[[1]]$posterior_mean)
+  target_parties <- colnames(var_results$individual_runs[[1]]$posterior_mean)
+  
+  n_runs <- length(var_results$individual_runs)
+  
+  overlap_pct <- matrix(0, length(source_parties), length(target_parties))
+  rownames(overlap_pct) <- source_parties
+  colnames(overlap_pct) <- target_parties
+  
+  for (i in seq_along(source_parties)) {
+    for (j in seq_along(target_parties)) {
+      overlaps <- 0
+      comparisons <- 0
+      
+      for (r1 in 1:(n_runs-1)) {
+        for (r2 in (r1+1):n_runs) {
+          ci1_lower <- var_results$individual_runs[[r1]]$posterior_q025[i, j]
+          ci1_upper <- var_results$individual_runs[[r1]]$posterior_q975[i, j]
+          ci2_lower <- var_results$individual_runs[[r2]]$posterior_q025[i, j]
+          ci2_upper <- var_results$individual_runs[[r2]]$posterior_q975[i, j]
+          
+          if ((ci1_upper >= ci2_lower) && (ci1_lower <= ci2_upper)) {
+            overlaps <- overlaps + 1
+          }
+          comparisons <- comparisons + 1
+        }
+      }
+      
+      # Inverted: 100 - overlap% to show disagreement
+      overlap_pct[i, j] <- 100 - 100 * overlaps / comparisons
+    }
+  }
+  
+  # Create plot
+  overlap_df <- as.data.frame(overlap_pct) %>%
+    rownames_to_column("Source") %>%
+    pivot_longer(-Source, names_to = "Target", values_to = "Disagreement") %>%
+    mutate(
+      Source = factor(Source, levels = source_parties),
+      Target = factor(Target, levels = target_parties)
+    )
+  
+  ggplot(overlap_df, aes(x = Target, y = Source, fill = Disagreement)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    geom_text(aes(label = sprintf("%.0f%%", Disagreement)), 
+              size = 3, color = "white", fontface = "bold") +
+    scale_fill_gradientn(
+      colors = c(
+        "#1a9850",  # Dark green: 0-5% (excellent agreement)
+        "#91cf60",  # Light green: 5-10% (good)
+        "#d9ef8b",  # Yellow-green: 10-15% (acceptable)
+        "#ffffbf",  # Yellow: 15-20% (borderline)
+        "#fee08b",  # Light orange: 20-25% (concerning)
+        "#fc8d59",  # Orange: 25-30% (problematic)
+        "#d73027",  # Red: 30-40% (severe)
+        "#a50026",  # Dark red: 40-50% (extreme)
+        "#67001f"   # Very dark red: 50%+ (critical)
+      ),
+      values = scales::rescale(c(0, 5, 10, 15, 20, 25, 30, 40, 50)),
+      name = "CI\nDisagreement\n(%)",
+      limits = c(0, 50),
+      breaks = c(0, 10, 20, 30, 40, 50),
+      labels = c("0%", "10%", "20%", "30%", "40%", "50%+")
+    ) +
+    labs(
+      title = "Credible Interval Disagreement Across Model Runs",
+      subtitle = "Percentage of pairwise run comparisons with non-overlapping 95% CIs",
+      x = "Target Party",
+      y = "Source Party",
+      caption = "Higher values indicate greater model instability"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 14, face = "bold"),
+      panel.grid = element_blank()
+    )
+}
+
+# Updated combined heatmap with CV % scale
+create_combined_uncertainty_heatmap <- function(var_results, beg_yr, end_yr) {
+  source_parties <- rownames(var_results$individual_runs[[1]]$posterior_mean)
+  target_parties <- colnames(var_results$individual_runs[[1]]$posterior_mean)
+  
+  n_runs <- length(var_results$individual_runs)
+  n_source <- length(source_parties)
+  n_target <- length(target_parties)
+  
+  # Calculate metrics for each transition
+  uncertainty_data <- tibble()
+  
+  for (i in 1:n_source) {
+    for (j in 1:n_target) {
+      # Between-run percentage
+      within_var <- mean(sapply(var_results$individual_runs, function(run) {
+        run$posterior_sd[i, j]^2
+      }))
+      means <- sapply(var_results$individual_runs, function(run) {
+        run$posterior_mean[i, j]
+      })
+      between_var <- var(means)
+      total_var <- within_var + between_var
+      pct_between <- if (total_var > 0) {
+        100 * between_var / total_var
+      } else {
+        0
+      }
+      
+      # CI disagreement (inverted)
+      overlaps <- 0
+      comparisons <- 0
+      for (r1 in 1:(n_runs-1)) {
+        for (r2 in (r1+1):n_runs) {
+          ci1_lower <- var_results$individual_runs[[r1]]$posterior_q025[i, j]
+          ci1_upper <- var_results$individual_runs[[r1]]$posterior_q975[i, j]
+          ci2_lower <- var_results$individual_runs[[r2]]$posterior_q025[i, j]
+          ci2_upper <- var_results$individual_runs[[r2]]$posterior_q975[i, j]
+          
+          if ((ci1_upper >= ci2_lower) && (ci1_lower <= ci2_upper)) {
+            overlaps <- overlaps + 1
+          }
+          comparisons <- comparisons + 1
+        }
+      }
+      ci_disagreement <- 100 - 100 * overlaps / comparisons
+      
+      # CV as percentage
+      cv_pct <- var_results$variability$meta_cv[i, j] * 100
+      
+      uncertainty_data <- bind_rows(uncertainty_data, tibble(
+        Source = source_parties[i],
+        Target = target_parties[j],
+        `Between-Run %` = pct_between,
+        `CI Disagreement %` = ci_disagreement,
+        `CV %` = cv_pct
+      ))
+    }
+  }
+  
+  # Find the actual max CV value
+  max_cv <- max(uncertainty_data$`CV %`, na.rm = TRUE)
+  
+  # Reshape for faceting
+  plot_data <- uncertainty_data %>%
+    pivot_longer(cols = c(`Between-Run %`, `CI Disagreement %`, `CV %`),
+                 names_to = "Metric", values_to = "Value") %>%
+    mutate(
+      Source = factor(Source, levels = source_parties),
+      Target = factor(Target, levels = target_parties),
+      Metric = factor(Metric, levels = c("Between-Run %", "CI Disagreement %", "CV %"))
+    )
+  
+  # Cap extremely high values for color scale but show actual in text
+  plot_data <- plot_data %>%
+    mutate(
+      # Cap at 150 for color purposes
+      Value_for_color = if_else(Value > 150, 150, Value),
+      # Show actual value with indicator if >150
+      Label = if_else(Value > 150, 
+                      sprintf("%.0f*", Value),
+                      sprintf("%.0f", Value))
+    )
+  
+  # Create faceted plot with extended CV scale
+  ggplot(plot_data, aes(x = Target, y = Source, fill = Value_for_color)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    geom_text(aes(label = Label), 
+              size = 2.5, color = "white", fontface = "bold") +
+    facet_wrap(~Metric, ncol = 3) +
+    scale_fill_gradientn(
+      colors = c(
+        "#1a9850",  # Dark green: 0-15
+        "#91cf60",  # Light green: 15-25
+        "#d9ef8b",  # Yellow-green: 25-40
+        "#ffffbf",  # Yellow: 40-50
+        "#fee08b",  # Light orange: 50-65
+        "#fc8d59",  # Orange: 65-80
+        "#d73027",  # Red: 80-95
+        "#a50026",  # Dark red: 95-120
+        "#67001f"   # Very dark red: 120-150+
+      ),
+      values = scales::rescale(c(0, 15, 25, 40, 50, 65, 80, 95, 120, 150)),
+      name = "Value",
+      limits = c(0, 150),  # Hard cap at 150
+      oob = scales::squish,  # Force values >150 to use the highest color
+      breaks = c(0, 30, 60, 90, 120, 150),
+      labels = c("0", "30", "60", "90", "120", "150+")
+    ) +
+    labs(
+      title = paste("Uncertainty Decomposition between", beg_yr, "and", end_yr),
+      x = paste(as.character(end_yr), "Party"),
+      y = paste(as.character(beg_yr), "Party"),
+      caption = "All metrics: Higher = worse. *Values >150% shown with asterisk and capped at darkest red."
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+      axis.text.y = element_text(size = 8),
+      plot.title = element_text(size = 14, face = "bold"),
+      strip.text = element_text(size = 10, face = "bold"),
+      panel.grid = element_blank()
+    )
+}
+
+# And the summary table
+create_uncertainty_summary_table <- function(var_results) {
+  source_parties <- rownames(var_results$individual_runs[[1]]$posterior_mean)
+  target_parties <- colnames(var_results$individual_runs[[1]]$posterior_mean)
+  
+  n_runs <- length(var_results$individual_runs)
+  
+  summary_table <- tibble()
+  
+  for (i in seq_along(source_parties)) {
+    for (j in seq_along(target_parties)) {
+      # Calculate metrics
+      within_var <- mean(sapply(var_results$individual_runs, function(run) {
+        run$posterior_sd[i, j]^2
+      }))
+      means <- sapply(var_results$individual_runs, function(run) {
+        run$posterior_mean[i, j]
+      })
+      between_var <- var(means)
+      total_var <- within_var + between_var
+      pct_between <- if (total_var > 0) {
+        100 * between_var / total_var
+      } else {
+        0
+      }
+      
+      summary_table <- bind_rows(summary_table, tibble(
+        Transition = paste(source_parties[i], "→", target_parties[j]),
+        `Mean Est. (%)` = var_results$variability$meta_mean[i, j] * 100,
+        `CV` = var_results$variability$meta_cv[i, j],
+        `Between-Run (%)` = pct_between,
+        `Assessment` = case_when(
+          pct_between > 60 ~ "Very High Instability",
+          pct_between > 40 ~ "High Instability",
+          pct_between > 20 ~ "Moderate Instability",
+          TRUE ~ "Low Instability"
+        )
+      ))
+    }
+  }
+  
+  # Sort by between-run percentage
+  summary_table <- summary_table %>%
+    arrange(desc(`Between-Run (%)`))
+  
+  return(summary_table)
+}

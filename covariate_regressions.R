@@ -52,37 +52,51 @@ save(
 # Set parameters for gamma-distribution based on observed alpha results
 # when ei.MD.bayes is run with default lambda1 and lambda2 values
 
-cov.ei.52 <- build_ei_model(1851, 1852, covariate = TRUE)
-table.52 <- construct_contingency(results.52, betas.MD(beta.sims.MD(cov.ei.52, p52)), 1851, 1852)
+variability_results.52 <- quantify_ei_variability(1851, 1852, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.52)
+betas.52 <- estimate$estimates
+table.52 <- construct_contingency(results.52, betas.52, 1851, 1852)
 print(table.52)
-save(cov.ei.52, file = "1852_covariate_inference.Rda")
+save(variability_results.52, file = "1852_covariate_inference.Rda")
 
-cov.ei.53 <- build_ei_model(1852, 1853, covariate = TRUE)
-table.53 <- construct_contingency(results.53, betas.MD(beta.sims.MD(cov.ei.53, p53)), 1852, 1853)
+variability_results.53 <- quantify_ei_variability(1852, 1853, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.53)
+betas.53 <- estimate$estimates
+table.53 <- construct_contingency(results.53, betas.53, 1852, 1853)
 print(table.53)
-save(cov.ei.53, file = "1853_covariate_inference.Rda")
+save(variability_results.53, file = "1853_covariate_inference.Rda")
 
-cov.ei.54 <- build_ei_model(1853, 1854, covariate = TRUE)
-table.54 <- construct_contingency(results.54, betas.MD(beta.sims.MD(cov.ei.54, p54)), 1853, 1854)
+variability_results.54 <- quantify_ei_variability(1853, 1854, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.54)
+betas.54 <- estimate$estimates
+table.54 <- construct_contingency(results.54, betas.54, 1853, 1854)
 print(table.54)
-save(cov.ei.54, file = "1854_covariate_inference.Rda")
+save(variability_results.54, file = "1854_covariate_inference.Rda")
 
-cov.ei.55 <- build_ei_model(1854, 1855, covariate = TRUE)
-table.55 <- construct_contingency(results.55, betas.MD(beta.sims.MD(cov.ei.55, p55)), 1854, 1855)
+variability_results.55 <- quantify_ei_variability(1854, 1855, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.55)
+betas.55 <- estimate$estimates
+table.55 <- construct_contingency(results.55, betas.55, 1854, 1855)
 print(table.55)
-save(cov.ei.55, file = "1855_covariate_inference.Rda")
+save(variability_results.55, file = "1855_covariate_inference.Rda")
 
-cov.ei.56 <- build_ei_model(1855, 1856, covariate = TRUE)
-table.56 <- construct_contingency(results.56, betas.MD(beta.sims.MD(cov.ei.56, p56)), 1855, 1856)
+variability_results.56 <- quantify_ei_variability(1855, 1856, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.56)
+betas.56 <- estimate$estimates
+table.56 <- construct_contingency(results.56, betas.56, 1855, 1856)
 print(table.56)
-save(cov.ei.56, file = "1856_covariate_inference.Rda")
+save(variability_results.56, file = "1856_covariate_inference.Rda")
 
-cov.ei.57 <- build_ei_model(1856, 1857, covariate = TRUE)
-table.57 <- construct_contingency(results.57, betas.MD(beta.sims.MD(cov.ei.57, p57)), 1856, 1857)
+variability_results.57 <- quantify_ei_variability(1856, 1857, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.57)
+betas.57 <- estimate$estimates
+table.57 <- construct_contingency(results.57, betas.57, 1856, 1857)
 print(table.57)
-save(cov.ei.57, file = "1857_covariate_inference.Rda")
+save(variability_results.57, file = "1857_covariate_inference.Rda")
 
-cov.ei.51_57 <- build_ei_model(1851, 1857, results_tibble = results.51_57, covariate = TRUE)
-table.51_57 <- construct_contingency(results.51_57, betas.MD(beta.sims.MD(cov.ei.51_57, p57)), 1851, 1857)
+variability_results.51-57 <- quantify_ei_variability(1851, 1857, n_runs = 10)
+estimate <- choose_final_estimate(variability_results.51-57)
+betas.51_57 <- estimate$estimates
+table.51_57 <- construct_contingency(results.51_57, betas.51_57, 1851, 1857)
 print(table.51_57)
-save(cov.ei.51_57, file = "1851_1857_covariate_inference.Rda")
+save(variability_results.51-57, file = "1851_1857_covariate_inference.Rda")

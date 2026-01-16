@@ -9,7 +9,7 @@ In recent years, more sophisticated ecological inference models have been develo
 
 <a href="https://github.com/philfeller/election-inferences">I have used eiPack to estimate voter transitions in Connecticut gubernatorial elections from 1851 to 1857</a>, a period of significant political realignment. The results are <a href="sankey.html">presented as a Sankey diagram</a> showing the estimated transitions of voters between parties from one election to the next, along with tables showing the estimated transition percentages.
 
-Transitions that involve parties with smaller vote shares have wider confidence intervals, reflecting the greater uncertainty in estimating transitions for smaller groups of voters, and the volatile transition between 1854 and 1855 is particularly fraught. To address this, My voter transition estimations use using geographical, demographic, and economic covariates selected via stepwise regression. I present the degree of uncertainty before and after including covariates in <a href="uncertainty.html">two ridgeline plots</a>.
+Behind these transition estimates lies significant uncertainty. To assess model robustness, I ran each transition model ten times with identical parameters but different random starting points. The resulting variation—presented in <a href="uncertainty.html">heatmaps</a>—reveals both the inherent difficulty of inferring individual behavior from aggregate data and the specific challenges posed by the chaotic party realignment of the 1850s.
 
 This analysis forms part of a paper on Connecticut political realignment in the 1850s that I am preparing for a conference presentation and possible publication. Part of my analysis considers the effect that ballot-box mechanics played in shaping voter behavior, and a chart of <a href="office_correlation.html">vote correlations</a> between statewide and local offices provides evidence of voter interactions with political operatives.
 
@@ -18,6 +18,8 @@ The need to provide economic opportunities to young men may also have influenced
 Finally, I <a href="renda.html">compare my results to those of Lex Renda</a>, whose 1991 dissertation on Connecticut politics in the 19th century included estimates of voter transitions using Goodman's ecological regression method.
 
 For the mathematically curious, I provide a non-technical <a href="model.html">explanation of the ecological inference method</a> that I used and how I implemented it.
+
+Census data comes from the IPUMS project at the University of Minnesota.
 
 ## References
 
@@ -28,3 +30,5 @@ Rosen, Ori, Wenxin Jiang, Gary King, and Martin A. Tanner. 2001. “Bayesian and
 Bensel, Richard Franklin. 2004. <i>The American Ballot Box in the Mid-Nineteenth Century</i>. Cambridge University Press.
 
 Renda, Lex. 1991. “The Polity and the Party System: Connecticut and New Hampshire, 1840–1876.” Ph.D. Dissertation, University of Virginia.
+
+Steven Ruggles, Matt A. Nelson, Matthew Sobek, Catherine A. Fitch, Ronald Goeken, J. David Hacker, Evan Roberts, and J. Robert Warren. IPUMS Ancestry Full Count Data: Version 4.0 [dataset]. Minneapolis, MN: IPUMS, 2024. https://doi.org/10.18128/D014.V4.0

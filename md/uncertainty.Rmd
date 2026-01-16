@@ -1,5 +1,5 @@
 ---
-title: "Uncertainly in Voter Transitions between 1854 and 1855"
+title: "Uncertainly in Voter Transition Estimates"
 output: html_document
 ---
 
@@ -7,32 +7,28 @@ output: html_document
 wd <- getwd()
 setwd("../")
 source("./global.R", local = TRUE)
-source("./betas.R", local = TRUE)
 source("./present.R", local = TRUE)
-load("./results.Rda")
-load("./1855_inference.Rda")
+load("./1852_covariate_inference.Rda")
+load("./1853_covariate_inference.Rda")
+load("./1854_covariate_inference.Rda")
 load("./1855_covariate_inference.Rda")
+load("./1856_covariate_inference.Rda")
+load("./1857_covariate_inference.Rda")
 setwd(dirname(wd))
 ```
-There was significant uncertainty regarding voter transitions among political parties between the 1854 and 1855 Connecticut gubernatorial elections. The ridgeline plots below illustrate the estimated distributions of transition probabilities from one party to another, both with and without covariate adjustments.
+There are three different ways to look at the amount of uncertainty in a model. One, illustrated in the leftmost heatmaps below, looks at the percentage of the variation in the model's estimates that is due to different runs beginning with a different random starting point. This is known as "between-run" variability. A second way, shown in the middle heatmaps below, looks at the percentage of pairwise run comparisons that have non-overlapping 95% credible intervals. The third way, shown in the rightmost heatmaps, looks at the coefficient of variation (CV) for each transition, which is the standard deviation of the estimates divided by the mean estimate.
 
 ```{r plots, echo=FALSE}
-ridgelineMD(beta.sims.MD(ei.55, p55), 1854, 1855, covariate = FALSE)
-ridgelineMD(beta.sims.MD(cov.ei.55, p55), 1854, 1855, covariate = TRUE)
+combined_uncertainty.52 <- create_combined_uncertainty_heatmap(variability_results.52, 1851, 1852)
+plot(combined_uncertainty.52)
+combined_uncertainty.53 <- create_combined_uncertainty_heatmap(variability_results.53, 1852, 1853)
+plot(combined_uncertainty.53)
+combined_uncertainty.54 <- create_combined_uncertainty_heatmap(variability_results.54, 1853, 1854)
+plot(combined_uncertainty.54)
+combined_uncertainty.55 <- create_combined_uncertainty_heatmap(variability_results.55, 1854, 1855)
+plot(combined_uncertainty.55)
+combined_uncertainty.56 <- create_combined_uncertainty_heatmap(variability_results.56, 1855, 1856)
+plot(combined_uncertainty.56)
+combined_uncertainty.57 <- create_combined_uncertainty_heatmap(variability_results.57, 1856, 1857)
+plot(combined_uncertainty.57)
 ```
-
-The covariate-adjusted model (bottom) shows narrower distributions for many transitions, indicating reduced uncertainty compared to the unadjusted model (top). This suggests that incorporation of covariates helps to better explain voter behavior during this period.
-
-The covariates used in the adjusted model are:
-
-- Town's longitude
-- Influence of neighboring towns on 1854 vote for Democrats, Whigs, Free Soil, and Temperance parties (spatial lag)
-- Percentage of Baptists
-- Percentage of Congregationalists
-- Percentage of Pietistic denominations (Methodist, Baptist, and others without formal clerical training)
-- Average age in 1850
-- Percentage of Irish-born residents in 1850
-- GINI index of 1850 real-property values
-- GINI index of 1860 real-property values
-
-Covariates were chosen by performing a stepwise regression on the residuals from an initial ecological inference model without covariates, selecting those that significantly improved model fit for a majority of transitions.

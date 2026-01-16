@@ -11,7 +11,7 @@
 
 
 
-<title>Uncertainly in Voter Transitions between 1854 and 1855</title>
+<title>Uncertainly in Voter Transition Estimates</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -275,40 +275,23 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Uncertainly in Voter Transitions between
-1854 and 1855</h1>
+<h1 class="title toc-ignore">Uncertainly in Voter Transition
+Estimates</h1>
 
 </div>
 
 
-<p>There was significant uncertainty regarding voter transitions among
-political parties between the 1854 and 1855 Connecticut gubernatorial
-elections. The ridgeline plots below illustrate the estimated
-distributions of transition probabilities from one party to another,
-both with and without covariate adjustments.</p>
-<p><img src="uncertainty_files/figure-html/plots-1.png" width="672" /><img src="uncertainty_files/figure-html/plots-2.png" width="672" /></p>
-<p>The covariate-adjusted model (bottom) shows narrower distributions
-for many transitions, indicating reduced uncertainty compared to the
-unadjusted model (top). This suggests that incorporation of covariates
-helps to better explain voter behavior during this period.</p>
-<p>The covariates used in the adjusted model are:</p>
-<ul>
-<li>Town’s longitude</li>
-<li>Influence of neighboring towns on 1854 vote for Democrats, Whigs,
-Free Soil, and Temperance parties (spatial lag)</li>
-<li>Percentage of Baptists</li>
-<li>Percentage of Congregationalists</li>
-<li>Percentage of Pietistic denominations (Methodist, Baptist, and
-others without formal clerical training)</li>
-<li>Average age in 1850</li>
-<li>Percentage of Irish-born residents in 1850</li>
-<li>GINI index of 1850 real-property values</li>
-<li>GINI index of 1860 real-property values</li>
-</ul>
-<p>Covariates were chosen by performing a stepwise regression on the
-residuals from an initial ecological inference model without covariates,
-selecting those that significantly improved model fit for a majority of
-transitions.</p>
+<p>There are three different ways to look at the amount of uncertainty
+in a model. One, illustrated in the leftmost heatmaps below, looks at
+the percentage of the variation in the model’s estimates that is due to
+different runs beginning with a different random starting point. This is
+known as “between-run” variability. A second way, shown in the middle
+heatmaps below, looks at the percentage of pairwise run comparisons that
+have non-overlapping 95% credible intervals. The third way, shown in the
+rightmost heatmaps, looks at the coefficient of variation (CV) for each
+transition, which is the standard deviation of the estimates divided by
+the mean estimate.</p>
+<p><img src="uncertainty_files/figure-html/plots-1.png" width="672" /><img src="uncertainty_files/figure-html/plots-2.png" width="672" /><img src="uncertainty_files/figure-html/plots-3.png" width="672" /><img src="uncertainty_files/figure-html/plots-4.png" width="672" /><img src="uncertainty_files/figure-html/plots-5.png" width="672" /><img src="uncertainty_files/figure-html/plots-6.png" width="672" /></p>
 
 
 

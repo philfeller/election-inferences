@@ -10,15 +10,12 @@ model_sds <- function(ei_model_with_covariates, ei_model_without_covariates, cel
       cov_sd <- sqrt(var(cov))
       no_cov_sds <- c(no_cov_sds, no_cov_sd)
       cov_sds <- c(cov_sds, cov_sd)
-      if (no_cov_sd > .1) {
-        print(paste(r, "to", c, ":", as.character((no_cov_sd - cov_sd)/ no_cov_sd), "covariate improvement"))
-      }
     }
   }
   list(no_cov_sds = no_cov_sds, cov_sds = cov_sds)
 }
 
-# Sumary of standard deviations with and without covariates
+# Summary of standard deviations with and without covariates
 model_summary <- function(sd_list) {
   no_cov_sds <- sd_list$no_cov_sds
   cov_sds <- sd_list$cov_sds

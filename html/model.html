@@ -340,11 +340,18 @@ convergence with a widely-used diagnostic (Gelman-Rubin).</p>
 closely the town-by-town results from the model matched the actual
 results (what statisticians call “residuals”). I had calculated
 geographical, demographic, and economic data for each town that might
-help explain variations in voter behavior, so I performed stepwise
+help explain variations in voter behavior, so I performed elastic net
 regression (a method for systematically testing which variables best
 explain the data) on these residuals to identify those that
-significantly improved model fit for a majority of transitions. I then
-built new models that included these covariates.</p>
+significantly improved model fit. I then built new models that included
+these covariates.</p>
+<p>I ran each transition model ten times with different random starting
+points but identical covariate specifications. Depending on amount of
+uncertainty observed in each of these runs (measured by the ratios of
+standard deviations to means), I selected either a representative run
+(for stable estimates), a weighted consensus of the most consistent runs
+(for moderate instability), or the element-wise median across all runs
+(for high instability) as the final estimate for each transition.</p>
 <p>For the data that I used in my models, I needed to estimate the
 number of eligible voters in each town for each election year. Voters
 weren’t required to register, so there are no official records of
@@ -362,8 +369,11 @@ estimate the number of eligible voters for each town in each election
 year.</p>
 <p>The candidate covariates that I considered included:</p>
 <ul>
-<li>Longitude of the town center (previous historians have noted an
-east-west divide in Connecticut politics)</li>
+<li>Longitude of the town’s geographic center (previous historians have
+noted an east-west divide in Connecticut politics)</li>
+<li>Latitude of the town’s geographic center</li>
+<li>Distance from the town’s geographic center to the nearest railroad
+line</li>
 <li>Influence of neighboring towns on vote shares for each party
 (spatial lag)</li>
 <li>Percentage of various religious denominations, as approximated by
