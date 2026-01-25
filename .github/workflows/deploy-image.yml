@@ -27,7 +27,6 @@ jobs:
       - name: Check out docker files
         uses: actions/checkout@v4
         with:
-          sparse-checkout: docker
           submodules: false
 
       - name: Log in to registry
@@ -44,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: "{{defaultContext}}:docker"
+          context: ./runner
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   # Rebuild GitHub runner when image changes
