@@ -171,27 +171,6 @@ cat("\n\n1855 transitions with high standard deviations in model without covaria
 print(sd_without %>%
         arrange(desc(beta_sd)))
 
-combined_betas <- combine_betas(beta.sims.MD(cov.ei.55, p55))
-sd_with <- data.frame(beta_sd = numeric(), transition = character())
-for (from_party in pull(distinct(combined_betas %>% select(from)))) {
-  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
-    transition <- combined_betas %>%
-      dplyr::filter(
-        from == from_party,
-        to == to_party
-      ) %>%
-      select(value)
-    beta_sd <- sd(pull(transition))
-    if (beta_sd > 3) {
-      transition <- paste(from_party, " to ", to_party, sep = "")
-      sd_with <- rbind(sd_with, data.frame(beta_sd = beta_sd, transition = transition))
-    }
-  }
-}
-cat("\n\n1855 transitions with high standard deviations in covariate model\n")
-print(sd_with %>%
-        arrange(desc(beta_sd)))
-
 # Meriden has a disproportionate number of native-born, young-adult males.
 # Stonington and New London, other Know Nothing hotbeds, show the same pattern,
 # as do the cities of Hartford and New Haven.
@@ -274,7 +253,7 @@ summary(lm(gini ~ pct_farm_1860 + age_1860 + wealth, factors))
 
 white_male_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
-  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  dplyr::filter((GQ %in% c(1, 2, 5) & FAMUNIT == 1) | GQ == 4) %>%
   group_by(SERIAL * 100 + FAMUNIT) %>%
   summarise(
     FAMILY_REALPROP = sum(REALPROP),
@@ -289,7 +268,7 @@ white_male_1860_hh <- ct_1860 %>%
     town = first(town),
     combined = first(combined)
   ) %>%
-  dplyr::filter(SEX == 1 && RACE == 1)
+  dplyr::filter(SEX == 1 & RACE == 1)
 
 # Use the average age for each of the age categories when doing regression
 avg_ages <- c()

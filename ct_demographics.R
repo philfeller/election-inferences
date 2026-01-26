@@ -131,7 +131,7 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
 # Construct tibble with 1850 household wealth and demographics data
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
-  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  dplyr::filter((GQ %in% c(1, 2, 5) & FAMUNIT == 1) | GQ == 4) %>%
   mutate(family = SERIAL * 100 + FAMUNIT) %>%
   group_by(family) %>%
   summarise(
@@ -162,7 +162,7 @@ ct_1850_summary <- left_join(ct_1850_combined, ct_1850_hh_combined, by = "combin
 # Construct tibble with 1860 household wealth and demographics data
 ct_1860_hh <- ct_1860 %>%
   # Exclude servants and institutional housing
-  dplyr::filter((GQ %in% c(1, 2, 5) && FAMUNIT == 1) || GQ == 4) %>%
+  dplyr::filter((GQ %in% c(1, 2, 5) & FAMUNIT == 1) | GQ == 4) %>%
   mutate(family = SERIAL * 100 + FAMUNIT) %>%
   group_by(family) %>%
   summarise(
