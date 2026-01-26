@@ -45,6 +45,8 @@ jobs:
           push: true
           context: ./runner
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          secrets: |
+            GH_TOKEN=${{ secrets.GH_TOKEN }}
 
   # Rebuild GitHub runner when image changes
   push-runner-image:
