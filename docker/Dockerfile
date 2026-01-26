@@ -8,6 +8,17 @@ FROM rocker/r-ver:4.5.2
 
 RUN apt-get update && apt-get install -y libudunits2-dev \
     cmake \
+    libxml2-dev \
+    tcl \
+    tk \
+    tcl-dev \
+    tk-dev \
+    libx11-dev \
+    libxrender-dev \
+    libxext-dev \
+    libxt-dev \
+    libpango1.0-dev \
+    libglib2.0-dev \
     libabsl-dev \
     libudunits2-dev \
     libgdal-dev \
