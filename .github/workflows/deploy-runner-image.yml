@@ -47,4 +47,4 @@ jobs:
           context: ./runner
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           secrets: |
-            "GH_TOKEN=${{ secrets.GH_TOKEN }}" 
+            GH_TOKEN=${{ secrets.GH_TOKEN }}
