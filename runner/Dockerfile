@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y curl \
     jq && \
     apt-get clean && apt-get autoremove
 
-ARG GH_RUNNER_VERSION="2.283.3"
+ARG GH_RUNNER_VERSION="2.331.0"
 
 WORKDIR /actions-runner
 COPY entrypoint.sh .
