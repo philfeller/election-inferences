@@ -7,8 +7,6 @@ source("./census_utils.R", local = TRUE)
 # Load the saved voter-inference results and perform statistical analysis
 
 load(file = "results.Rda")
-load(file = "1855_inference.Rda")
-load(file = "1855_covariate_inference.Rda")
 load(file = "ct_demographics.Rda")
 load(file = "yr_results.Rda")
 
@@ -140,36 +138,9 @@ for (t in 1:nrow(results.55)) {
     abs((results.54$Democrat_in_1853[t] - dem.mu.53) / dem.sd.53) < 0.35 &&
     (results.55$Know_Nothing_in_1855[t] - kn.mu.55) / kn.sd.55 > 0.6 &&
     (results.55$Free_Soil_in_1854[t] - fs.mu.54) / fs.sd.54 > 0.6) {
-    betas <- betas.MD(beta.sims.MD(ei.55, p55, t))
-    print(knitr::kable(construct_contingency(results.55, betas, 1854, 1855, t, 1),
-      caption = paste(t, results.55$town[t], sep = ": ")
-    ))
+    print(paste(t, results.55$town[t], sep = ": "))
   }
 }
-
-# The 1855 model without covariates has a large amount of uncertainty about what
-# happened to Free Soil voters; the model with covariates greatly reduces that.
-
-combined_betas <- combine_betas(beta.sims.MD(ei.55, p55))
-sd_without <- data.frame(beta_sd = numeric(), transition = character())
-for (from_party in pull(distinct(combined_betas %>% select(from)))) {
-  for (to_party in pull(distinct(combined_betas %>% select(to)))) {
-    transition <- combined_betas %>%
-      dplyr::filter(
-        from == from_party,
-        to == to_party
-      ) %>%
-      select(value)
-    beta_sd <- sd(pull(transition))
-    if (beta_sd > 3) {
-      transition <- paste(from_party, " to ", to_party, sep = "")
-      sd_without <- rbind(sd_without, data.frame(beta_sd = beta_sd, transition = transition))
-    }
-  }
-}
-cat("\n\n1855 transitions with high standard deviations in model without covariates\n")
-print(sd_without %>%
-        arrange(desc(beta_sd)))
 
 # Meriden has a disproportionate number of native-born, young-adult males.
 # Stonington and New London, other Know Nothing hotbeds, show the same pattern,

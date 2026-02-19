@@ -1,6 +1,6 @@
 # This script renders multiple R Markdown files into HTML format and saves them in the specified output directory.
 # The directory "./html" is triggers a GitHub workflow that deploys the HTML files to the project's GitHub Pages site.
-# HTML generation is now being handed by calling rmarkdown::render_site() from directory md.
+# HTML generation is now being handed by changing to the md directory and calling rmarkdown::render_site() from directory md.
 
 rmarkdown::render("./md/sankey.Rmd", output_file = "sankey.html", output_dir = "./html")
 rmarkdown::render("./md/renda.Rmd", output_file = "renda.html", output_dir = "./html")

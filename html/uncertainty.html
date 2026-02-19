@@ -13,7 +13,7 @@
 
 <title>Uncertainty in Voter Transition Estimates</title>
 
-<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -281,17 +281,28 @@ Estimates</h1>
 </div>
 
 
-<p>I examine uncertainty in the model using three complementary
-approaches. One, illustrated in the leftmost heatmaps below, looks at
-the percentage of the variation in the model’s estimates that is due to
-runs beginning with a different random starting point. This is known as
-“between-run” variability. A second way, shown in the middle heatmaps
-below, looks at the percentage of pairwise run comparisons that have
-non-overlapping 95% credible intervals. The third way, shown in the
-rightmost heatmaps, looks at the coefficient of variation (CV) for each
-transition, which is the standard deviation of the estimates divided by
-the mean estimate.</p>
-<p><img src="uncertainty_files/figure-html/plots-1.png" width="672" /><img src="uncertainty_files/figure-html/plots-2.png" width="672" /><img src="uncertainty_files/figure-html/plots-3.png" width="672" /><img src="uncertainty_files/figure-html/plots-4.png" width="672" /><img src="uncertainty_files/figure-html/plots-5.png" width="672" /><img src="uncertainty_files/figure-html/plots-6.png" width="672" /></p>
+<p>Statistical models struggle to capture 1850s Connecticut voting
+behavior. Even after accounting for wealth, degree of urbanization,
+immigrant status, religious affiliation, and geographic location, the
+models produce unstable estimates—different runs yield substantively
+different conclusions about voter movement. This instability reveals
+something important: factors that resist quantification drove voting
+decisions. Personal relationships, local political culture, party
+organization, newspaper influence, and individual conviction don’t
+appear in census records.</p>
+<p>Note especially how badly the model performs in the 1854 to 1855
+transition, particularly for explaining what became of Free Soil and
+Temperance voters and for explaining the composition of the Know Nothing
+coalition, precisely the information that we’d like to know. Also note
+how the model’s failure isn’t concentrated in any single part of the
+state, but is instead widespread, suggesting that the model is missing
+some important factor or factors that influenced voting behavior across
+the state.</p>
+<p>Low values are better in both graphs. R-hat values above 1.1 indicate
+that the model has not converged—that different runs explore different
+ranges of possible outcomes—and the wider the flow intervals, the more
+uncertainty there is about the estimated voter transitions.</p>
+<p><img src="uncertainty_files/figure-html/plots-1.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-2.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-3.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-4.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-5.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-6.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-7.png" alt="" width="672" /></p>
 
 
 
