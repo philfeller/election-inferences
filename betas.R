@@ -3,6 +3,27 @@
 
 source("./global.R")
 
+# Create a transition matrix from draws array summary
+transition_matrix_from_flow <- function(sum) {
+  # sum: summary of draws array, as output by posterior::summarise_draws()
+  sum %>%
+    select(from, to, mean) %>%
+    mutate(
+      # Clean up labels
+      from_label = gsub("_in_185.", "", from),
+      to_label = gsub("_in_185.", "", to),
+      from_label = gsub("_", " ", from_label),
+      to_label = gsub("_", " ", to_label),
+      # Rename Abstaining to Non-voting
+      from_label = ifelse(from_label == "Abstaining", "Non-voting", from_label),
+      to_label = ifelse(to_label == "Abstaining", "Non-voting", to_label)
+    ) %>%
+    select(from_label, to_label, mean) %>%
+    pivot_wider(names_from = to_label, values_from = mean) %>%
+    column_to_rownames("from_label") %>%
+    as.matrix()
+}
+
 # Extract individual simulations of beta values, either statewide or for a town
 beta.sims.MD <- function(ei.model, cols, town.id) {
   # ei.model: ei.MD.bayes model object

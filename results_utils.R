@@ -341,7 +341,8 @@ create_factors <- function(tibble, beg_yr, end_yr) {
       combined = ifelse(combined == "Old Lyme", "South Lyme", combined),
       gini = ifelse(town %in% towns, gini, comb_gini),
       wealth = ifelse(town %in% towns, wealth, comb_wealth),
-      age_1860 = ifelse(town %in% towns, age_1860, comb_age_1860)
+      age_1860 = ifelse(town %in% towns, age_1860, comb_age_1860),
+      pct_imm_1860 = ifelse(town %in% towns, pct_imm_1860, comb_imm_1860)
     ) %>%
     select(-c(town, starts_with("comb_"))) %>%
     distinct(.keep_all = TRUE)

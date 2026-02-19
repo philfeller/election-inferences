@@ -1,6 +1,7 @@
 # Functions for presenting the results of the MD inference
 # construct_contingency(), boxplotMD(), ridgelineMD(), densityMD(),
-# create_map(), corr_matrix_by_party()
+# create_map(), corr_matrix_by_party(), create_rhatio_heatmap(),
+# create_transition_uncertainty_heatmap(), create_rhat_town_map()
 
 source("./global.R")
 
@@ -604,4 +605,196 @@ create_uncertainty_summary_table <- function(var_results) {
     arrange(desc(`Between-Run (%)`))
   
   return(summary_table)
+}
+
+# Create a heatmap of the range of uncertainty across all runs for each transition
+create_transition_uncertainty_heatmap <- function(all_flows) {
+  # all_flows: data frame with columns 'from', 'to', and 'range_pct' (percentage points)
+  
+  # Prepare data for heatmap
+  heatmap_data <- all_flows %>%
+    mutate(
+      from_label = gsub("_", " ", gsub("_in_185.", "", from)),
+      to_label = gsub("_", " ", gsub("_in_185.", "", to)),
+      from_label = ifelse(from_label == "Abstaining", "Non-voting", from_label),
+      to_label = ifelse(to_label == "Abstaining", "Non-voting", to_label),
+      from_label = fct_relevel(from_label, party_sort),
+      to_label = fct_relevel(to_label, party_sort),
+      from_year = gsub(".*_in_(185.)", "\\1", from),
+      to_year = gsub(".*_in_(185.)", "\\1", to),
+      range_pct_display = range_pct * 100  # Convert to percentage points
+    )
+  
+  from_year <- unique(heatmap_data$from_year)
+  to_year <- unique(heatmap_data$to_year)
+  
+  # Create heatmap of uncertainty ranges
+  ggplot(heatmap_data, aes(x = to_label, y = from_label)) +
+    geom_tile(aes(fill = range_pct_display), color = "white", size = 1) +
+    geom_text(aes(label = sprintf("±%.1f", range_pct_display / 2)), 
+              size = 3) +
+    scale_fill_gradient2(
+      low = "#2166ac",
+      mid = "#ffffbf",
+      high = "#d73027",
+      midpoint = 5,  # Adjust based on your data
+      name = "Range\n(pp)",
+      labels = function(x) sprintf("±%.0f", x/2)
+    ) +
+    scale_x_discrete(expand = expansion(add = 0.5)) +
+    scale_y_discrete(expand = expansion(add = 0.5)) +
+    labs(
+      title = "Estimate Uncertainty",
+      subtitle = "Range across 10 model runs",
+      x = paste0("Vote in ", to_year),
+      y = paste0("Vote in ", from_year)
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      panel.grid = element_blank(),
+      plot.title = element_text(face = "bold"),
+      axis.title.y = element_blank()
+    )
+}
+
+# Helper function to extract R-hat values by transition type and summarize across towns 
+rhat_by_transition <- function(rhat_values) {
+  # rhat_values: data frame with columns 'variable' (beta variable) and 'rhat' (R-hat value)
+  
+  rhat_by_transition <- rhat_values %>%
+    mutate(
+      # Extract transition information from variable names
+      # e.g., "beta.Democrat_in_1851.Democrat_in_1852.1" 
+      variable_clean = gsub("beta\\.", "", variable),
+      # Extract from, to, and town_id
+      from = sub("\\..*", "", variable_clean),
+      rest = sub("^[^.]+\\.", "", variable_clean),
+      to = sub("\\..*", "", rest),
+      from_year = gsub(".*_in_(185.)", "\\1", from),
+      to_year = gsub(".*_in_(185.)", "\\1", to),
+      town_id = as.numeric(sub(".*\\.", "", rest)),
+      # Clean up labels
+      from_label = gsub("_in_\\d+", "", from),
+      to_label = gsub("_in_\\d+", "", to),
+      from_label = gsub("_", " ", from_label),
+      to_label = gsub("_", " ", to_label),
+      from_label = ifelse(from_label == "Abstaining", "Non-voting", from_label),
+      to_label = ifelse(to_label == "Abstaining", "Non-voting", to_label),
+      from_label = fct_relevel(from_label, party_sort),
+      to_label = fct_relevel(to_label, party_sort)
+    ) %>%
+    group_by(from_label, to_label) %>%
+    summarize(
+      max_rhat = max(rhat, na.rm = TRUE),
+      mean_rhat = mean(rhat, na.rm = TRUE),
+      from_year = unique(from_year),
+      to_year = unique(to_year),
+      .groups = "drop"
+    )
+  
+  return(rhat_by_transition)
+}
+
+# Create a heatmap of the R-hat values for each transition across all runs
+create_rhat_heatmap <- function(rhat_values) {
+  # rhat_values: data frame with columns 'from', 'to', and 'rhat' (R-hat value)
+  
+  # Prepare data for heatmap
+  rhat_by_transition <- rhat_by_transition(rhat_values)
+  
+  from_year <- unique(rhat_by_transition$from_year)
+  to_year <- unique(rhat_by_transition$to_year)
+  
+  # Show max R-hat
+  ggplot(rhat_by_transition, aes(x = to_label, y = from_label)) +
+    geom_tile(aes(fill = max_rhat), color = "white", size = 1) +
+    geom_text(aes(label = sprintf("%.2f", max_rhat)), 
+              size = 3) +
+    scale_fill_gradient2(
+      low = "#2166ac",
+      mid = "#ffffbf",
+      high = "#d73027",
+      midpoint = 1.05,
+      name = "Max R-hat"
+    ) +
+    scale_x_discrete(expand = expansion(add = 0.5)) +
+    scale_y_discrete(expand = expansion(add = 0.5)) +
+    labs(
+      title = "Maximum Convergence",
+      subtitle = "Max R-hat across towns",
+      x = paste0("Vote in ", to_year),
+      y = paste0("Vote in ", from_year)
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      panel.grid = element_blank(),
+      plot.title = element_text(face = "bold")
+    )
+}
+
+# Create a town-level map of the maximum R-hat value across all transitions
+create_rhat_town_map <- function(rhat_values, map_data) {
+  # rhat_values: data frame with columns 'variable' (beta variable) and 'rhat' (R-hat value)
+  # map_data: sf object with town geometries and a 'town_id' column
+  
+  rhat_by_town <- rhat_values %>%
+    mutate(
+      # Extract transition information from variable names
+      # e.g., "beta.Democrat_in_1851.Democrat_in_1852.1" 
+      variable_clean = gsub("beta\\.", "", variable),
+      # Extract from, to, and town_id
+      from = sub("\\..*", "", variable_clean),
+      rest = sub("^[^.]+\\.", "", variable_clean),
+      to = sub("\\..*", "", rest),
+      from_year = gsub(".*_in_(185.)", "\\1", from),
+      to_year = gsub(".*_in_(185.)", "\\1", to),
+      town_id = as.numeric(sub(".*\\.", "", rest)),
+      # Clean up labels
+      from_label = gsub("_in_\\d+", "", from),
+      to_label = gsub("_in_\\d+", "", to),
+      from_label = gsub("_", " ", from_label),
+      to_label = gsub("_", " ", to_label),
+      from_label = ifelse(from_label == "Abstaining", "Non-voting", from_label),
+      to_label = ifelse(to_label == "Abstaining", "Non-voting", to_label),
+      from_label = fct_relevel(from_label, party_sort),
+      to_label = fct_relevel(to_label, party_sort)
+    ) %>%
+    group_by(town_id) %>%
+    summarize(
+      max_rhat = max(rhat, na.rm = TRUE),
+      mean_rhat = mean(rhat, na.rm = TRUE),
+      from_year = unique(from_year),
+      to_year = unique(to_year),
+      .groups = "drop"
+    )
+  
+  from_year <- unique(rhat_by_town$from_year)
+  to_year <- unique(rhat_by_town$to_year)
+  
+  map_data <- map_data %>%
+    bind_cols(rhat_by_town)
+  
+  ggplot(map_data) +
+    geom_sf(aes(fill = max_rhat), color = "white") +
+    scale_fill_gradient2(
+      low = "#2166ac",
+      mid = "#ffffbf",
+      high = "#d73027",
+      midpoint = 1.05,
+      name = "Max R-hat"
+    ) +
+    labs(
+      title = (paste0("Maximum Convergence by Town (", from_year, "→", to_year, ")")),
+      subtitle = "Maximum R-hat across all transitions",
+      fill = "Max R-hat"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid = element_blank(),
+      plot.title = element_text(face = "bold")
+    )
 }

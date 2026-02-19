@@ -12,9 +12,9 @@ data.52 <- create_results(raw_results, map.1855, 1851, 1852, eligible_pct, facto
 results.52 <- data.52$results
 map.52 <- data.52$shp
 
-variability_results <- quantify_ei_variability(1851, 1852, n_runs = 2)
-estimate <- choose_final_estimate(variability_results)
-betas.52 <- estimate$estimates
+variability_results.52 <- quantify_ei_variability(1851, 1852, n_runs = 2, covariate = TRUE)
+betas.52 <- transition_matrix_from_flow(variability_results.52$flow_intervals)
+heatmap.52 <- create_transition_uncertainty_heatmap(variability_results.52$flow_intervals)
 table.52 <- construct_contingency(results.52, betas.52, 1851, 1852)
 print(table.52)
 

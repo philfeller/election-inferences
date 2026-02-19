@@ -13,7 +13,7 @@
 
 <title>Ecological Inference Model</title>
 
-<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -340,18 +340,21 @@ convergence with a widely-used diagnostic (Gelman-Rubin).</p>
 closely the town-by-town results from the model matched the actual
 results (what statisticians call “residuals”). I had calculated
 geographical, demographic, and economic data for each town that might
-help explain variations in voter behavior, so I performed elastic net
+help explain variations in voter behavior, and I performed elastic net
 regression (a method for systematically testing which variables best
 explain the data) on these residuals to identify those that
 significantly improved model fit. I then built new models that included
 these covariates.</p>
 <p>I ran each transition model ten times with different random starting
-points but identical covariate specifications. Depending on amount of
-uncertainty observed in each of these runs (measured by the ratios of
-standard deviations to means), I selected either a representative run
-(for stable estimates), a weighted consensus of the most consistent runs
-(for moderate instability), or the element-wise median across all runs
-(for high instability) as the final estimate for each transition.</p>
+points but identical covariate specifications. I picked the run that
+most closely resembled the mean as the final estimate for each
+transition. I did this because the Gelman-Rubin R-hat statistic reveals
+that, although each of the ten runs for each transition converged, but
+the variability in results across runs suggests that the model is
+struggling to capture the underlying patterns in the data. By selecting
+the run that most closely resembles the mean, I aimed to choose a
+representative estimate while acknowledging the inherent uncertainty in
+the model’s results.</p>
 <p>For the data that I used in my models, I needed to estimate the
 number of eligible voters in each town for each election year. Voters
 weren’t required to register, so there are no official records of
@@ -384,6 +387,12 @@ Baptist, and others without formal clerical training) and “Liturgical”
 (Congregationalist, Episcopalian, Catholic, and others with formal
 clerical training)</li>
 <li>Average age in 1850</li>
+<li>Percentage of foreign-born residents in 1850</li>
+<li>Percentage of foreign-born residents in 1860</li>
+<li>Average age of foreign-born residents’ oldest native-born child in
+1850 (estimate of US residency)</li>
+<li>Average age of foreign-born residents’ oldest native-born child in
+1860 (estimate of US residency)</li>
 <li>Percentage of Irish-born residents in 1850</li>
 <li>Percentage of Irish-born residents in 1860</li>
 <li>Percentage of residents employed in farm jobs in 1850</li>

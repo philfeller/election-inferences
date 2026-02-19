@@ -51,6 +51,7 @@ ct_1850_combined <- ct_1850 %>%
   summarise(
     POP_1850 = n(),
     age_1850 = mean(AGE),
+    pct_imm_1850 = mean(BIRTH == "immigrant"),
     irish_1850 = sum(BPL == 414),
     ya_male_1850 = sum(AGE >= 20 & AGE <= 30 & SEX == 1 & BIRTH == "native" & REALPROP <= 2000)
   )
@@ -128,6 +129,18 @@ religion_1860 <- read_csv(religion_file, show_col_types = FALSE) %>%
   ) %>%
   select(combined, starts_with("pct_"))
 
+# Determine the age of the oldest native child in each family
+children_summary <- ct_1850 %>%
+  # keep only children who are US-born and have an age
+  filter(as.integer(RELATE) == 3, !is.na(AGE), BPL < 100) %>%
+  # for each family take the single oldest US-born child (break ties arbitrarily)
+  group_by(family) %>%
+  slice_max(order_by = AGE, n = 1, with_ties = FALSE) %>%
+  summarize(
+    oldest_us_child_age = AGE[1],
+    .groups = "drop"
+  )
+
 # Construct tibble with 1850 household wealth and demographics data
 ct_1850_hh <- ct_1850 %>%
   # Exclude servants and institutional housing
@@ -143,7 +156,22 @@ ct_1850_hh <- ct_1850 %>%
     CLASS = first(CLASS),
     town = first(town),
     combined = first(combined)
-  )
+  ) %>%
+  left_join(children_summary, by = "family") %>%
+  mutate(
+    # plausibility check: head must be at least ~15 years older than child to be likely biological parent
+    plausible_parent = case_when(
+      !is.na(oldest_us_child_age) & !is.na(FAMILY_HEAD_AGE) ~ (FAMILY_HEAD_AGE - oldest_us_child_age) >= 15,
+      TRUE ~ NA
+    ),
+    # Rough lower-bound estimate of immigrants' years of residency 
+    RESIDENCY = case_when(
+      BIRTH == 'immigrant' & plausible_parent ~ oldest_us_child_age,
+      BIRTH == 'immigrant' ~ 0L,
+      TRUE ~ NA_integer_
+    )
+  ) %>%
+  select(-oldest_us_child_age, -plausible_parent)
 
 # Create an intermediate tibble with 1850 household data summarized by combined,
 # a town name that is consistent for 1850 and 1860, taking boundary changes into
@@ -152,12 +180,25 @@ ct_1850_hh_combined <- ct_1850_hh %>%
   group_by(combined) %>%
   summarise(
     num_1850_hh = n(),
+    imm_res_1850_hh = mean(RESIDENCY, na.rm = TRUE),
     farm_1850_hh = sum(JOB == "farm"),
     real_1850_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini")
   )
 
 # Create an intermediate tibble with summarized individual and household data
 ct_1850_summary <- left_join(ct_1850_combined, ct_1850_hh_combined, by = "combined")
+
+# Determine the age of the oldest native child in each family
+children_summary <- ct_1860 %>%
+  # keep only children who are US-born and have an age
+  filter(as.integer(RELATE) == 3, !is.na(AGE), BPL < 100) %>%
+  # for each family take the single oldest US-born child (break ties arbitrarily)
+  group_by(family) %>%
+  slice_max(order_by = AGE, n = 1, with_ties = FALSE) %>%
+  summarize(
+    oldest_us_child_age = AGE[1],
+    .groups = "drop"
+  )
 
 # Construct tibble with 1860 household wealth and demographics data
 ct_1860_hh <- ct_1860 %>%
@@ -175,7 +216,22 @@ ct_1860_hh <- ct_1860 %>%
     CLASS = first(CLASS),
     town = first(town),
     combined = first(combined)
-  )
+  ) %>%
+  left_join(children_summary, by = "family") %>%
+  mutate(
+    # plausibility check: head must be at least ~15 years older than child to be likely biological parent
+    plausible_parent = case_when(
+      !is.na(oldest_us_child_age) & !is.na(FAMILY_HEAD_AGE) ~ (FAMILY_HEAD_AGE - oldest_us_child_age) >= 15,
+      TRUE ~ NA
+    ),
+    # Rough lower-bound estimate of immigrants' years of residency 
+    RESIDENCY = case_when(
+      BIRTH == 'immigrant' & plausible_parent ~ oldest_us_child_age,
+      BIRTH == 'immigrant' ~ 0L,
+      TRUE ~ NA_integer_
+    )
+  ) %>%
+  select(-oldest_us_child_age, -plausible_parent)
 
 # Create an intermediate tibble with 1860 household data summarized by combined,
 # a town name that is consistent for 1850 and 1860, taking boundary changes into
@@ -184,6 +240,7 @@ ct_1860_hh_combined <- ct_1860_hh %>%
   group_by(combined) %>%
   summarise(
     num_1860_hh = n(),
+    imm_res_1860_hh = mean(RESIDENCY, na.rm = TRUE),
     farm_1860_hh = sum(JOB == "farm"),
     real_1860_gini = ineq::ineq(FAMILY_REALPROP, type = "Gini"),
     comb_gini = ineq::ineq(FAMILY_WEALTH, type = "Gini"),
@@ -281,6 +338,7 @@ factors <- ungroup(ct_1860_hh %>%
     summarise(
       wealth = sum(WEALTH),
       age_1860 = mean(AGE),
+      pct_imm_1860 = mean(BIRTH == "immigrant"),
       pop = n()
     ), by = c("town")) %>%
   left_join(ct_1860 %>%
@@ -288,6 +346,7 @@ factors <- ungroup(ct_1860_hh %>%
     summarise(
       comb_wealth = sum(WEALTH),
       comb_age_1860 = mean(AGE),
+      comb_imm_1860 = mean(BIRTH == "immigrant"),
       comb_pop = n()
     ), by = c("combined")) %>%
   left_join(ct_1850_summary, by = "combined") %>%
@@ -304,7 +363,7 @@ factors <- ungroup(ct_1860_hh %>%
   select(
     town, combined, ends_with("gini"), ends_with("wealth"),
     ends_with("age_1850"), ends_with("age_1860"),
-    starts_with("pct"), ends_with("change")
+    starts_with("imm_res"), starts_with("pct"), starts_with("comb_imm")
   )
 
 save(factors, ct_1850, ct_1860, ct_1860_hh, ct_1850_hh, file = "ct_demographics.Rda")

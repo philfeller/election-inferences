@@ -195,6 +195,7 @@ p56 <- c("Democrat_in_1856", "Whig_in_1856", "Know_Nothing_in_1856", "Republican
 p57 <- c("Democrat_in_1857", "Republican_in_1857", "Abstaining_in_1857")
 
 all_parties <- c("Democrat", "Whig", "Know Nothing", "Republican", "Free Soil", "Temperance", "Abstaining")
+party_sort <- c("Democrat", "Whig", "Free Soil", "Temperence", "Know Nothing", "Republican", "Non-voting")
 
 # Map of candidate name variants to consistent names
 alias_map <- list(
