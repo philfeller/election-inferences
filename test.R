@@ -17,5 +17,6 @@ betas.52 <- transition_matrix_from_flow(variability_results.52$flow_intervals)
 heatmap.52 <- create_transition_uncertainty_heatmap(variability_results.52$flow_intervals)
 table.52 <- construct_contingency(results.52, betas.52, 1851, 1852)
 print(table.52)
+print(variability_results.52$individual_runs[[1]]$covariates)
 
 map <- create_map(1851, map.52, (results.1851 %>% dplyr::filter(!stringr::str_detect(town, "^Weighted")))$Free_Soil)

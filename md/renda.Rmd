@@ -32,16 +32,14 @@ renda.55 <- structure(c(19.1, 5.6, -2.3, 2.5, 2.7, 27.6, -2.2, 7.8, 1, 2.9,
 
 Lex Renda, in his 1991 dissertation, <i>The Polity and the Party System: Connecticut and New Hampshire, 1840–1876</i>, estimated voter transitions in Connecticut elections using Leo Goodman's 1953 method of ecological regression. Below I compare my estimates to his for the transitions from the 1853 to 1854 elections and from the 1854 to 1855 elections.
 ```{r tables, echo = FALSE}
-estimate <- choose_final_estimate(variability_results.54)
-betas.54 <- estimate$estimates
+betas.54 <- transition_matrix_from_flow(variability_results.54$flow_intervals)
 kable.54 <- construct_contingency(
   results.54,
   betas.54,
   1853,
   1854
 )
-estimate <- choose_final_estimate(variability_results.55)
-betas.55 <- estimate$estimates
+betas.55 <- transition_matrix_from_flow(variability_results.55$flow_intervals)
 kable.55 <- construct_contingency(
   results.55,
   betas.55,
