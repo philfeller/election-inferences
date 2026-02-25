@@ -545,3 +545,95 @@ result_summary <- function(results) {
   result_sd <- weighted.sd(results_plus_mean)
   results_plus_mean %>% bind_rows(result_sd)
 }
+
+vote_share_correlates <- function(results, election_yr, seed = 123) {
+  set.seed(seed)
+  
+  parties <- get(paste("p", substring(as.character(election_yr), 3, 4), sep = ""))
+  weight_col <- paste0("ELIG_", election_yr)
+  base_cols <- colnames(results %>% select(lon:rr_dist, gini:pct_farm_1860))
+  
+  elastic_models <- map(parties, function(y) {
+    spatial_data <- prepare_spatial_data(results, base_cols)
+    X <- spatial_data$X
+    y_vec <- results[[y]]
+    weights <- results[[weight_col]]
+    
+    complete_cases <- complete.cases(X, y_vec, weights)
+    X <- X[complete_cases, , drop = FALSE]
+    y_vec <- y_vec[complete_cases]
+    weights <- weights[complete_cases]
+    
+    n_stability_runs <- 50
+    stability_results <- map(1:n_stability_runs, function(run) {
+      alpha_grid <- seq(0.1, 0.9, by = 0.1)
+      cv_results <- map(alpha_grid, function(a) {
+        cv_fit <- cv.glmnet(X, y_vec, alpha = a, weights = weights,
+                            nfolds = 10, type.measure = "mse")
+        list(alpha = a, lambda = cv_fit$lambda.min, mse = min(cv_fit$cvm))
+      })
+      best_alpha <- cv_results[[which.min(map_dbl(cv_results, "mse"))]]$alpha
+      cv_fit <- cv.glmnet(X, y_vec, alpha = best_alpha, weights = weights,
+                          nfolds = 10, type.measure = "mse")
+      final_fit <- glmnet(X, y_vec, alpha = best_alpha, weights = weights,
+                          lambda = cv_fit$lambda.min)
+      coef_matrix <- coef(final_fit)
+      selected <- rownames(coef_matrix)[which(coef_matrix != 0)]
+      selected[selected != "(Intercept)"]
+    })
+    
+    all_selected <- unlist(stability_results)
+    selection_freq <- table(all_selected) / n_stability_runs
+    stable_vars <- names(selection_freq)[selection_freq >= 0.6]
+    
+    alpha_grid <- seq(0.1, 0.9, by = 0.1)
+    cv_results <- map(alpha_grid, function(a) {
+      cv_fit <- cv.glmnet(X, y_vec, alpha = a, weights = weights,
+                          nfolds = 10, type.measure = "mse")
+      list(alpha = a, mse = min(cv_fit$cvm))
+    })
+    best_alpha <- cv_results[[which.min(map_dbl(cv_results, "mse"))]]$alpha
+    cv_fit <- cv.glmnet(X, y_vec, alpha = best_alpha, weights = weights,
+                        nfolds = 10, type.measure = "mse")
+    final_fit <- glmnet(X, y_vec, alpha = best_alpha, weights = weights,
+                        lambda = cv_fit$lambda.min)
+    
+    coef_matrix <- coef(final_fit)
+    coef_df <- data.frame(
+      covariate = rownames(coef_matrix),
+      coefficient = as.numeric(coef_matrix),
+      party = y,
+      stringsAsFactors = FALSE
+    ) %>%
+      filter(covariate != "(Intercept)", coefficient != 0)
+    
+    # Partial R² for each stable variable
+    partial_r2_df <- if (length(stable_vars) > 0) {
+      X_stable <- X[, stable_vars, drop = FALSE]
+      full_model <- lm(y_vec ~ X_stable, weights = weights)
+      r2_full <- summary(full_model)$r.squared
+      
+      map_df(stable_vars, function(v) {
+        X_reduced <- X_stable[, setdiff(stable_vars, v), drop = FALSE]
+        r2_reduced <- if (ncol(X_reduced) == 0) {
+          summary(lm(y_vec ~ 1, weights = weights))$r.squared
+        } else {
+          summary(lm(y_vec ~ X_reduced, weights = weights))$r.squared
+        }
+        data.frame(covariate = v, partial_r2 = r2_full - r2_reduced)
+      })
+    } else {
+      data.frame(covariate = character(), partial_r2 = numeric())
+    }
+    
+    left_join(coef_df, partial_r2_df, by = "covariate")
+  })
+  
+  map_df(elastic_models, identity) %>%
+    mutate(party = gsub("_", " ", gsub(paste0("_in_", election_yr), "", party)),
+           party = gsub("Abstaining", "Non-voting", party)) %>%
+    select(covariate, party, coefficient, partial_r2) %>%
+    pivot_wider(names_from = party, 
+                values_from = c(coefficient, partial_r2)) %>%
+    rename_at(vars(starts_with("partial_r2")), funs(sub("partial_r2_","",.)))
+}

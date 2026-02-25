@@ -11,6 +11,7 @@ source("./global.R", local = TRUE)
 source("./betas.R", local = TRUE)
 source("./present.R", local = TRUE)
 source("./inference_utils.R", local = TRUE)
+source("./results_utils.R", local = TRUE)
 load("./sankey.Rda")
 load("./results.Rda")
 load("./1852_covariate_inference.Rda")
@@ -31,90 +32,213 @@ Transitions less than 0.4% are not shown. Hover over the flows to see exact perc
 Percentages may differ slightly from those in the transition tables below due to rounding.
 
 ```{r tables, echo = FALSE}
-estimate <- choose_final_estimate(variability_results.52)
-betas.52 <- estimate$estimates
-kable.52 <- construct_contingency(
+
+covariate_name <- function(covariate) {
+  cov_name = case_when(
+    covariate == "lon" ~ "Longitude",                  
+    covariate == "lat" ~ "Latitude",                
+    covariate == "rr_dist" ~ "Distance to railroad",
+    covariate == "wealth" ~ "Mean wealth",
+    covariate == "age_1850" ~ "Mean age in 1850",            
+    covariate == "age_1860" ~ "Mean age in 1860",
+    covariate == "imm_res_1860_hh" ~ "Mean 1860 US immigrant residency",
+    covariate == "imm_res_1850_hh" ~ "Mean 1850 US immigrant residency", 
+    covariate == "pct_imm_1850" ~ "1850 foreign-born percentage",
+    covariate == "pct_cong" ~ "1850 Congregationalist percentage",
+    covariate == "pct_bap" ~ "1850 Baptist percentage",
+    covariate == "pct_epis" ~ "1850 Episcopalian percentage",
+    covariate == "pct_piet" ~ "1850 Pietist percentage",
+    covariate == "pct_ya_male_1850" ~ "1850 young adult male percentage",
+    covariate == "pct_farm_1850" ~ "1850 farm-occupation percentage",
+    covariate == "pct_farm_1860" ~ "1860 farm-occupation percentage",
+    covariate == "pct_imm_1860" ~ "1860 foreign-born percentage",
+    covariate == "pct_meth" ~ "1850 Methodist percentage",         
+    covariate == "pct_irish_1850" ~ "1850 Irish-born percentage",
+    covariate == "gini" ~ "1860 total-wealth Gini coefficient",
+    covariate == "real_1850_gini" ~ "1850 real-wealth Gini coefficient",    
+    covariate == "real_1860_gini" ~ "1860 real-wealth Gini coefficient",        
+    covariate == "lag_Democrat_in_1851" ~ "1851 Democrat neighborhood effect",
+    covariate == "lag_Whig_in_1851" ~ "1851 Whig neighborhood effect",
+    covariate == "lag_Free_Soil_in_1851" ~ "1851 Free Soil neighborhood effect",
+    covariate == "lag_Abstaining_in_1851" ~ "1851 non-voting neighborhood effect",
+    covariate == "lag_Democrat_in_1852" ~ "1852 Democrat neighborhood effect",
+    covariate == "lag_Whig_in_1852" ~ "1852 Whig neighborhood effect",
+    covariate == "lag_Free_Soil_in_1852" ~ "1852 Free Soil neighborhood effect",
+    covariate == "lag_Abstaining_in_1852" ~ "1852 non-voting neighborhood effect",
+    covariate == "lag_Democrat_in_1853" ~ "1853 Democrat neighborhood effect",
+    covariate == "lag_Whig_in_1853" ~ "1853 Whig neighborhood effect",
+    covariate == "lag_Abstaining_in_1853" ~ "1853 non-voting neighborhood effect",
+    covariate == "lag_Free_Soil_in_1853" ~ "1853 Free Soil neighborhood effect",
+    covariate == "lag_Democrat_in_1854" ~ "1854 Democrat neighborhood effect",
+    covariate == "lag_Whig_in_1854" ~ "1854 Whig neighborhood effect",
+    covariate == "lag_Free_Soil_in_1854" ~ "1854 Free Soil neighborhood effect",
+    covariate == "lag_Abstaining_in_1854" ~ "1854 non-voting neighborhood effect",
+    covariate == "lag_Temperance_in_1854" ~ "1854 Temperance neighborhood effect",
+    covariate == "lag_Democrat_in_1855" ~ "1855 Democrat neighborhood effect",
+    covariate == "lag_Abstaining_in_1855" ~ "1855 non-voting neighborhood effect",
+    covariate == "lag_Whig_in_1855" ~ "1855 Whig neighborhood effect",
+    covariate == "lag_Democrat_in_1856" ~ "1856 Democrat neighborhood effect",
+    covariate == "lag_Whig_in_1856" ~ "1856 Whig neighborhood effect",
+    covariate == "lag_Republican_in_1856" ~ "1856 Republican neighborhood effect",
+    covariate == "lag_Abstaining_in_1856" ~ "1856 non-voting neighborhood effect",
+    TRUE ~ covariate
+  )
+  return(cov_name)
+}
+
+style_covariate <- function(covariate_df) {
+  covariate_df %>%
+    mutate(covariate = covariate_name(covariate)) %>%
+    arrange(covariate) %>%
+    mutate(across(!covariate, function(col) {
+      kableExtra::cell_spec(
+        col,
+        color = case_when(
+          col == "Positive" ~ "blue",
+          col == "Negative" ~ "red",
+          TRUE ~ "black"
+        ),
+        format = "html"
+      )
+    }))
+}
+
+style_correlate <- function(correlate_df) {
+  correlate_df %>%
+    mutate(covariate = covariate_name(covariate)) %>%
+    arrange(covariate) %>%
+    mutate(across(!starts_with("coefficient_") & !covariate, function(r2_col) {
+      coef_col <- cur_data()[[paste0("coefficient_", cur_column())]]
+      kableExtra::cell_spec(
+        round(r2_col, 3),
+        color = case_when(
+          is.na(r2_col) ~ "black",
+          coef_col > 0 ~ "blue",
+          coef_col < 0 ~ "red",
+          TRUE ~ "black"
+        ),
+        format = "html"
+      )
+    })) %>%
+    select(!starts_with("coefficient_"))
+}
+
+covariate_html <- function(cov_df, cov_head, cor_df, cor_head) {
+  cov_header <- setNames(ncol(cov_df), cov_head)
+  cor_header <- setNames(ncol(cor_df), cor_head)
+  
+  kable.cov <- knitr::kable(cov_df, format = "html", escape = FALSE) %>%
+    kableExtra::add_header_above(cov_header, align = "left") %>%
+    kableExtra::kable_styling(full_width = FALSE, font_size = "smaller")
+  
+  kable.cor <- knitr::kable(cor_df, format = "html", escape = FALSE) %>%
+    kableExtra::add_header_above(cor_header, align = "left") %>%
+    kableExtra::kable_styling(full_width = FALSE, font_size = "smaller")
+  
+  htmltools::browsable(htmltools::HTML(paste0(
+    '<div style="display:flex; gap:1rem; align-items:flex-start;">',
+    as.character(kable.cov),
+    '<div style="border-left: 1px solid black; margin: 0 1rem;"></div>',
+    as.character(kable.cor),
+    '</div>'
+  )))
+}
+
+betas.52 <- transition_matrix_from_flow(variability_results.52$flow_intervals)
+transition.52 <- construct_contingency(
   results.52,
   betas.52,
   1851,
   1852
 )
-estimate <- choose_final_estimate(variability_results.53)
-betas.53 <- estimate$estimates
-kable.53 <- construct_contingency(
+covariates.52 <- variability_results.52$individual_runs[[1]]$covariates
+
+betas.53 <- transition_matrix_from_flow(variability_results.53$flow_intervals)
+transition.53 <- construct_contingency(
   results.53,
   betas.53,
   1852,
   1853
 )
-estimate <- choose_final_estimate(variability_results.54)
-betas.54 <- estimate$estimates
-kable.54 <- construct_contingency(
+covariates.53 <- variability_results.53$individual_runs[[1]]$covariates
+
+betas.54 <- transition_matrix_from_flow(variability_results.54$flow_intervals)
+transition.54 <- construct_contingency(
   results.54,
   betas.54,
   1853,
   1854
 )
-estimate <- choose_final_estimate(variability_results.55)
-betas.55 <- estimate$estimates
-kable.55 <- construct_contingency(
+covariates.54 <- variability_results.54$individual_runs[[1]]$covariates
+
+betas.55 <- transition_matrix_from_flow(variability_results.55$flow_intervals)
+transition.55 <- construct_contingency(
   results.55,
   betas.55,
   1854,
   1855
 )
-estimate <- choose_final_estimate(variability_results.56)
-betas.56 <- estimate$estimates
-kable.56 <- construct_contingency(
+covariates.55 <- variability_results.55$individual_runs[[1]]$covariates
+
+betas.56 <- transition_matrix_from_flow(variability_results.56$flow_intervals)
+transition.56 <- construct_contingency(
   results.56,
   betas.56,
   1855,
   1856
 )
-estimate <- choose_final_estimate(variability_results.57)
-betas.57 <- estimate$estimates
-kable.57 <- construct_contingency(
+covariates.56 <- variability_results.56$individual_runs[[1]]$covariates
+
+betas.57 <- transition_matrix_from_flow(variability_results.57$flow_intervals)
+transition.57 <- construct_contingency(
   results.57,
   betas.57,
   1856,
   1857
 )
-knitr::kable(kable.52,
+covariates.57 <- variability_results.57$individual_runs[[1]]$covariates
+
+knitr::kable(transition.52,
   format = "html") %>%
   kableExtra::add_header_above(c("Estimated Voter Transitions from 1851 to 1852" = 6),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
-knitr::kable(kable.53,
+
+knitr::kable(transition.53,
   format = "html") %>%
   kableExtra::add_header_above(c("Estimated Voter Transitions from 1852 to 1853" = 6),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
-knitr::kable(kable.54,
+
+knitr::kable(transition.54,
   format = "html") %>%
   kableExtra::add_header_above(c("Estimated Voter Transitions from 1853 to 1854" = 7),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
-knitr::kable(kable.55,
+
+knitr::kable(transition.55,
   format = "html") %>%
   kableExtra::add_header_above(c("Estimated Voter Transitions from 1854 to 1855" = 6),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
-knitr::kable(kable.56,
+
+knitr::kable(transition.56,
   format = "html") %>%
   kableExtra::add_header_above(c("Estimated Voter Transitions from 1855 to 1856" = 7),
                                align = "left",
                                font_size = "larger") %>%
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
-knitr::kable(kable.57,
+
+knitr::kable(transition.57,
   format = "html") %>%
   kableExtra::add_header_above(c("Estimated Voter Transitions from 1856 to 1857" = 5),
                                align = "left",
@@ -122,3 +246,19 @@ knitr::kable(kable.57,
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 ```
+The left-most tables below show the covariates that were used for each transition estimate; the right-most table shows the R-squared values for the correlation of significant covariates with party vote share. Blue indicates a positive relationship and red indicates a negative relationship.
+
+Note how often the neighborhood effect of the previous election's vote share (spatial lag, in technical terms) was selected for the transition models. This represents geographic clustering in electoral behavior that persists even after accounting for wealth, urbanization, religious affiliation, and other measurable factors — likely reflecting local political culture, party organization, and social networks that spread influence across neighboring towns. The strongly local character of these influences may help explain why the models failed to converge: different regions crystallized around different patterns, resisting the uniform statewide trend that the model assumes.
+```{r covariates, echo = FALSE}
+covariate_html(style_covariate(covariates.52), "Transition covariates, 1851 to 1852", 
+               style_correlate(correlates.52), "Vote share covariate R2 values, 1852")
+covariate_html(style_covariate(covariates.53), "Transition covariates, 1852 to 1853", 
+               style_correlate(correlates.53), "Vote share covariate R2 values, 1853")
+covariate_html(style_covariate(covariates.54), "Transition covariates, 1853 to 1854", 
+               style_correlate(correlates.54), "Vote share covariate R2 values, 1854")
+covariate_html(style_covariate(covariates.55), "Transition covariates, 1854 to 1855", 
+               style_correlate(correlates.55), "Vote share covariate R2 values, 1855")
+covariate_html(style_covariate(covariates.56), "Transition covariates, 1855 to 1856", 
+               style_correlate(correlates.52), "Vote share covariate R2 values, 1856")
+covariate_html(style_covariate(covariates.57), "Transition covariates, 1856 to 1857", 
+               style_correlate(correlates.57), "Vote share covariate R2 values, 1857")

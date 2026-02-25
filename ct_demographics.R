@@ -357,7 +357,15 @@ factors <- ungroup(ct_1860_hh %>%
     pct_irish_1850 = irish_1850 / POP_1850,
     pct_ya_male_1850 = ya_male_1850 / POP_1850,
     pct_farm_1850 = farm_1850_hh / num_1850_hh,
-    pct_farm_1860 = farm_1860_hh / num_1860_hh
+    pct_farm_1860 = farm_1860_hh / num_1860_hh,
+    imm_res_1850_hh = ifelse(is.nan(imm_res_1850_hh) | is.na(imm_res_1850_hh),
+      4,
+      imm_res_1850_hh
+    ), # 4 is similar to peer towns
+    imm_res_1860_hh = ifelse(is.nan(imm_res_1860_hh) | is.na(imm_res_1860_hh),
+      4,
+      imm_res_1860_hh
+    ) # 4 is similar to peer towns
   ) %>%
   dplyr::filter(combined != "UNKNOWN")) %>%
   select(
