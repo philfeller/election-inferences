@@ -24,6 +24,35 @@ transition_matrix_from_flow <- function(sum) {
     as.matrix()
 }
 
+# Match the transition shares to the beta values in the draws array;
+# used to calculate the transition shares for each simulation of beta values
+beta_to_transition_share <- function(weighted_draws, shares) {
+  transitions <- dimnames(weighted_draws)$transition
+  
+  share_lookup <- shares %>%
+    enframe(name = "share_name", value = "share") %>%
+    mutate(
+      source = str_remove(share_name, "_vote"),
+      source = str_replace(source, "^nonvote", "Abstaining")
+    )
+  
+  sources <- str_extract(transitions, "^[^.]+")
+  share_values <- share_lookup$share[match(sources, share_lookup$source)]
+  
+  if (any(is.na(share_values))) {
+    missing <- transitions[is.na(share_values)]
+    stop(sprintf("Could not match shares for: %s", 
+                 paste(missing, collapse = ", ")))
+  }
+  
+  result <- weighted_draws
+  for (i in seq_along(transitions)) {
+    result[, , i] <- weighted_draws[, , i] * share_values[i]
+  }
+  
+  result
+}
+
 # Extract individual simulations of beta values, either statewide or for a town
 beta.sims.MD <- function(ei.model, cols, town.id) {
   # ei.model: ei.MD.bayes model object

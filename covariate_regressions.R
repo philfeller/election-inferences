@@ -48,7 +48,7 @@ save(
 )
 
 save(
-  map.52, map.53, map.54, map.55, map.56, map.57, map.51_57,
+  map.52, map.53, map.54, map.55, map.56, map.57,
   file = "maps.Rda"
 )
 
