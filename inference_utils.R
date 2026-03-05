@@ -9,6 +9,52 @@ source("./global.R")
 library(glmnet)
 library(purrr)
 
+# Function that takes the combined draws array across all runs and calculates
+# a weighted average of the beta draws for each transition period;
+# this will be used to visualize the variability of the inferences across runs
+create_weighted_avg <- function(draws_array, beg_yr, end_yr, weights) {
+  
+  var_names <- dimnames(draws_array)[[3]]
+  
+  # Find all beta variables for this transition period
+  pattern <- paste0("beta\\..+_in_", beg_yr, "\\..+_in_", end_yr, "\\.")
+  matching_vars <- var_names[str_detect(var_names, pattern)]
+  
+  if (length(matching_vars) == 0) stop("No matching variables found.")
+  
+  # Extract unique party combinations
+  combinations <- matching_vars %>%
+    str_extract(paste0("(?<=beta\\.).+(?=\\.\\d+$)")) %>%
+    unique()
+  
+  # Normalize weights
+  w <- weights / sum(weights)
+  
+  # Build 3D array: [draws, chains, combinations]
+  n_draws  <- dim(draws_array)[1]
+  n_chains <- dim(draws_array)[2]
+  n_combos <- length(combinations)
+  
+  weighted_avg <- array(
+    NA_real_,
+    dim = list(n_draws, n_chains, n_combos),
+    dimnames = list(
+      draw  = NULL,
+      chain = paste0("Run ", sprintf("%02d", seq_len(n_chains))),
+      transition = combinations
+    )
+  )
+  
+  for (combo in combinations) {
+    combo_vars <- var_names[str_detect(var_names, 
+                                       paste0("beta\\.", combo, "\\.\\d+$"))]
+    town_draws <- draws_array[, , combo_vars, drop = FALSE]
+    weighted_avg[, , combo] <- apply(town_draws, c(1, 2), function(x) sum(x * w))
+  }
+  
+  weighted_avg
+}
+
 # Function to prepare spatial covariates properly
 prepare_spatial_data <- function(data, col_names) {
   # Extract columns as matrix
@@ -433,6 +479,11 @@ quantify_ei_variability <- function(beg_yr, end_yr, n_runs = 10, covariate = TRU
     lapply(arr_list, posterior::as_draws_array),
     along = "chain"
   )
+  
+  # Calculate weighted average, using eligible voters as weights
+  elig <- get(paste("results.", substring(as.character(end_yr), 3, 4), sep = "")) %>% select(paste0("ELIG_",end_yr))
+  weights <- elig / sum(elig)
+  weighted_draws <- create_weighted_avg(combined_draws, beg_yr, end_yr, weights)
 
   # Calculate Gelmen-Rubin R-hat values for all parameters across all runs
   rhat_values <- posterior::summarise_draws(combined_draws, "rhat")
@@ -472,7 +523,8 @@ quantify_ei_variability <- function(beg_yr, end_yr, n_runs = 10, covariate = TRU
     variability = variability_analysis,
     n_successful = length(results_list),
     rhat = rhat_values,
-    flow_intervals = all_flows
+    flow_intervals = all_flows,
+    weighted_draws = weighted_draws
   ))
 }
 

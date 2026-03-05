@@ -11,7 +11,7 @@
 
 
 
-<title>Uncertainty in Voter Transition Estimates</title>
+<title>uncertainty.knit</title>
 
 <script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -275,8 +275,6 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Uncertainty in Voter Transition
-Estimates</h1>
 
 </div>
 
@@ -315,7 +313,41 @@ ranges of outcomes. The second heatmap shows the spread between the
 highest and lowest transition estimates across runs — a direct measure
 of how much the substantive conclusions vary. In both cases, lower
 values indicate greater reliability.</p>
-<p><img src="uncertainty_files/figure-html/plots-1.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-2.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-3.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-4.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-5.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-6.png" alt="" width="672" /><img src="uncertainty_files/figure-html/plots-7.png" alt="" width="672" /></p>
+<p><img src="uncertainty_files/figure-html/plots-1.png" alt="" width="1200" /><img src="uncertainty_files/figure-html/plots-2.png" alt="" width="1200" /><img src="uncertainty_files/figure-html/plots-3.png" alt="" width="1200" /><img src="uncertainty_files/figure-html/plots-4.png" alt="" width="1200" /><img src="uncertainty_files/figure-html/plots-5.png" alt="" width="1200" /><img src="uncertainty_files/figure-html/plots-6.png" alt="" width="1200" /></p>
+<div id="know-nothing-transitions-in-1855" class="section level1">
+<h1>Know Nothing Transitions in 1855</h1>
+<p>To see what high R-hat values look like in practice, consider what
+the posterior distributions of voter transitions look like for the 1854
+to 1855 transitions to the Know Nothing party.</p>
+<p>Where the distributions for multiple runs align, we likely have a
+genuine signal of voter transitions, such as runs 1, 2, 3, 5, 6, 9, and
+10 for the 1854 Whig transition, which are centered on a value of
+roughly 10% or slightly more. Runs 7 and 8 are interesting because they
+show a dominant mode at just over 10% but also a secondary mode at
+roughly 7%, which corresponds to the value found in run 4. The fact that
+the dominant mode is close to the value found in other runs suggests
+that runs 7 and 8 aren’t outliers but are detecting a genuine signal of
+voter transitions. The fact that the secondary mode in runs 7 and 8 is
+close to the value found in run 4 is consistent with run 4 detecting a
+real but weaker signal of voter transitions.</p>
+<p>The results for the 1854 Free Soil transition tell a different story,
+because most runs show a different mode or set of modes. Because Free
+Soilers had won a relatively smaller vote share, the data are sparser
+and the model may have had more trouble finding a signal. Alternatively,
+the data may reflect the Free Soil party drawing support from a more
+heterogeneous set of voters, making it harder for the model to find a
+single dominant mode.</p>
+<p><img src="uncertainty_files/figure-html/posterior-1.png" alt="" width="900" /><img src="uncertainty_files/figure-html/posterior-2.png" alt="" width="900" /><img src="uncertainty_files/figure-html/posterior-3.png" alt="" width="900" /><img src="uncertainty_files/figure-html/posterior-4.png" alt="" width="900" /><img src="uncertainty_files/figure-html/posterior-5.png" alt="" width="900" /></p>
+</div>
+<div id="geographic-distribution-of-1855-r-hat-values"
+class="section level1">
+<h1>Geographic Distribution of 1855 R-hat Values</h1>
+<p>We can also see that high R-hat values are fairly uniformly
+distributed across the state, suggesting that the model’s failure to
+converge is not due to a small number of outlier towns but rather to
+widespread local variation in voter behavior.</p>
+<p><img src="uncertainty_files/figure-html/map-1.png" alt="" width="1200" /></p>
+</div>
 
 
 

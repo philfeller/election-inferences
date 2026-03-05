@@ -31,6 +31,8 @@ Transitions less than 0.4% are not shown. Hover over the flows to see exact perc
 
 Percentages may differ slightly from those in the transition tables below due to rounding.
 
+# Transition Tables
+
 ```{r tables, echo = FALSE}
 
 covariate_name <- function(covariate) {
@@ -246,9 +248,13 @@ knitr::kable(transition.57,
   kableExtra::column_spec(1, bold = TRUE) %>%
   kableExtra::kable_styling(full_width = FALSE)
 ```
+
+# Covariates of Transitions and Vote Shares
+
 The left-most tables below show the covariates that were used for each transition estimate; the right-most table shows the R-squared values for the correlation of significant covariates with party vote share. Blue indicates a positive relationship and red indicates a negative relationship.
 
 Note how often the neighborhood effect of the previous election's vote share (spatial lag, in technical terms) was selected for the transition models. This represents geographic clustering in electoral behavior that persists even after accounting for wealth, urbanization, religious affiliation, and other measurable factors — likely reflecting local political culture, party organization, and social networks that spread influence across neighboring towns. The strongly local character of these influences may help explain why the models failed to converge: different regions crystallized around different patterns, resisting the uniform statewide trend that the model assumes.
+
 ```{r covariates, echo = FALSE}
 covariate_html(style_covariate(covariates.52), "Transition covariates, 1851 to 1852", 
                style_correlate(correlates.52), "Vote share covariate R2 values, 1852")

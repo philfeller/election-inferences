@@ -3,6 +3,7 @@
 # create_map(), corr_matrix_by_party(), create_rhatio_heatmap(),
 # create_transition_uncertainty_heatmap(), create_rhat_town_map()
 
+library(ggridges)
 source("./global.R")
 
 # Define functions useful for extracting tabular data from betas and for
@@ -163,6 +164,24 @@ boxplotMD <- function(betas, col_yr, row_yr, town, covariate = FALSE) {
     guides(fill = guide_legend(title = paste(row_yr, "vote"))) +
     labs(title = title, x = x_label, y = paste(col_yr, "vote")) +
     theme_classic())
+}
+
+# Plot the ridgeline distributions of the estimated betas across
+# several runs of the MD inference, to show variability across runs.
+plot_ridgeline <- function(weighted_avg, combo) {
+  as.data.frame(weighted_avg[, , combo]) %>%
+    mutate(draw = row_number()) %>%
+    pivot_longer(-draw, names_to = "chain", values_to = "value") %>%
+    ggplot(aes(x = value, y = chain, fill = chain)) +
+    geom_density_ridges(alpha = 0.7, scale = 1.2) +
+    scale_x_continuous(labels = scales::percent_format()) +
+    labs(
+      title = gsub("_", " ", gsub("\\.", " → ", combo)),
+      x = "Weighted average vote share transition (percent)",
+      y = NULL
+    ) +
+    theme_ridges() +
+    theme(legend.position = "none")
 }
 
 # Plot the ridgeline distributions of the estimated betas
