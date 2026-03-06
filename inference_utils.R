@@ -13,45 +13,46 @@ library(purrr)
 # a weighted average of the beta draws for each transition period;
 # this will be used to visualize the variability of the inferences across runs
 create_weighted_avg <- function(draws_array, beg_yr, end_yr, weights) {
-  
   var_names <- dimnames(draws_array)[[3]]
-  
+
   # Find all beta variables for this transition period
   pattern <- paste0("beta\\..+_in_", beg_yr, "\\..+_in_", end_yr, "\\.")
   matching_vars <- var_names[str_detect(var_names, pattern)]
-  
+
   if (length(matching_vars) == 0) stop("No matching variables found.")
-  
+
   # Extract unique party combinations
   combinations <- matching_vars %>%
     str_extract(paste0("(?<=beta\\.).+(?=\\.\\d+$)")) %>%
     unique()
-  
+
   # Normalize weights
   w <- weights / sum(weights)
-  
+
   # Build 3D array: [draws, chains, combinations]
-  n_draws  <- dim(draws_array)[1]
+  n_draws <- dim(draws_array)[1]
   n_chains <- dim(draws_array)[2]
   n_combos <- length(combinations)
-  
+
   weighted_avg <- array(
     NA_real_,
     dim = list(n_draws, n_chains, n_combos),
     dimnames = list(
-      draw  = NULL,
+      draw = NULL,
       chain = paste0("Run ", sprintf("%02d", seq_len(n_chains))),
       transition = combinations
     )
   )
-  
+
   for (combo in combinations) {
-    combo_vars <- var_names[str_detect(var_names, 
-                                       paste0("beta\\.", combo, "\\.\\d+$"))]
+    combo_vars <- var_names[str_detect(
+      var_names,
+      paste0("beta\\.", combo, "\\.\\d+$")
+    )]
     town_draws <- draws_array[, , combo_vars, drop = FALSE]
     weighted_avg[, , combo] <- apply(town_draws, c(1, 2), function(x) sum(x * w))
   }
-  
+
   weighted_avg
 }
 
@@ -369,6 +370,7 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
     lambda1 <- mu * lambda2
   }
 
+  cov_cols <- c()
   if (covariate == TRUE & is.null(cov_comparison)) {
     # Determine covariates using regression model on residuals from the base model
     cov_data <- regression_model(data, ei.model, beg_yr, end_yr, "all", return_coefficients = TRUE)
@@ -384,12 +386,14 @@ build_ei_model <- function(beg_yr, end_yr, lambda1, lambda2, covariate = FALSE, 
         to_party = gsub("Abstaining", "Non-voting", to_party)
       ) %>%
       pivot_wider(names_from = to_party, values_from = direction)
+
+    cov_cols <- pull(cov_comparison, covariate)
   }
-  cov_cols <- pull(cov_comparison, covariate)
+
+  # Save the current model as the base model before adding covariates
+  base.ei.model <- ei.model
 
   if (covariate == TRUE && length(cov_cols) > 0) {
-    # Save the current model as the base model before adding covariates
-    base.ei.model <- ei.model
     # Create covariate formula
     covariate_string <- paste("~", paste(cov_cols, collapse = " + "))
     covariate_formula <- as.formula(covariate_string)
@@ -428,7 +432,11 @@ quantify_ei_variability <- function(beg_yr, end_yr, n_runs = 10, covariate = TRU
 
     ei_results <- build_ei_model(beg_yr, end_yr, covariate = covariate, base_model = base_model, cov_comparison = cov)
     ei_model <- ei_results$model
-    base_model <- ei_results$base_model
+    if (covariate == TRUE) {
+      base_model <- ei_results$base_model
+    } else {
+      base_model <- NULL
+    }
     cov <- ei_results$cov
 
     # Save draws array for this run
@@ -467,7 +475,11 @@ quantify_ei_variability <- function(beg_yr, end_yr, n_runs = 10, covariate = TRU
   }
 
   # Calculate confidence interval variability metrics
-  variability_analysis <- analyze_inference_variability(results_list)
+  if (n_runs > 1) {
+    variability_analysis <- analyze_inference_variability(results_list)
+  } else {
+    variability_analysis <- NULL
+  }
 
   # Create a list of the draws arrays for all runs
   arr_list <- lapply(1:n_runs, function(i) {
@@ -479,32 +491,41 @@ quantify_ei_variability <- function(beg_yr, end_yr, n_runs = 10, covariate = TRU
     lapply(arr_list, posterior::as_draws_array),
     along = "chain"
   )
-  
+
   # Calculate weighted average, using eligible voters as weights
-  elig <- get(paste("results.", substring(as.character(end_yr), 3, 4), sep = "")) %>% select(paste0("ELIG_",end_yr))
+  elig <- get(paste("results.", substring(as.character(end_yr), 3, 4), sep = "")) %>% select(paste0("ELIG_", end_yr))
   weights <- elig / sum(elig)
   weighted_draws <- create_weighted_avg(combined_draws, beg_yr, end_yr, weights)
 
   # Calculate Gelmen-Rubin R-hat values for all parameters across all runs
-  rhat_values <- posterior::summarise_draws(combined_draws, "rhat")
+  if (n_runs > 1) {
+    rhat_values <- posterior::summarise_draws(combined_draws, "rhat")
+  } else {
+    rhat_values <- NULL
+  }
 
-  # Calculate posterior means for key parameters across all runs
-  param_means <- lapply(arr_list, function(arr) {
-    posterior::summarise_draws(posterior::as_draws_array(arr), "mean")$mean
-  })
+  if (n_runs > 1) {
+    # Calculate posterior means for key parameters across all runs
+    param_means <- lapply(arr_list, function(arr) {
+      posterior::summarise_draws(posterior::as_draws_array(arr), "mean")$mean
+    })
 
-  # Find run closest to median
-  param_matrix <- do.call(rbind, param_means)
-  median_params <- apply(param_matrix, 2, median)
+    # Find run closest to median
+    param_matrix <- do.call(rbind, param_means)
+    median_params <- apply(param_matrix, 2, median)
 
-  # Calculate distance from median for each run
-  distances <- apply(param_matrix, 1, function(row) {
-    sqrt(sum((row - median_params)^2))
-  })
+    # Calculate distance from median for each run
+    distances <- apply(param_matrix, 1, function(row) {
+      sqrt(sum((row - median_params)^2))
+    })
 
-  closest_run <- which.min(distances)
-  median_betas <- arr_list[[closest_run]]
-  vote_data <- prepare_vote_data(end_yr)
+    closest_run <- which.min(distances)
+    median_betas <- arr_list[[closest_run]]
+    vote_data <- prepare_vote_data(end_yr)
+  } else {
+    median_betas <- arr_list[[1]]
+    vote_data <- prepare_vote_data(end_yr)
+  }
 
   all_flows <- expand.grid(
     from = beg_yr_parties,
