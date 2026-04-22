@@ -13,6 +13,8 @@ navbar:
       href: office_correlation.html
     - text: "Age Distributions"
       href: age_distribution.html
+    - text: Wealth Inequality by Age
+      href: gini_by_age.html
     - text: "Comparison to Goodman Regressions"
       href: renda.html
     - text: "Model Used"

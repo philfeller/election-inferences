@@ -11,7 +11,7 @@
 
 
 
-<title>Comparison to Lex Renda’s 1991 Ecological Regression</title>
+<title>Wealth Inequality by Age Cohort</title>
 
 <script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -280,625 +280,371 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Comparison to Lex Renda’s 1991 Ecological
-Regression</h1>
+<h1 class="title toc-ignore">Wealth Inequality by Age Cohort</h1>
 
 </div>
 
 
-Lex Renda, in his 1991 dissertation, “The Polity and the Party System:
-Connecticut and New Hampshire, 1840–1876”, estimated voter transitions
-in Connecticut elections using Leo Goodman’s 1953 method of ecological
-regression. Below I compare my estimates to his for the transitions from
-the 1853 to 1854 elections and from the 1854 to 1855 elections.
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<p>Wealth inequality, as measured by the Gini coefficient, decreases by
+age cohort in Meriden, in both 1850 and 1860. The graphs show the Gini
+coefficient for real property wealth in 1850 and 1860, and for total
+wealth in 1860, by age cohort.</p>
+<p>The Gini coefficient is a measure of inequality, where 0 represents
+perfect equality and 1 represents perfect inequality.</p>
+<p><img src="gini_by_age_files/figure-html/graphs-1.png" alt="" width="672" style="display: block; margin: auto;" /></p>
+<p>The GINI coefficient for 1860 total wealth is correlated to total
+wealth as well as to age. Because wealth tends to increase with age,
+it’s important to determine which factor better describes the variation
+in GINI coefficients</p>
+<p>Analysis demonstrates that <strong>age structure is a substantially
+better predictor of wealth inequality (GINI) than wealth
+itself</strong>. While wealth and age are positively correlated, age
+alone explains the majority of variation in inequality, with wealth
+contributing only marginal unique explanatory power.</p>
+<p>The following ANOVA shows how much variation in GINI each factor
+explains <strong>sequentially</strong> (controlling for previous
+variables):</p>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>
+Table 1: Sequential ANOVA Results (Type I Sum of Squares)
+</caption>
 <thead>
-<tr>
-<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: left; font-size: larger;" colspan="7">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
-Voter Transitions from 1853 to 1854, estimated using
-multinomial–Dirichlet
-</div>
-</th>
-</tr>
 <tr>
 <th style="text-align:left;">
 </th>
-<th style="text-align:right;">
-Democrat
+<th style="text-align:left;">
+Variable
 </th>
 <th style="text-align:right;">
-Whig
+Df
 </th>
 <th style="text-align:right;">
-Free Soil
+Sum Sq
 </th>
 <th style="text-align:right;">
-Temperance
+Mean Sq
 </th>
 <th style="text-align:right;">
-Non-voting
+F value
 </th>
 <th style="text-align:right;">
-share in 1853
+Pr(&gt;F)
+</th>
+<th style="text-align:left;">
+Prop_Var_Explained
+</th>
+<th style="text-align:left;">
+Cumulative_Prop
+</th>
+<th style="text-align:left;">
+Significance
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Democrat
+<td style="text-align:left;">
+pct_farm_1860
+</td>
+<td style="text-align:left;">
+pct_farm_1860
 </td>
 <td style="text-align:right;">
-22.0
+1
 </td>
 <td style="text-align:right;">
-1.7
+0.617
 </td>
 <td style="text-align:right;">
-0.4
+0.617
 </td>
 <td style="text-align:right;">
-1.6
+133.070
 </td>
 <td style="text-align:right;">
-6.2
+0.000
 </td>
-<td style="text-align:right;">
-31.9
+<td style="text-align:left;">
+41.0%
+</td>
+<td style="text-align:left;">
+41.0%
+</td>
+<td style="text-align:left;">
+***
 </td>
 </tr>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Whig
+<td style="text-align:left;">
+age_1860
+</td>
+<td style="text-align:left;">
+age_1860
 </td>
 <td style="text-align:right;">
-2.0
+1
 </td>
 <td style="text-align:right;">
-13.7
+0.138
 </td>
 <td style="text-align:right;">
-0.5
+0.138
 </td>
 <td style="text-align:right;">
-3.1
+29.722
 </td>
 <td style="text-align:right;">
-2.1
+0.000
 </td>
-<td style="text-align:right;">
-21.4
+<td style="text-align:left;">
+9.2%
+</td>
+<td style="text-align:left;">
+50.1%
+</td>
+<td style="text-align:left;">
+***
 </td>
 </tr>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Free Soil
+<td style="text-align:left;">
+wealth
+</td>
+<td style="text-align:left;">
+wealth
 </td>
 <td style="text-align:right;">
-1.7
+1
 </td>
 <td style="text-align:right;">
-1.4
+0.023
 </td>
 <td style="text-align:right;">
-1.1
+0.023
 </td>
 <td style="text-align:right;">
-3.4
+4.900
 </td>
 <td style="text-align:right;">
-1.7
+0.028
 </td>
-<td style="text-align:right;">
-9.3
+<td style="text-align:left;">
+1.5%
 </td>
+<td style="text-align:left;">
+51.6%
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
 </tr>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Non-voting
+<td style="text-align:left;">
+Residuals
+</td>
+<td style="text-align:left;">
+Residuals
 </td>
 <td style="text-align:right;">
-3.0
+157
 </td>
 <td style="text-align:right;">
-3.0
+0.728
 </td>
 <td style="text-align:right;">
-0.6
+0.005
 </td>
 <td style="text-align:right;">
-2.7
+NA
 </td>
 <td style="text-align:right;">
-28.1
+NA
 </td>
-<td style="text-align:right;">
-37.4
+<td style="text-align:left;">
+48.4%
 </td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-share in 1854
+<td style="text-align:left;">
+100.0%
 </td>
-<td style="text-align:right;">
-28.7
-</td>
-<td style="text-align:right;">
-19.8
-</td>
-<td style="text-align:right;">
-2.6
-</td>
-<td style="text-align:right;">
-10.8
-</td>
-<td style="text-align:right;">
-38.1
-</td>
-<td style="text-align:right;">
-100.0
+<td style="text-align:left;">
 </td>
 </tr>
 </tbody>
-</table>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+</table></li>
+</ul>
+<p><strong>Key finding:</strong> Urbanization accounts for 41.0% of
+variation, age accounts for 9.2%, while wealth adds only 1.5% beyond
+these factors.</p>
+<p>Wealth and age are positively correlated:</p>
+<pre><code>## Pearson correlation (age × wealth):  0.109</code></pre>
+<p>Wealth tends to increase with age, suggesting potential
+confounding.</p>
+<p>To isolate whether wealth explains inequality <strong>beyond</strong>
+what age already captures, we compare three models:</p>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>
+Table 2: Model Performance Comparison
+</caption>
 <thead>
 <tr>
-<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: left; font-size: larger;" colspan="7">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
-Voter Transitions from 1853 to 1854, estimated by Lex Renda using
-Goodman
-</div>
-</th>
-</tr>
-<tr>
 <th style="text-align:left;">
+Model
 </th>
 <th style="text-align:right;">
-Democrat
+R_squared
 </th>
 <th style="text-align:right;">
-Whig
+Adj_R_squared
 </th>
 <th style="text-align:right;">
-Free Soil
-</th>
-<th style="text-align:right;">
-Temperance
-</th>
-<th style="text-align:right;">
-Non-voting
-</th>
-<th style="text-align:right;">
-share in 1853
+AIC
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Democrat
+<td style="text-align:left;">
+Age only
 </td>
 <td style="text-align:right;">
-31.1
+0.4254
 </td>
 <td style="text-align:right;">
--0.5
+0.4218
 </td>
 <td style="text-align:right;">
--1.6
-</td>
-<td style="text-align:right;">
-2.7
-</td>
-<td style="text-align:right;">
-0.3
-</td>
-<td style="text-align:right;">
-32.0
+-378.5419
 </td>
 </tr>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Whig
+<td style="text-align:left;">
+Wealth only
 </td>
 <td style="text-align:right;">
--1.0
+0.0085
 </td>
 <td style="text-align:right;">
-19.4
+0.0023
 </td>
 <td style="text-align:right;">
-2.1
-</td>
-<td style="text-align:right;">
-0.8
-</td>
-<td style="text-align:right;">
-0.2
-</td>
-<td style="text-align:right;">
-21.5
+-290.7186
 </td>
 </tr>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Free Soil
+<td style="text-align:left;">
+Age + Wealth
 </td>
 <td style="text-align:right;">
-0.1
+0.4524
 </td>
 <td style="text-align:right;">
-1.2
+0.4455
 </td>
 <td style="text-align:right;">
-2.9
-</td>
-<td style="text-align:right;">
-4.1
-</td>
-<td style="text-align:right;">
-0.9
-</td>
-<td style="text-align:right;">
-9.3
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Non-voting
-</td>
-<td style="text-align:right;">
--0.8
-</td>
-<td style="text-align:right;">
-0.1
-</td>
-<td style="text-align:right;">
--0.7
-</td>
-<td style="text-align:right;">
-3.4
-</td>
-<td style="text-align:right;">
-35.2
-</td>
-<td style="text-align:right;">
-37.2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-share in 1854
-</td>
-<td style="text-align:right;">
-29.4
-</td>
-<td style="text-align:right;">
-20.2
-</td>
-<td style="text-align:right;">
-2.7
-</td>
-<td style="text-align:right;">
-11.1
-</td>
-<td style="text-align:right;">
-36.6
-</td>
-<td style="text-align:right;">
-100.0
+-384.3116
 </td>
 </tr>
 </tbody>
 </table>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<p><strong>Observation:</strong> Age alone (R² = 0.425) explains
+substantially more variation than wealth alone (R² = 0.009).</p>
+<p>The critical test: Does including wealth <strong>improve</strong> a
+model that already includes age?</p>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>
+Table 3: ANOVA Comparison - Does Wealth Improve the Age Model?
+</caption>
 <thead>
 <tr>
-<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: left; font-size: larger;" colspan="6">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
-Voter Transitions from 1854 to 1855, estimated using
-multinomial–Dirichlet
-</div>
-</th>
-</tr>
-<tr>
 <th style="text-align:left;">
+Model
 </th>
 <th style="text-align:right;">
-Democrat
+Res_DF
 </th>
 <th style="text-align:right;">
-Whig
+RSS
 </th>
 <th style="text-align:right;">
-Know Nothing
+DF_Change
 </th>
 <th style="text-align:right;">
-Non-voting
+SS_Change
 </th>
 <th style="text-align:right;">
-share in 1854
+F_Value
+</th>
+<th style="text-align:right;">
+P_Value
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Democrat
+<td style="text-align:left;">
+Age only
 </td>
 <td style="text-align:right;">
-16.5
+159
 </td>
 <td style="text-align:right;">
-1.4
+0.8651
 </td>
 <td style="text-align:right;">
-7.3
+NA
 </td>
 <td style="text-align:right;">
-3.5
+NA
 </td>
 <td style="text-align:right;">
-28.7
+NA
+</td>
+<td style="text-align:right;">
+NA
 </td>
 </tr>
 <tr>
-<td style="text-align:left;font-weight: bold;">
-Whig
+<td style="text-align:left;">
+Age + Wealth
 </td>
 <td style="text-align:right;">
-3.2
+158
 </td>
 <td style="text-align:right;">
-4.2
+0.8243
 </td>
 <td style="text-align:right;">
-9.3
+1
 </td>
 <td style="text-align:right;">
-3.1
+0.0408
 </td>
 <td style="text-align:right;">
-19.8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Free Soil
+7.8119
 </td>
 <td style="text-align:right;">
-0.4
-</td>
-<td style="text-align:right;">
-0.4
-</td>
-<td style="text-align:right;">
-1.0
-</td>
-<td style="text-align:right;">
-0.8
-</td>
-<td style="text-align:right;">
-2.6
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Temperance
-</td>
-<td style="text-align:right;">
-2.1
-</td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-6.0
-</td>
-<td style="text-align:right;">
-1.5
-</td>
-<td style="text-align:right;">
-10.8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Non-voting
-</td>
-<td style="text-align:right;">
-4.7
-</td>
-<td style="text-align:right;">
-1.8
-</td>
-<td style="text-align:right;">
-4.1
-</td>
-<td style="text-align:right;">
-27.5
-</td>
-<td style="text-align:right;">
-38.1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-share in 1855
-</td>
-<td style="text-align:right;">
-26.9
-</td>
-<td style="text-align:right;">
-9.0
-</td>
-<td style="text-align:right;">
-27.7
-</td>
-<td style="text-align:right;">
-36.4
-</td>
-<td style="text-align:right;">
-100.0
+0.0058
 </td>
 </tr>
 </tbody>
 </table>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: left; font-size: larger;" colspan="6">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
-Voter Transitions from 1854 to 1855, estimated by Lex Renda using
-Goodman
-</div>
-</th>
-</tr>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:right;">
-Democrat
-</th>
-<th style="text-align:right;">
-Whig
-</th>
-<th style="text-align:right;">
-Know Nothing
-</th>
-<th style="text-align:right;">
-Non-voting
-</th>
-<th style="text-align:right;">
-share in 1854
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Democrat
-</td>
-<td style="text-align:right;">
-19.1
-</td>
-<td style="text-align:right;">
--2.2
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-28.7
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Whig
-</td>
-<td style="text-align:right;">
-5.6
-</td>
-<td style="text-align:right;">
-7.8
-</td>
-<td style="text-align:right;">
-6.6
-</td>
-<td style="text-align:right;">
--0.3
-</td>
-<td style="text-align:right;">
-19.7
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Free Soil
-</td>
-<td style="text-align:right;">
--2.3
-</td>
-<td style="text-align:right;">
-1.0
-</td>
-<td style="text-align:right;">
-2.5
-</td>
-<td style="text-align:right;">
-1.4
-</td>
-<td style="text-align:right;">
-2.6
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Temperance
-</td>
-<td style="text-align:right;">
-2.5
-</td>
-<td style="text-align:right;">
-2.9
-</td>
-<td style="text-align:right;">
-6.2
-</td>
-<td style="text-align:right;">
--0.8
-</td>
-<td style="text-align:right;">
-10.8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-Non-voting
-</td>
-<td style="text-align:right;">
-2.7
-</td>
-<td style="text-align:right;">
--0.2
-</td>
-<td style="text-align:right;">
-2.6
-</td>
-<td style="text-align:right;">
-33.1
-</td>
-<td style="text-align:right;">
-38.2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;">
-share in 1855
-</td>
-<td style="text-align:right;">
-27.6
-</td>
-<td style="text-align:right;">
-9.3
-</td>
-<td style="text-align:right;">
-28.5
-</td>
-<td style="text-align:right;">
-34.6
-</td>
-<td style="text-align:right;">
-100.0
-</td>
-</tr>
-</tbody>
-</table>
+<pre><code>## 
+## 
+## **Additional R² contributed by wealth:**  2.7%</code></pre>
+<ol style="list-style-type: decimal">
+<li><p><strong>Age structure is a strong predictor</strong> of wealth
+inequality, explaining approximately 42.5% of variation (with
+urbanization)</p></li>
+<li><p><strong>Wealth adds minimal unique explanatory power</strong> -
+only 2.7% beyond what age already explains</p></li>
+<li><p><strong>The age-wealth correlation</strong> (r = 0.109) suggests
+that wealth’s apparent effect is largely mediated by age</p></li>
+<li><p><strong>Substantive interpretation</strong>: Demographic
+composition matters for inequality in ways that go beyond simple wealth
+accumulation. Policies targeting age structure or life-cycle effects may
+be more relevant to inequality than direct wealth
+redistribution.</p></li>
+</ol>
 
 
 
