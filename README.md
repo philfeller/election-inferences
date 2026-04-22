@@ -41,7 +41,7 @@ Rscript analyze_results.R
 - lookup_1860.Rda - Defines the range of IPUMS serial numbers for a particular town in 1860
 - missing_1860_ipums_rows.Rda - Data that is missing from IPUMS digitized transcription
 - download_ipums.R - Download census data from IPUMS; requires an API key and that the key is defined in environment variable API_KEY.
-- global.R - Loads pacakges and defines variables that are used elsewhere, including the paths for the files that were loadloaded from IPUMS.
+- global.R - Loads pacakges and defines variables that are used elsewhere, including the paths for the files that were loaded from IPUMS.
 - ct_demographics.R - Creates Tidyverse tibbles from the IPUMS data, summarizing by town and calculating information, such as GINI index.
 - results_utils.R - Defines utility functions that are used by prepare_results.R and regression scripts
 - prepare_results.R - Defines functions that take election results for a pair of years and prepare them for analysis
@@ -62,6 +62,7 @@ Rscript analyze_results.R
 - 1855_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1854 and 1855
 - 1856_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1855 and 1856
 - 1857_covariate_inference.Rda - Output from a typical execution of covariate_regression.R, estimating voter shifts between 1856 and 1857
+- presentation_graphs.R - Creates the graphs used in the conference presentation: age distribution and GINI by age cohort.
 - analyze_results.R - Loads the inferences.Rda data file that was created by prepare_results.R and performs the statistical analysis that is used in the paper.
 - test.R - Contains one simple inference and a few graphs; it is used by the CI/CD pipeline to test that all needed files are included and working as expected.
 
@@ -91,6 +92,7 @@ These files were created from a [Connecticut GIS file](https://ct-deep-gis-open-
 
 ### Rmarkdown files
 md/age_distribution.Rmd - Native-born male age distribution plots
+md/gini_by_age.Rmd - Graph of GINI index by age cohort
 md/index.Rmd - Main page for GitHub Pages site
 md/model.Rmd - Description of multinomial-Dirichlet model and my implementation
 md/office_correlation.Rmd - Correlation between voting for different offices
@@ -107,8 +109,14 @@ html/renda.html - Comparison to Lex Renda's 1991 ecological regression
 html/sankey.html - Sankey diagram and transition tables for election inferences
 html/uncertainty.html - Uncertainty analysis of election inference for 1854-1855
 html/age_distribution_files/figure-html/ - PNG chart images for age_distribution.html
+html/gini_by_age.html - Graph of GINI index by age cohort
 html/uncertainty_files/figure-html/ - PNG plot images for uncertainty.html
 html/site_libs/ - CSS and JavaScript files used by GitHub Pages site
+
+### Unit test files
+tests/test_betas.R - Unit test functions in betas.R
+tests/test_inference_utils.R - Unit test functions in inference_utils.R
+tests/test_results_utils.R - Unit test functions in results_utils.R
 
 ### Docker files
 - docker/Dockerfile - Docker file used to build the ghcr.io/philfeller/election-inferences image
