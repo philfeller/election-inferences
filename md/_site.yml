@@ -1,7 +1,7 @@
-name: "Connecticut Voter Transitions, 1851-1857"
+name: "Connecticut Gubernatorial Vote Transitions, 1851-1857: Testing the Limits of Ecological Inference"
 output_dir: ../html
 navbar:
-  title: "Connecticut Voter Transitions, 1851-1857"
+  title: "Connecticut Gubernatorial Vote Transitions, 1851-1857: Testing the Limits of Ecological Inference"
   left:
     - text: "Home"
       href: index.html
@@ -13,7 +13,7 @@ navbar:
       href: office_correlation.html
     - text: "Age Distributions"
       href: age_distribution.html
-    - text: Wealth Inequality by Age
+    - text: "Wealth Inequality by Age"
       href: gini_by_age.html
     - text: "Comparison to Goodman Regressions"
       href: renda.html
