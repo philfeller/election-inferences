@@ -1,34 +1,38 @@
 ---
-title: "Connecticut Voter Transitions, 1851-1857"
+title: "Connecticut Gubernatorial Vote Transitions, 1851-1857: Testing the Limits of Ecological Inference"
 output: html_document
 ---
 
-The elections of the 1850s were marked by dramatic shifts in party affiliation. Practitioners of the new political history introduced the use of ecological regression to estimate the transitions of voters between parties from one election to the next. Combined with regressions of vote shares by demographic data, the intent was to describe possible reasons for why voters shifted their party allegiances. Historians used the regression method that Leo Goodman first outlined in 1953.
+The elections of the 1850s were marked by dramatic shifts in party affiliation. Practitioners of the new political history introduced ecological regression as a way to estimate the transitions of voters between parties from one election to the next. Combined with regressions of vote shares by demographic data, the intent was to describe possible reasons for why voters shifted their party allegiances. The historians who championed this approach used the regression method that Leo Goodman first outlined in 1953 (Goodman 1953).
 
-In recent years, more sophisticated ecological inference models have been developed that improve on Goodman's original method, including the multinomial–Dirichlet method developed by Gary King and others. <a href="https://www.r-project.org/doc/Rnews/Rnews_2007-2.pdf#page=43">Olivia Lau, Ryan T. Moore, and Michael Kellerman created eiPack</a>, an R package that implements these methods.
+In recent years, more sophisticated ecological inference models have been developed that improve on Goodman's original method, including the multinomial–Dirichlet method developed by Gary King and others (Rosen et al. 2001). Olivia Lau, Ryan T. Moore, and Michael Kellermann created [eiPack](https://journal.r-project.org/articles/RN-2007-018/), an R package that implements these methods (Lau, Moore, and Kellermann 2007).
 
-<a href="https://github.com/philfeller/election-inferences">I have used eiPack to estimate voter transitions in Connecticut gubernatorial elections from 1851 to 1857</a>, a period of significant political realignment. The results are <a href="sankey.html">presented as a Sankey diagram</a> showing the estimated transitions of voters between parties from one election to the next, along with tables showing the estimated transition percentages.
+This project uses eiPack to estimate voter transitions in Connecticut gubernatorial elections from 1851 to 1857, a period of significant political upheaval. The [code is on GitHub](https://github.com/philfeller/election-inferences). The results are [presented as a Sankey diagram](sankey.html) showing the estimated transitions of voters between parties from one election to the next, along with tables showing the estimated transition percentages. The estimates are shown for transparency and are best read alongside the uncertainty analysis described below.
 
-Behind these transition estimates lies significant uncertainty. To assess model robustness, I ran each transition model ten times with identical parameters but different random starting points. The resulting variation in estimated transitions—presented in <a href="uncertainty.html">heatmaps</a>—reveals both the inherent difficulty of inferring individual behavior from aggregate data and the specific challenges posed by the chaotic party realignment of the 1850s.
+This analysis was intended to be part of a paper on Connecticut politics in the 1850s that I presented at the 2026 American Political History Conference and am expanding for possible publication. The paper's final version dropped any mention of ecological inference because the estimates were not reliable enough to support conclusions, which pointed toward the traditional tools of political history as the better way to understand voter behavior.
 
-This analysis forms part of a paper on Connecticut political realignment in the 1850s that I am preparing for a conference presentation and possible publication. Part of my analysis considers the effect that ballot-box mechanics played in shaping voter behavior, and a chart of <a href="office_correlation.html">vote correlations</a> between statewide and local offices provides evidence of voter interactions with political operatives.
+The estimates are unreliable because significant uncertainty underlies them. To assess model robustness, I ran each transition model ten times with identical parameters but different random starting points. The resulting variation in estimated transitions—presented in [heatmaps](uncertainty.html)—reveals both the inherent difficulty of inferring individual behavior from aggregate data and the specific challenges posed by the chaotic party upheaval of the 1850s.
 
-The need to provide economic opportunities to young men may also have influenced voter behavior, and I present <a href="age_distribution.html">charts showing the age distributions</a> statewide and in towns with unusually large native-born, young adult male cohorts.
+Part of the analysis in my conference paper considered the effect that ballot-box mechanics played in shaping voter behavior. A chart of [vote correlations](office_correlation.html) between statewide and local offices illustrates the effect and provides a framework to consider how voters interacted with the political operatives who distributed ballots (Bensel 2004).
 
-Finally, I <a href="renda.html">compare my results to those of Lex Renda</a>, whose 1991 dissertation on Connecticut politics in the 19th century included estimates of voter transitions using Goodman's ecological regression method.
+The need to provide economic opportunities to young men may also have influenced voter behavior, and I present [charts showing the age distributions](age_distribution.html) statewide and in towns with unusually large native-born, young adult male cohorts.
 
-For the mathematically curious, I provide a non-technical <a href="model.html">explanation of the ecological inference method</a> that I used and how I implemented it.
+Finally, I [compare my results to those of Lex Renda](renda.html), whose 1991 dissertation on Connecticut politics in the 19th century included estimates of voter transitions using Goodman's ecological regression method (Renda 1991).
 
-Census data comes from the IPUMS project at the University of Minnesota.
+For the mathematically curious, I provide a non-technical [explanation of the ecological inference method](model.html) that I used and how I implemented it.
+
+Census data come from the IPUMS project at the University of Minnesota (Ruggles et al. 2024).
 
 ## References
 
-Goodman, Leo A. 1953. “Ecological Regressions and Behavior of Individuals.” American Sociological Review 18 (6): 663–64. https://doi.org/10.2307/2088121.
+Bensel, Richard Franklin. 2004. *The American Ballot Box in the Mid-Nineteenth Century*. Cambridge University Press.
 
-Rosen, Ori, Wenxin Jiang, Gary King, and Martin A. Tanner. 2001. “Bayesian and Frequentist Inference for Ecological Inference: The R × C Case.” Statistica Neerlandica 55 (2): 134. https://doi.org/10.1111/1467-9574.00162.
+Goodman, Leo A. 1953. "Ecological Regressions and Behavior of Individuals." *American Sociological Review* 18 (6): 663–64. https://doi.org/10.2307/2088121.
 
-Bensel, Richard Franklin. 2004. <i>The American Ballot Box in the Mid-Nineteenth Century</i>. Cambridge University Press.
+Lau, Olivia, Ryan T. Moore, and Michael Kellermann. 2007. "eiPack: R × C Ecological Inference and Higher-Dimension Data Management." *R News* 7 (2): 43–47. https://journal.r-project.org/articles/RN-2007-018/.
 
-Renda, Lex. 1991. “The Polity and the Party System: Connecticut and New Hampshire, 1840–1876.” Ph.D. Dissertation, University of Virginia.
+Renda, Lex. 1991. "The Polity and the Party System: Connecticut and New Hampshire, 1840–1876." Ph.D. dissertation, University of Virginia.
 
-Steven Ruggles, Matt A. Nelson, Matthew Sobek, Catherine A. Fitch, Ronald Goeken, J. David Hacker, Evan Roberts, and J. Robert Warren. IPUMS Ancestry Full Count Data: Version 4.0 [dataset]. Minneapolis, MN: IPUMS, 2024. https://doi.org/10.18128/D014.V4.0
+Rosen, Ori, Wenxin Jiang, Gary King, and Martin A. Tanner. 2001. "Bayesian and Frequentist Inference for Ecological Inference: The R × C Case." *Statistica Neerlandica* 55 (2): 134–56. https://doi.org/10.1111/1467-9574.00162.
+
+Ruggles, Steven, Matt A. Nelson, Matthew Sobek, Catherine A. Fitch, Ronald Goeken, J. David Hacker, Evan Roberts, and J. Robert Warren. 2024. *IPUMS Ancestry Full Count Data: Version 4.0* [dataset]. Minneapolis, MN: IPUMS. https://doi.org/10.18128/D014.V4.0.
